@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PACO - Reports / Dashboard / and more</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-card: rgba(255, 255, 255, 0.6);
+            --bg-card-hover: rgba(255, 255, 255, 0.82);
+            --accent: #2E86DE;
+            --accent-secondary: #48BAFE;
+            --text-primary: #1A3A5C;
+            --text-secondary: #3B6B96;
+            --text-muted: #6A9BC7;
+            --border: rgba(255, 255, 255, 0.55);
+            --border-hover: rgba(46, 134, 222, 0.35);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Instrument Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: var(--text-primary);
+            background: var(--sky-gradient, linear-gradient(180deg, #5DADE2 0%, #85C1E9 20%, #AED6F1 45%, #D6EAF8 70%, #EBF5FB 100%));
+            transition: background 1.5s ease;
+        }
+
+        /* ── Landscape scenes ── */
+        body.scene-bluesky {
+            --sky-gradient: linear-gradient(180deg, #5DADE2 0%, #85C1E9 20%, #AED6F1 45%, #D6EAF8 70%, #EBF5FB 100%);
+        }
+        body.scene-forest {
+            --sky-gradient: linear-gradient(180deg, #A8D8B9 0%, #C5E0CD 25%, #D9E8DD 50%, #E8F1EA 80%, #F0F5F1 100%);
+            --text-primary: #1E3A2E;
+            --text-secondary: #355C46;
+            --text-muted: #5C8268;
+        }
+        body.scene-ocean {
+            --sky-gradient: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 30%, #B8E2EE 55%, #5BA8C9 70%, #2E7AA5 100%);
+            --text-primary: #0F3A5C;
+            --text-secondary: #2B5878;
+            --text-muted: #5688A8;
+        }
+        body.scene-mountain {
+            --sky-gradient: linear-gradient(180deg, #6B92B8 0%, #94B5D2 25%, #BCD2E2 55%, #DAE5EE 85%, #E8EFF4 100%);
+            --text-primary: #1F3A52;
+            --text-secondary: #3D5872;
+            --text-muted: #6A85A0;
+        }
+        body.scene-countryside {
+            --sky-gradient: linear-gradient(180deg, #87BEDC 0%, #A8D0E2 25%, #C8E1ED 50%, #E0EDF3 80%, #EEF5F8 100%);
+            --text-primary: #2D3F1E;
+            --text-secondary: #4D5F38;
+            --text-muted: #7A8B65;
+        }
+        body.scene-ricefields {
+            --sky-gradient: linear-gradient(180deg, #B5D9E5 0%, #D5E8ED 30%, #E5EDDB 55%, #D8DFA8 80%, #B8C76A 100%);
+            --text-primary: #2E3A0F;
+            --text-secondary: #4F5C20;
+            --text-muted: #7A8540;
+        }
+        body.scene-desert {
+            --sky-gradient: linear-gradient(180deg, #E8B58A 0%, #EFC79E 25%, #F5D6B0 50%, #F8DDB8 80%, #F5C99A 100%);
+            --text-primary: #5C2E12;
+            --text-secondary: #804520;
+            --text-muted: #A57040;
+        }
+        body.scene-city {
+            --sky-gradient: linear-gradient(180deg, #2C3E66 0%, #6A4C7A 18%, #C16B7A 38%, #F08C5A 60%, #FBC78D 82%, #FDE4B4 100%);
+            --text-primary: #2C1F45;
+            --text-secondary: #4E3B65;
+            --text-muted: #7C6A8E;
+        }
+
+        /* ── Scenery SVG layer (drawn over the sky gradient) ── */
+        .scenery {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .scenery svg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Hide default clouds/sun on scenes that have their own scenery */
+        body.scene-forest .sun, body.scene-forest .cloud,
+        body.scene-mountain .cloud,
+        body.scene-city .sun, body.scene-city .cloud,
+        body.scene-desert .cloud { display: none; }
+        body.scene-city .haze, body.scene-forest .haze { display: none; }
+        body.scene-desert .sun {
+            background: radial-gradient(circle, rgba(255,220,150,0.95) 0%, rgba(240,180,90,0.55) 40%, transparent 70%);
+            top: 30%; right: 20%;
+        }
+        body.scene-ocean .sun {
+            top: 50%; right: 18%;
+            background: radial-gradient(circle, rgba(255,240,180,0.9) 0%, rgba(255,200,120,0.5) 40%, transparent 70%);
+        }
+        body.scene-ricefields .sun {
+            top: 35%; right: 15%;
+            background: radial-gradient(circle, rgba(255,235,170,0.85) 0%, rgba(240,200,120,0.45) 40%, transparent 70%);
+        }
+        body.scene-countryside .sun {
+            top: 35%; right: 15%;
+        }
+
+        /* ── Sky & Cloud System ── */
+        .sky {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .sun {
+            position: absolute;
+            top: 40px;
+            right: 12%;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,244,200,0.95) 0%, rgba(255,223,120,0.5) 40%, transparent 70%);
+            box-shadow: 0 0 80px 40px rgba(255,223,120,0.25), 0 0 160px 80px rgba(255,200,80,0.1);
+            animation: sunPulse 6s ease-in-out infinite;
+        }
+
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.08); opacity: 1; }
+        }
+
+        .sun::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 300px; height: 300px;
+            transform: translate(-50%, -50%);
+            background: conic-gradient(from 0deg, transparent 0deg, rgba(255,230,150,0.06) 10deg, transparent 20deg, transparent 30deg, rgba(255,230,150,0.04) 40deg, transparent 50deg);
+            border-radius: 50%;
+            animation: rotateSlow 30s linear infinite;
+        }
+
+        @keyframes rotateSlow { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+            filter: blur(0.5px);
+        }
+        .cloud::before, .cloud::after {
+            content: ''; position: absolute; background: white; border-radius: 50%;
+        }
+
+        .cloud-1 { width: 220px; height: 60px; top: 10%; animation: driftRight 50s linear infinite; opacity: 0.92; filter: blur(0px); }
+        .cloud-1::before { width: 100px; height: 100px; top: -55px; left: 40px; }
+        .cloud-1::after { width: 80px; height: 80px; top: -35px; left: 110px; }
+
+        .cloud-2 { width: 180px; height: 45px; top: 22%; animation: driftLeft 65s linear infinite; opacity: 0.8; }
+        .cloud-2::before { width: 70px; height: 70px; top: -40px; left: 30px; }
+        .cloud-2::after { width: 60px; height: 60px; top: -25px; left: 90px; }
+
+        .cloud-3 { width: 120px; height: 30px; top: 6%; animation: driftRight 80s linear infinite; animation-delay: -20s; opacity: 0.55; filter: blur(1px); }
+        .cloud-3::before { width: 50px; height: 50px; top: -30px; left: 20px; }
+        .cloud-3::after { width: 40px; height: 40px; top: -18px; left: 60px; }
+
+        .cloud-4 { width: 260px; height: 55px; top: 35%; animation: driftLeft 70s linear infinite; animation-delay: -10s; opacity: 0.7; filter: blur(0.5px); }
+        .cloud-4::before { width: 90px; height: 90px; top: -50px; left: 55px; }
+        .cloud-4::after { width: 70px; height: 70px; top: -30px; left: 140px; }
+
+        .cloud-5 { width: 150px; height: 28px; top: 15%; animation: driftRight 90s linear infinite; animation-delay: -40s; opacity: 0.45; filter: blur(1.5px); }
+        .cloud-5::before { width: 45px; height: 45px; top: -25px; left: 25px; }
+        .cloud-5::after { width: 55px; height: 55px; top: -28px; left: 75px; }
+
+        .cloud-6 { width: 300px; height: 50px; top: 55%; animation: driftRight 55s linear infinite; animation-delay: -15s; opacity: 0.35; filter: blur(2px); }
+        .cloud-6::before { width: 110px; height: 80px; top: -45px; left: 60px; }
+        .cloud-6::after { width: 90px; height: 70px; top: -30px; left: 160px; }
+
+        @keyframes driftRight {
+            0% { left: -320px; opacity: 0; }
+            5% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { left: 110%; opacity: 0; }
+        }
+        @keyframes driftLeft {
+            0% { right: -320px; left: auto; opacity: 0; }
+            5% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { right: 110%; left: auto; opacity: 0; }
+        }
+
+        .haze {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 40%;
+            background: linear-gradient(to top, rgba(255,255,255,0.35) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        /* ── Layout ── */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 52px 0 0;
+            text-align: center;
+            animation: fadeDown 1s ease-out;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .paco-logo {
+            display: block;
+            width: 20vw;
+            height: auto;
+            margin: 0 auto 8px;
+            filter: drop-shadow(0 4px 16px rgba(46, 134, 222, 0.25));
+            transition: filter 1.2s ease;
+            /* default (day) colors */
+            --logo-light: #5DD6FA;
+            --logo-dark: #125C9F;
+        }
+        @media (max-width: 640px) {
+            .paco-logo { width: 40vw; }
+        }
+
+        /* Per-scene logo recoloring */
+        body.scene-forest .paco-logo {
+            --logo-light: #B8E6C5;
+            --logo-dark: #1F4D2E;
+            filter: drop-shadow(0 4px 14px rgba(31, 77, 46, 0.3));
+        }
+        body.scene-ocean .paco-logo {
+            --logo-light: #B8E8F5;
+            --logo-dark: #0F4870;
+            filter: drop-shadow(0 4px 16px rgba(15, 72, 112, 0.35));
+        }
+        body.scene-mountain .paco-logo {
+            --logo-light: #DCE7F2;
+            --logo-dark: #1F3A52;
+            filter: drop-shadow(0 4px 14px rgba(31, 58, 82, 0.25));
+        }
+        body.scene-countryside .paco-logo {
+            --logo-light: #D8E8B5;
+            --logo-dark: #3D5A1E;
+            filter: drop-shadow(0 4px 14px rgba(61, 90, 30, 0.28));
+        }
+        body.scene-ricefields .paco-logo {
+            --logo-light: #E5EDC0;
+            --logo-dark: #4D5A20;
+            filter: drop-shadow(0 4px 14px rgba(77, 90, 32, 0.3));
+        }
+        body.scene-desert .paco-logo {
+            --logo-light: #FFD89A;
+            --logo-dark: #7A3818;
+            filter: drop-shadow(0 4px 16px rgba(122, 56, 24, 0.3));
+        }
+        body.scene-city .paco-logo {
+            --logo-light: #FFD89A;
+            --logo-dark: #4A2A5C;
+            filter: drop-shadow(0 4px 18px rgba(74, 42, 92, 0.4));
+        }
+
+.subtitle {
+            font-size: 17px;
+            color: var(--text-secondary);
+            margin-top: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .divider {
+            width: 80px; height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            margin: 32px auto;
+            border-radius: 3px;
+            box-shadow: 0 2px 10px rgba(46,134,222,0.2);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0 80px;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            width: 100%;
+        }
+
+        .link-card {
+            position: relative;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 32px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 8px 32px rgba(31, 97, 150, 0.08);
+        }
+
+        .link-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .link-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 24px 64px rgba(31, 97, 150, 0.15), 0 0 0 1px var(--border-hover);
+        }
+
+        .card-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card-icon.blue {
+            background: linear-gradient(135deg, rgba(46,134,222,0.15), rgba(72,186,254,0.1));
+            color: var(--accent);
+            border: 1px solid rgba(46,134,222,0.2);
+        }
+
+        .card-icon.cyan {
+            background: linear-gradient(135deg, rgba(72,186,254,0.15), rgba(46,134,222,0.1));
+            color: #1A8FE3;
+            border: 1px solid rgba(72,186,254,0.25);
+        }
+
+        .card-icon.green {
+            background: linear-gradient(135deg, rgba(39,174,96,0.15), rgba(46,204,113,0.1));
+            color: #27AE60;
+            border: 1px solid rgba(39,174,96,0.2);
+        }
+
+        .card-icon.orange {
+            background: linear-gradient(135deg, rgba(243,156,18,0.15), rgba(241,196,15,0.1));
+            color: #F39C12;
+            border: 1px solid rgba(243,156,18,0.2);
+        }
+
+        .card-icon.purple {
+            background: linear-gradient(135deg, rgba(142,68,173,0.15), rgba(155,89,182,0.1));
+            color: #8E44AD;
+            border: 1px solid rgba(142,68,173,0.2);
+        }
+
+        .card-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 22px;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .card-arrow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: auto;
+            padding-top: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: gap 0.3s ease;
+        }
+
+        .link-card:hover .card-arrow { gap: 14px; }
+
+        footer {
+            text-align: center;
+            padding: 24px 0;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .link-card:nth-child(1) { animation: fadeUp 0.8s ease-out 0.3s both; }
+        .link-card:nth-child(2) { animation: fadeUp 0.8s ease-out 0.5s both; }
+        .link-card:nth-child(3) { animation: fadeUp 0.8s ease-out 0.7s both; }
+        .link-card:nth-child(4) { animation: fadeUp 0.8s ease-out 0.9s both; }
+        .link-card:nth-child(5) { animation: fadeUp 0.8s ease-out 1.1s both; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sparkle {
+            position: fixed;
+            width: 4px; height: 4px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: float 8s ease-in-out infinite;
+        }
+        .sparkle:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; animation-duration: 7s; }
+        .sparkle:nth-child(2) { top: 40%; left: 85%; animation-delay: 2s; animation-duration: 9s; width: 3px; height: 3px; }
+        .sparkle:nth-child(3) { top: 60%; left: 25%; animation-delay: 4s; animation-duration: 6s; width: 5px; height: 5px; opacity: 0.6; }
+        .sparkle:nth-child(4) { top: 15%; left: 65%; animation-delay: 1s; animation-duration: 10s; }
+        .sparkle:nth-child(5) { top: 70%; left: 75%; animation-delay: 3s; animation-duration: 8s; width: 3px; height: 3px; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+            50% { transform: translateY(-20px) scale(1.5); opacity: 0.9; }
+        }
+
+        @media (max-width: 640px) {
+            .links-grid { grid-template-columns: 1fr; }
+            header { padding-top: 36px; }
+            .link-card { padding: 32px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sky">
+        <div class="sun"></div>
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="cloud cloud-4"></div>
+        <div class="cloud cloud-5"></div>
+        <div class="cloud cloud-6"></div>
+        <div class="haze"></div>
+    </div>
+
+    <div class="scenery" id="scenery"></div>
+
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+
+    <div class="container">
+        <header>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1510 1202" class="paco-logo" aria-label="PACO">
+              <g transform="translate(0.000000,1202.000000) scale(0.100000,-0.100000)" fill="var(--logo-light, #5DD6FA)" stroke="none">
+                <path d="M7495 11630 c-114 -23 -179 -44 -445 -140 -307 -111 -921 -333 -1080
+            -390 -429 -155 -624 -226 -785 -285 -240 -88 -587 -214 -940 -342 -159 -57
+            -339 -122 -400 -144 -60 -23 -596 -218 -1190 -434 -1880 -685 -1753 -637
+            -1866 -696 -416 -216 -546 -772 -255 -1087 120 -129 254 -178 461 -169 150 6
+            194 18 566 152 162 59 443 160 624 225 182 65 537 193 790 285 253 92 622 224
+            820 295 849 302 1746 622 1820 649 44 17 222 80 395 141 173 61 351 124 395
+            140 916 335 1097 392 1261 398 197 7 250 -7 829 -218 94 -34 231 -84 305 -110
+            74 -27 342 -124 595 -215 253 -92 523 -188 600 -215 275 -94 506 -181 751
+            -281 320 -130 578 -233 629 -249 41 -13 418 -159 725 -280 96 -38 263 -103
+            370 -145 107 -42 285 -112 395 -155 1017 -402 1073 -420 1264 -420 168 0 280
+            38 385 131 296 265 245 794 -106 1078 -83 67 -155 101 -463 216 -301 112 -312
+            116 -630 242 -541 214 -676 269 -810 326 -77 32 -180 74 -230 92 -49 18 -137
+            54 -195 80 -363 161 -433 188 -1530 587 -892 324 -1522 553 -1840 670 -135 49
+            -342 125 -460 168 -333 122 -525 147 -755 100z m369 -215 c125 -22 207 -51
+            1626 -575 58 -21 273 -100 477 -175 205 -75 477 -177 605 -226 290 -113 655
+            -250 728 -273 30 -10 78 -28 105 -41 28 -12 91 -39 140 -60 50 -20 106 -45
+            125 -55 60 -32 171 -80 268 -116 51 -18 105 -40 120 -48 15 -9 63 -29 107 -45
+            44 -17 167 -64 273 -106 106 -41 264 -102 350 -135 86 -32 175 -66 197 -74
+            135 -52 843 -316 955 -356 216 -77 301 -120 384 -199 184 -173 219 -494 71
+            -659 -136 -151 -319 -147 -740 15 -93 36 -240 92 -325 124 -262 97 -530 201
+            -885 341 -508 202 -845 332 -990 384 -155 55 -427 162 -545 214 -264 116 -560
+            229 -1135 431 -289 101 -361 127 -785 284 -971 361 -1084 395 -1290 395 -204
+            0 -116 27 -1575 -492 -324 -115 -702 -249 -840 -298 -353 -126 -2152 -768
+            -2435 -870 -74 -26 -263 -94 -420 -150 -157 -57 -463 -167 -680 -245 -632
+            -228 -717 -252 -850 -234 -173 24 -283 147 -298 331 -16 210 111 415 319 517
+            70 34 603 233 1114 416 66 24 293 106 505 183 212 77 691 251 1065 387 374
+            136 770 280 880 320 110 40 355 129 545 198 190 69 552 200 805 292 1222 443
+            1522 551 1589 570 156 45 297 55 440 30z"/><path d="M9825 11141 c28 -10 120 -44 205 -74 85 -30 164 -58 175 -62 18 -7
+            18 -6 5 8 -25 26 -327 132 -405 143 -21 3 -15 -2 20 -15z"/><path d="M4295 10696 c-49 -18 -129 -47 -176 -64 -85 -29 -144 -60 -135 -69 2
+            -3 14 0 25 6 18 10 348 131 411 151 24 8 24 8 -5 8 -16 0 -70 -15 -120 -32z"/><path d="M11870 10370 c12 -16 33 -33 48 -36 70 -15 150 -48 227 -93 65 -37
+            1113 -445 1230 -478 46 -13 -62 50 -124 72 -36 13 -104 38 -151 55 -47 17 -96
+            34 -110 37 -14 3 -31 10 -38 16 -14 11 -86 38 -162 62 -25 7 -81 27 -125 44
+            -44 17 -85 31 -90 31 -6 0 -26 8 -45 19 -19 10 -53 24 -75 31 -22 7 -47 18
+            -55 25 -8 7 -26 16 -40 20 -23 7 -167 74 -200 94 -24 15 -131 57 -190 76 -30
+            10 -67 26 -82 36 -37 27 -43 24 -18 -11z"/><path d="M3220 10302 c-41 -12 -88 -29 -105 -37 -16 -8 -64 -26 -105 -41 -126
+            -44 -140 -50 -152 -62 -18 -18 -19 -18 212 67 118 43 222 80 230 83 7 2 10 6
+            5 9 -6 3 -44 -6 -85 -19z"/><path d="M8260 9896 c8 -7 80 -36 160 -64 80 -28 168 -58 195 -68 28 -9 66
+            -25 85 -35 20 -10 54 -22 75 -28 49 -12 121 -36 198 -67 32 -13 66 -20 75 -17
+            13 6 12 8 -8 14 -14 4 -196 68 -404 143 -406 146 -398 143 -376 122z"/><path d="M1645 9730 c-27 -9 -57 -19 -65 -23 -18 -7 -84 -32 -160 -58 -30 -11
+            -68 -26 -85 -34 -36 -17 -57 -25 -110 -41 -22 -6 -83 -29 -135 -49 -52 -20
+            -107 -39 -122 -42 -25 -5 -61 -33 -42 -33 9 0 120 40 314 112 130 49 438 162
+            462 170 7 3 8 7 3 10 -6 2 -32 -3 -60 -12z"/><path d="M13716 9643 c-8 -9 55 -34 359 -144 239 -86 390 -152 427 -186 10 -9
+            21 -14 24 -11 16 17 -184 127 -261 144 -16 4 -35 10 -40 15 -10 7 -33 16 -165
+            64 -193 69 -247 89 -265 100 -26 17 -70 26 -79 18z"/><path d="M9815 9334 c11 -8 31 -17 45 -21 14 -3 43 -14 66 -24 22 -10 47 -19
+            55 -19 8 0 23 -7 33 -15 11 -8 30 -15 42 -15 12 0 66 -16 120 -36 55 -20 137
+            -49 184 -65 47 -16 94 -34 105 -41 27 -15 113 -37 119 -30 6 6 -164 69 -476
+            177 -102 35 -209 74 -237 85 -61 24 -84 25 -56 4z"/><path d="M14560 9264 c0 -5 25 -34 56 -64 161 -160 267 -414 267 -645 0 -65 4
+            -110 8 -100 10 26 11 239 2 249 -4 4 -8 23 -10 42 -1 20 -6 41 -11 47 -5 7
+            -12 24 -16 40 -11 45 -76 178 -122 247 -42 64 -174 204 -174 184z"/><path d="M10934 8921 c21 -11 43 -24 50 -29 6 -5 22 -13 36 -17 14 -4 62 -25
+            106 -46 45 -22 87 -39 93 -39 6 0 22 -7 35 -15 12 -8 69 -31 127 -50 57 -20
+            113 -40 124 -44 67 -28 244 -91 256 -91 18 0 -121 63 -226 101 -113 42 -235
+            89 -272 105 -17 8 -34 14 -37 14 -3 0 -39 16 -80 35 -41 19 -78 35 -81 35 -4
+            0 -31 11 -60 25 -72 32 -127 45 -71 16z"/><path d="M3257 8524 c-3 -4 -104 -42 -224 -85 -158 -57 -204 -78 -169 -74 27
+            3 58 11 69 17 11 5 63 26 116 45 53 18 116 41 141 50 56 20 111 53 89 53 -9 0
+            -19 -3 -22 -6z"/><path d="M11980 8504 c30 -14 62 -29 70 -35 17 -10 26 -15 130 -58 41 -17 83
+            -31 92 -31 9 0 19 -4 22 -9 3 -4 18 -11 34 -14 16 -3 58 -19 93 -36 72 -34
+            146 -61 170 -61 8 0 20 -5 27 -12 14 -14 67 -34 142 -55 84 -23 101 -54 37
+            -66 -12 -2 20 -3 70 -3 51 0 90 3 85 7 -6 7 -216 91 -432 174 -82 32 -254 99
+            -470 184 -115 45 -157 54 -70 15z"/><path d="M14843 8278 c-30 -114 -114 -252 -199 -327 -52 -45 -45 -57 8 -13 98
+            81 212 276 206 351 -3 36 -3 36 -15 -11z"/><path d="M11180 8130 c300 -10 555 -11 547 -4 -3 4 -178 7 -389 9 -325 2 -349
+            1 -158 -5z"/><path d="M1900 7927 c-219 -74 -360 -278 -360 -520 0 -250 159 -458 400 -522
+            71 -19 11102 -23 11192 -4 266 55 448 339 393 613 -43 212 -179 371 -370 432
+            -115 37 -11148 38 -11255 1z m11218 -226 c256 -116 238 -516 -27 -593 -38 -11
+            -987 -13 -5566 -13 -5520 0 -5520 0 -5575 26 -106 50 -160 122 -178 234 -28
+            174 71 334 228 366 19 4 2517 6 5550 5 5515 -1 5515 -1 5568 -25z"/><path d="M13526 7889 c85 -93 174 -289 174 -381 0 -17 4 -27 10 -23 24 15 -26
+            191 -83 292 -43 76 -34 97 30 65 21 -11 44 -17 51 -15 7 3 19 0 27 -7 8 -6 19
+            -8 26 -4 7 4 -39 25 -107 49 -65 24 -128 46 -139 50 -15 6 -13 0 11 -26z"/><path d="M1675 6800 c22 -24 125 -75 180 -89 22 -5 57 -14 78 -19 57 -15 72
+            -30 51 -53 -23 -25 -18 -24 59 11 37 17 73 30 81 30 8 0 17 4 21 9 3 6 -32 10
+            -87 10 -132 0 -343 63 -373 111 -3 5 -11 10 -17 10 -6 0 -3 -9 7 -20z"/><path d="M3900 6660 c92 -32 104 -35 96 -21 -3 4 3 16 14 26 19 17 44 18 387
+            12 203 -4 386 -3 408 2 24 5 -161 9 -475 9 -515 1 -515 1 -430 -28z"/><path d="M5060 6678 c113 -4 220 -8 239 -8 47 1 67 -17 45 -41 -23 -26 -20
+            -25 71 21 80 40 80 40 -240 38 -320 -1 -320 -1 -115 -10z"/><path d="M6571 6646 c68 -46 86 -51 51 -13 -14 15 -18 27 -12 33 10 10 1683
+            10 1700 -1 8 -5 6 -13 -6 -26 -25 -27 -7 -24 77 16 74 34 74 34 -900 35 -975
+            0 -975 0 -910 -44z"/><path d="M9831 6686 c2 -2 45 -21 94 -41 50 -21 96 -43 103 -48 7 -5 15 -7 18
+            -4 3 3 -13 18 -36 32 -31 20 -39 30 -31 38 14 14 1230 18 1249 4 10 -8 9 -14
+            -5 -30 -20 -23 -25 -24 77 18 36 15 67 29 69 31 2 2 -344 4 -769 4 -425 0
+            -771 -2 -769 -4z"/><path d="M12710 6683 c8 -3 41 -18 73 -34 65 -33 74 -35 58 -15 -20 24 9 34
+            129 44 115 9 115 9 -80 10 -107 0 -188 -2 -180 -5z"/><path d="M8943 6629 c-501 -48 -990 -333 -1279 -746 -206 -294 -364 -801 -364
+            -1169 0 -106 -35 -108 -59 -4 -30 129 -84 317 -96 336 -8 12 -27 70 -43 130
+            -41 147 -141 438 -195 565 -24 57 -59 145 -77 194 -67 183 -160 333 -279 450
+            -28 27 -51 57 -51 66 0 9 -15 28 -32 41 -246 187 -797 157 -1090 -60 -197
+            -145 -385 -486 -575 -1042 -98 -286 -103 -289 -122 -65 -58 693 -412 1099
+            -1078 1239 -419 87 -1159 58 -1465 -58 -197 -74 -343 -231 -406 -436 -100
+            -327 -139 -1505 -77 -2326 40 -521 64 -627 179 -780 147 -197 454 -289 746
+            -225 378 83 538 366 502 886 -6 83 -6 145 -1 151 5 7 68 13 157 17 507 20 868
+            202 1150 580 90 122 102 111 66 -63 -14 -69 -38 -201 -54 -293 -26 -159 -46
+            -217 -70 -202 -14 9 -29 -21 -45 -86 -9 -35 -23 -82 -30 -104 -134 -378 55
+            -758 435 -877 118 -37 352 -34 467 5 259 89 418 319 458 662 13 109 5 105 229
+            105 206 0 226 -5 226 -54 0 -107 79 -343 151 -450 261 -391 927 -398 1179 -12
+            91 141 119 337 81 581 -15 99 5 120 46 50 192 -327 389 -535 660 -697 478
+            -288 1182 -317 1678 -71 316 157 582 454 640 716 27 124 34 123 109 -17 297
+            -552 841 -866 1503 -866 688 0 1165 359 1435 1080 165 444 193 1006 73 1481
+            -163 641 -552 1122 -1045 1291 -370 127 -936 96 -1265 -70 -324 -163 -551
+            -393 -720 -730 -75 -150 -84 -152 -104 -24 -50 327 -243 569 -587 737 -275
+            135 -634 196 -961 164z m442 -234 c292 -44 531 -157 700 -330 268 -273 236
+            -707 -62 -848 -66 -31 -73 -32 -193 -32 -173 1 -231 26 -402 177 -99 87 -157
+            116 -259 129 -387 52 -659 -282 -659 -808 0 -517 281 -857 663 -803 121 18
+            165 46 332 215 185 189 206 199 385 200 104 0 120 -3 172 -27 250 -117 328
+            -450 176 -752 -112 -224 -403 -450 -683 -531 -629 -182 -1377 61 -1707 554
+            -504 755 -389 1936 244 2506 134 120 446 277 649 325 177 42 459 53 644 25z
+            m2860 4 c738 -90 1228 -784 1230 -1744 1 -836 -351 -1467 -928 -1659 -198 -65
+            -524 -84 -747 -43 -894 167 -1376 1075 -1169 2202 129 702 590 1186 1189 1248
+            82 9 342 6 425 -4z m-8924 -19 c758 -77 1138 -467 1139 -1171 0 -274 -60 -442
+            -249 -696 -274 -368 -581 -498 -1170 -496 -224 1 -224 1 -218 -65 4 -37 13
+            -139 22 -227 40 -436 -7 -619 -183 -713 -225 -120 -563 -61 -670 118 -76 127
+            -108 399 -134 1127 -17 472 17 1343 62 1629 39 246 152 376 376 433 240 61
+            735 90 1025 61z m2804 0 c4 -6 10 -8 15 -5 5 3 11 1 14 -4 6 -9 92 -26 114
+            -22 29 5 115 -74 185 -168 49 -66 158 -293 220 -456 25 -66 53 -138 63 -160
+            10 -22 19 -44 20 -50 2 -5 18 -51 38 -102 34 -92 58 -174 115 -398 17 -66 58
+            -217 91 -335 205 -726 299 -1213 270 -1394 -34 -214 -196 -335 -450 -336 -234
+            0 -409 120 -480 330 -12 35 -35 145 -51 244 -16 100 -32 189 -35 199 -5 16
+            -33 17 -409 17 -376 0 -404 -1 -409 -17 -3 -10 -19 -103 -36 -207 -48 -288
+            -84 -384 -179 -469 -150 -135 -484 -128 -644 13 -109 95 -156 285 -108 440 11
+            36 47 173 80 305 86 344 195 719 235 807 19 42 59 154 90 250 30 95 82 260
+            116 367 106 334 248 666 362 843 111 174 274 273 503 308 77 12 263 11 270 0z
+            m3075 -1129 c24 -12 71 -48 104 -78 309 -282 720 -298 1002 -39 87 80 101 75
+            85 -25 -33 -206 -49 -546 -32 -681 10 -79 -1 -85 -62 -36 -184 144 -450 179
+            -675 86 -100 -41 -173 -99 -281 -222 -141 -162 -238 -193 -377 -123 -326 165
+            -299 1025 35 1132 63 20 147 14 201 -14z"/><path d="M11961 5555 c-253 -71 -401 -372 -418 -851 -16 -454 118 -786 353
+            -873 184 -69 362 -40 482 77 249 244 287 1066 66 1434 -113 190 -289 267 -483
+            213z m158 -211 c53 -11 117 -77 161 -168 127 -263 114 -815 -26 -1053 -72
+            -123 -234 -149 -334 -54 -184 175 -214 788 -54 1115 63 130 145 181 253 160z"/><path d="M12027 5123 c-42 -83 -88 -267 -86 -342 1 -40 13 -1 28 89 24 147 85
+            301 112 285 24 -15 70 -155 89 -270 21 -130 30 -159 24 -76 -7 113 -32 219
+            -67 291 -42 86 -66 91 -100 23z"/><path d="M11950 4431 c0 -26 42 -156 63 -193 37 -67 70 -61 112 21 41 82 74
+            221 35 148 -11 -20 -20 -47 -20 -60 0 -28 -61 -122 -79 -122 -8 0 -19 9 -25
+            20 -5 11 -18 32 -27 46 -10 15 -21 43 -25 64 -7 41 -34 99 -34 76z"/><path d="M2950 5629 c-148 -26 -152 -40 -154 -464 0 -352 3 -374 59 -394 57
+            -20 262 -19 342 2 220 58 335 211 336 447 1 199 -99 342 -277 396 -63 19 -233
+            26 -306 13z m222 -229 c168 -47 185 -300 25 -381 -56 -29 -144 -44 -164 -28
+            -18 15 -9 383 9 407 13 15 79 16 130 2z"/><path d="M5796 5405 c-26 -57 -68 -190 -160 -510 -84 -291 -97 -351 -94 -414
+            3 -56 3 -56 296 -59 350 -3 336 -6 327 86 -33 325 -186 834 -280 928 -39 39
+            -60 31 -89 -31z m95 -685 c11 -48 0 -70 -36 -70 -36 0 -45 20 -33 70 21 85 50
+            85 69 0z"/><path d="M9053 5099 c-50 -18 -109 -133 -133 -257 -17 -86 -6 -89 14 -4 17 74
+            67 196 93 224 26 29 82 23 131 -13 23 -17 42 -34 42 -39 0 -12 81 -70 98 -70
+            8 0 -3 13 -24 29 -21 15 -50 41 -64 56 -55 59 -117 89 -157 74z"/><path d="M4020 6623 c0 -4 28 -21 62 -38 109 -53 236 -143 329 -232 111 -107
+            125 -106 21 2 -77 80 -180 158 -270 205 -26 14 -59 32 -73 41 -31 21 -69 33
+            -69 22z"/><path d="M12944 6567 c76 -48 198 -148 289 -239 59 -58 107 -105 107 -102 0
+            43 -251 276 -363 336 -36 19 -62 23 -33 5z"/><path d="M6748 6448 c-4 -8 10 -36 31 -64 65 -86 127 -196 199 -357 67 -148
+            202 -492 202 -516 0 -6 4 -11 10 -11 5 0 2 21 -6 48 -9 26 -19 61 -24 77 -13
+            49 -65 185 -97 255 -16 36 -40 90 -53 120 -12 30 -40 90 -61 132 -22 42 -39
+            83 -39 91 0 8 -6 20 -13 26 -8 6 -28 39 -46 73 -41 81 -95 147 -103 126z"/><path d="M4630 6098 c0 -2 24 -53 54 -113 29 -61 59 -127 66 -147 16 -52 23
+            -48 53 29 30 76 29 91 -2 37 -28 -47 -39 -38 -98 83 -37 76 -73 131 -73 111z"/><path d="M1514 5933 c-3 -26 -11 -53 -16 -59 -10 -14 -28 -281 -27 -404 1 -63
+            5 -35 15 105 7 105 21 237 30 293 8 57 13 106 11 109 -3 3 -9 -17 -13 -44z"/><path d="M7447 5883 c-28 -41 -91 -153 -108 -193 -6 -14 -16 -32 -24 -40 -7
+            -8 -16 -31 -20 -50 -4 -19 -14 -48 -22 -64 -9 -17 -11 -32 -6 -37 6 -6 15 7
+            22 33 15 49 130 282 168 340 14 21 24 41 21 43 -3 3 -17 -12 -31 -32z"/><path d="M13824 5165 c2 -16 13 -91 25 -165 16 -102 21 -189 23 -355 2 -220 2
+            -220 8 -30 9 259 -5 424 -46 540 -12 33 -14 34 -10 10z"/><path d="M1446 5133 c-8 -49 -6 -1049 3 -1087 3 -17 6 230 6 547 0 317 -1 577
+            -1 577 -1 0 -4 -17 -8 -37z"/><path d="M4130 3877 c-226 -135 -520 -233 -763 -254 -78 -6 -80 -7 -42 -15 22
+            -5 54 -6 70 -3 17 3 81 15 142 25 62 11 121 24 130 29 10 5 65 25 123 44 137
+            46 175 60 191 74 8 6 25 14 39 18 14 4 32 13 40 19 88 72 116 61 107 -41 -8
+            -77 -13 -84 -63 -89 -49 -4 -51 -8 -56 -84 -3 -36 -3 -55 -1 -43 7 36 25 43
+            81 34 63 -10 65 -6 56 106 -5 58 -3 87 5 97 7 8 11 37 9 68 -3 54 -3 54 -68
+            15z"/><path d="M5787 3343 c-4 -3 -7 -16 -7 -27 0 -20 0 -20 21 1 15 15 27 19 38 13
+            9 -5 24 -11 33 -14 20 -6 39 -49 56 -126 12 -52 48 -127 57 -118 3 2 -4 27
+            -15 56 -11 28 -29 90 -41 137 -21 85 -21 85 -79 85 -31 0 -60 -3 -63 -7z"/><path d="M13500 3268 c-62 -119 -245 -328 -368 -420 -34 -26 -58 -49 -53 -52
+            5 -3 14 1 21 9 7 8 17 15 22 15 26 0 213 180 261 250 16 25 42 59 57 75 32 34
+            85 133 77 141 -3 3 -11 -5 -17 -18z"/><path d="M10381 3038 c-129 -136 -273 -241 -454 -333 -149 -75 -149 -75 679
+            -75 455 0 825 2 823 4 -2 2 -44 20 -94 41 -156 64 -339 178 -464 289 -41 36
+            -77 64 -79 61 -17 -17 152 -157 285 -236 57 -33 105 -65 108 -70 4 -5 14 -9
+            24 -9 11 0 29 -8 41 -18 56 -46 36 -47 -652 -47 -645 0 -674 1 -654 34 8 12
+            125 91 136 91 50 0 424 342 398 365 -2 1 -45 -42 -97 -97z"/><path d="M4089 3095 c-4 -30 34 -116 91 -205 6 -8 14 -24 19 -35 12 -27 98
+            -115 112 -115 6 0 -9 24 -33 53 -65 77 -86 110 -139 216 -27 53 -49 92 -50 86z"/><path d="M7740 3042 c0 -13 80 -92 92 -92 4 0 26 -16 48 -36 55 -49 231 -165
+            242 -158 5 3 -44 41 -109 83 -65 43 -145 102 -178 132 -81 74 -95 84 -95 71z"/><path d="M1740 2792 c0 -17 102 -113 139 -131 19 -9 33 -20 33 -26 0 -10 -4
+            -12 -52 -34 -166 -77 -312 -220 -381 -372 -37 -80 -63 -209 -46 -225 4 -4 7 6
+            7 23 0 41 36 155 70 224 90 178 236 295 454 364 16 4 7 13 -44 43 -35 20 -90
+            61 -122 91 -32 29 -58 48 -58 43z"/><path d="M5414 2687 c-23 -18 -50 -37 -60 -44 -15 -9 96 -12 509 -12 290 -1
+            527 1 527 3 0 5 -86 56 -96 56 -3 0 -1 -6 5 -14 22 -26 -8 -29 -424 -33 -453
+            -4 -455 -4 -420 51 23 34 9 32 -41 -7z"/><path d="M4375 2690 c44 -48 48 -48 -713 -46 -389 1 -713 5 -720 10 -7 4 -10
+            16 -7 27 8 24 3 24 -38 -3 -19 -13 -43 -28 -53 -35 -15 -9 166 -12 816 -12
+            835 -1 835 -1 783 29 -28 16 -54 34 -58 40 -3 5 -11 10 -17 10 -6 0 -3 -9 7
+            -20z"/><path d="M8288 2678 c29 -36 1 -38 -482 -33 -460 4 -493 6 -480 27 4 6 3 9 -2
+            6 -43 -20 -64 -33 -64 -40 0 -4 262 -8 582 -8 320 0 579 2 577 4 -2 2 -26 13
+            -54 24 -27 11 -59 23 -70 28 -17 7 -18 6 -7 -8z"/><path d="M12805 2660 c-60 -29 -60 -29 314 -30 206 0 372 2 370 4 -2 3 -138 7
+            -302 10 -308 6 -326 8 -306 32 18 22 -7 16 -76 -16z"/><path d="M2025 2450 c-408 -84 -563 -608 -266 -900 77 -75 148 -114 246 -135
+            90 -19 11428 -23 11531 -4 137 25 274 127 341 254 174 332 -22 742 -377 785
+            -103 12 -11414 12 -11475 0z m11494 -237 c210 -67 270 -364 103 -515 -21 -19
+            -61 -44 -88 -54 -75 -29 -11428 -30 -11510 -1 -270 94 -248 509 31 578 17 4
+            2591 7 5721 8 5289 1 5695 0 5743 -16z"/><path d="M13932 1211 c70 -76 130 -184 152 -276 14 -58 20 -53 16 10 -5 78
+            -172 335 -217 335 -9 0 12 -29 49 -69z"/><path d="M2035 1249 c-230 -33 -435 -285 -435 -535 0 -239 189 -471 419 -514
+            99 -18 11452 -13 11530 5 181 43 331 198 376 387 72 307 -120 616 -410 658
+            -87 12 -11392 12 -11480 -1z m11484 -236 c262 -84 254 -499 -11 -578 -46 -13
+            -671 -15 -5744 -15 -5693 0 -5693 0 -5748 20 -249 94 -241 496 13 574 76 24
+            11417 23 11490 -1z"/><path d="M14105 732 c0 -209 -54 -365 -170 -490 -31 -34 -54 -62 -50 -62 31 0
+            126 112 163 195 13 28 29 61 36 75 35 68 59 381 31 409 -7 7 -10 -36 -10 -127z"/>
+              </g>
+              <g transform="translate(0.000000,1202.000000) scale(0.100000,-0.100000)" fill="var(--logo-dark, #125C9F)" stroke="none">
+                <path d="M7565 11814 c-159 -23 -388 -90 -680 -199 -99 -37 -236 -86 -305
+            -110 -69 -23 -174 -62 -235 -85 -60 -23 -209 -77 -330 -120 -121 -43 -269 -96
+            -330 -118 -60 -22 -198 -72 -305 -110 -107 -39 -271 -100 -365 -135 -149 -56
+            -271 -100 -525 -192 -369 -133 -472 -171 -580 -211 -69 -25 -172 -63 -230 -84
+            -198 -71 -685 -248 -845 -308 -88 -33 -207 -76 -265 -97 -58 -20 -208 -74
+            -335 -120 -126 -46 -360 -131 -520 -189 -159 -57 -339 -123 -400 -146 -60 -23
+            -164 -62 -230 -85 -171 -61 -330 -127 -403 -169 -724 -411 -596 -1486 186
+            -1565 163 -17 306 4 512 74 136 46 151 38 91 -54 -93 -144 -131 -353 -95 -529
+            59 -295 355 -561 625 -562 83 0 69 -34 -36 -89 -174 -91 -304 -243 -379 -444
+            -88 -231 -130 -732 -131 -1547 0 -491 6 -663 40 -1080 38 -471 135 -682 400
+            -870 28 -20 49 -40 48 -45 -2 -11 0 -10 -113 -64 -335 -157 -487 -559 -346
+            -919 38 -97 115 -190 236 -284 35 -28 35 -28 -15 -70 -200 -170 -286 -363
+            -272 -613 16 -290 181 -511 460 -618 82 -32 82 -32 5877 -32 4953 0 5802 2
+            5845 14 352 99 561 476 476 860 -32 146 -79 229 -188 338 -93 92 -93 92 1 185
+            301 301 282 784 -41 1052 -165 137 -250 156 -691 156 -405 0 -415 3 -252 85
+            298 149 492 364 685 760 199 406 261 675 264 1150 6 866 -413 1687 -1016 1989
+            -124 62 -110 72 107 79 191 5 244 17 376 82 377 185 489 690 235 1058 -46 68
+            -30 70 132 16 451 -151 800 -90 1012 179 271 342 213 857 -136 1212 -104 105
+            -162 135 -490 254 -129 47 -353 130 -499 186 -146 55 -479 181 -740 280 -499
+            188 -663 254 -770 313 -36 20 -92 43 -125 51 -38 11 -68 26 -85 44 -14 15 -43
+            35 -65 44 -67 29 -784 294 -1035 383 -262 92 -376 134 -560 206 -69 26 -231
+            85 -360 130 -129 44 -262 92 -294 106 -32 13 -136 51 -230 84 -160 56 -285
+            101 -586 214 -328 123 -663 237 -749 256 -93 20 -350 34 -426 23z m425 -197
+            c52 -13 241 -79 420 -145 179 -66 399 -147 490 -180 91 -33 316 -115 500 -182
+            184 -67 679 -247 1100 -400 980 -356 1261 -462 1440 -542 210 -94 256 -113
+            345 -146 44 -17 130 -51 190 -77 61 -26 155 -65 210 -87 55 -22 159 -63 230
+            -92 72 -29 164 -65 205 -81 41 -16 118 -46 170 -68 117 -49 242 -97 620 -239
+            353 -132 419 -163 507 -237 345 -289 391 -807 97 -1070 -105 -93 -217 -131
+            -385 -131 -199 0 -196 -1 -1519 520 -614 242 -1013 397 -1170 455 -164 61
+            -461 178 -720 285 -184 76 -489 189 -725 270 -77 26 -347 123 -600 215 -253
+            91 -521 188 -595 215 -74 26 -211 76 -305 110 -579 211 -632 225 -829 218
+            -155 -6 -173 -11 -597 -162 -162 -57 -397 -141 -524 -186 -126 -45 -432 -154
+            -680 -242 -431 -153 -549 -195 -1355 -483 -195 -70 -488 -174 -650 -232 -398
+            -142 -365 -130 -885 -318 -253 -92 -629 -227 -835 -301 -206 -75 -456 -165
+            -555 -201 -467 -170 -602 -194 -799 -143 -353 90 -514 527 -332 895 95 192
+            234 313 466 405 106 43 3029 1108 3510 1280 74 26 198 72 275 100 77 29 176
+            65 220 80 44 15 161 58 260 95 160 59 335 123 785 285 159 57 773 279 1080
+            390 404 146 469 161 690 156 126 -3 173 -8 250 -29z m-65 -1590 c44 -13 193
+            -65 330 -115 138 -50 372 -134 520 -187 313 -112 925 -332 1135 -410 80 -29
+            156 -56 170 -60 125 -37 811 -298 947 -360 17 -8 34 -15 37 -15 4 0 41 -16 82
+            -35 41 -19 77 -35 80 -35 3 0 20 -6 37 -14 18 -8 77 -31 132 -52 55 -20 138
+            -53 185 -72 126 -50 247 -98 415 -163 83 -31 215 -83 295 -114 80 -31 183 -72
+            230 -90 321 -123 372 -147 350 -169 -15 -15 -10598 -15 -10611 0 -17 21 -16
+            21 691 275 151 54 370 132 485 174 116 41 291 104 390 139 99 36 362 130 585
+            211 223 80 486 174 585 209 99 35 315 112 480 171 165 58 399 142 520 185 121
+            44 400 143 620 220 442 156 617 219 715 255 247 92 419 107 595 52z m5230
+            -2101 c192 -61 329 -222 371 -434 53 -273 -129 -556 -394 -611 -90 -19 -11121
+            -15 -11192 4 -511 136 -540 872 -40 1042 107 37 11140 36 11255 -1z m-7745
+            -1251 c10 -12 4 -19 -35 -42 -218 -130 -374 -330 -536 -686 -67 -147 -71 -147
+            -129 -17 -123 280 -345 512 -620 650 -52 26 -106 51 -120 55 -40 12 -52 25
+            -39 41 18 22 1461 21 1479 -1z m2959 2 c15 -19 13 -20 -113 -81 -320 -156
+            -607 -413 -788 -706 -69 -113 -162 -306 -189 -390 -41 -133 -49 -130 -110 46
+            -121 353 -280 696 -382 827 -16 21 -27 41 -23 44 6 6 -59 92 -81 106 -7 4 -20
+            23 -28 41 -9 18 -34 48 -56 66 -78 62 -113 60 871 60 730 0 890 -2 899 -13z
+            m2910 -1 c14 -17 12 -19 -114 -86 -216 -116 -387 -261 -539 -458 -26 -34 -51
+            -60 -54 -58 -4 2 -34 48 -67 101 -106 172 -335 364 -535 450 -64 27 -73 35
+            -59 51 17 21 1351 21 1368 0z m-1864 -61 c631 -96 1050 -465 1082 -954 6 -94
+            6 -94 80 55 317 637 815 932 1536 911 419 -12 710 -131 983 -402 394 -391 598
+            -931 598 -1585 1 -545 -143 -1018 -425 -1395 -298 -401 -794 -596 -1357 -534
+            -600 65 -1047 370 -1327 906 -48 92 -65 106 -65 54 0 -113 -93 -314 -211 -455
+            -281 -336 -706 -516 -1216 -516 -692 0 -1267 355 -1585 978 -42 82 -58 106
+            -54 82 65 -400 56 -565 -37 -730 -229 -407 -928 -416 -1195 -16 -76 114 -122
+            249 -157 469 -6 37 -6 37 -220 37 -118 0 -215 -3 -215 -7 0 -31 -35 -215 -55
+            -292 -63 -237 -208 -396 -430 -472 -102 -35 -344 -35 -455 -1 -304 95 -475
+            329 -473 647 0 50 7 117 16 150 60 232 73 270 92 270 38 1 45 21 79 225 19
+            113 49 267 66 344 17 76 29 140 28 142 -2 1 -31 -38 -65 -89 -281 -418 -663
+            -623 -1203 -646 -155 -6 -155 -6 -150 -111 21 -434 -21 -609 -184 -774 -131
+            -133 -264 -181 -501 -181 -309 0 -512 112 -632 348 -166 329 -188 2482 -31
+            2997 66 215 229 382 438 448 319 102 990 129 1390 56 532 -97 887 -381 1043
+            -834 54 -156 95 -453 85 -621 -3 -44 -4 -78 -2 -77 1 2 43 125 92 274 205 613
+            394 964 600 1116 293 217 844 247 1090 60 17 -13 32 -32 32 -41 0 -9 19 -35
+            41 -56 124 -120 222 -276 289 -460 18 -49 53 -137 77 -194 54 -127 154 -418
+            195 -565 16 -60 36 -118 43 -130 14 -21 91 -298 121 -436 27 -122 33 -115 34
+            35 1 643 280 1283 690 1586 468 347 900 463 1425 384z m-5248 -2737 c6 -7 13
+            -70 16 -140 7 -153 2 -163 -76 -146 -27 5 -51 7 -55 3 -17 -16 -7 -329 12
+            -400 48 -180 180 -390 303 -482 58 -44 71 -58 62 -69 -17 -21 -1521 -21 -1538
+            0 -10 11 -1 23 46 61 219 175 323 420 323 761 0 147 1 149 114 158 228 20 544
+            124 731 239 48 30 50 30 62 15z m1735 -545 c8 -10 24 -55 36 -101 61 -232 191
+            -428 355 -536 101 -66 101 -66 -428 -66 -529 0 -522 -1 -431 69 164 127 265
+            290 323 526 14 55 30 106 35 113 16 19 92 15 110 -5z m4764 -159 c141 -176
+            380 -365 579 -459 185 -88 205 -85 -645 -85 -631 0 -729 2 -740 15 -10 12 -7
+            17 16 30 16 9 74 41 128 70 193 106 386 277 509 453 32 45 63 80 68 77 5 -3
+            43 -49 85 -101z m-2816 -216 c93 -79 253 -181 372 -238 194 -91 198 -90 -407
+            -90 -586 0 -567 -4 -450 84 110 83 235 256 270 376 17 57 26 56 90 -12 33 -36
+            89 -90 125 -120z m5650 -508 c355 -43 551 -453 377 -785 -67 -127 -204 -229
+            -341 -254 -103 -19 -11441 -15 -11531 4 -98 21 -169 60 -246 135 -297 292
+            -142 816 266 900 61 12 11372 12 11475 0z m15 -1200 c541 -78 568 -919 34
+            -1045 -98 -23 -11465 -23 -11554 0 -225 59 -395 278 -395 509 0 250 205 502
+            435 535 88 13 11393 13 11480 1z"/><path d="M7554 11416 c-134 -26 -92 -11 -1719 -601 -253 -92 -615 -223 -805
+            -292 -190 -69 -435 -158 -545 -198 -110 -40 -531 -193 -935 -340 -404 -146
+            -775 -281 -825 -300 -49 -18 -229 -83 -400 -145 -170 -61 -375 -136 -455 -165
+            -80 -29 -269 -98 -420 -154 -580 -211 -579 -211 -690 -321 -245 -243 -202
+            -635 78 -716 155 -45 232 -26 1022 260 162 59 414 150 560 202 476 172 2465
+            882 2870 1026 217 77 627 222 910 323 1403 500 1309 472 1545 462 188 -8 349
+            -58 1215 -380 361 -135 563 -208 830 -302 549 -192 895 -324 1120 -425 96 -43
+            396 -161 545 -214 130 -47 435 -164 890 -343 702 -276 852 -335 1015 -394 58
+            -21 180 -67 273 -103 361 -142 519 -166 657 -100 292 139 259 605 -57 805 -79
+            50 -120 68 -293 129 -130 46 -794 294 -1030 385 -63 24 -205 78 -315 120 -110
+            43 -270 104 -355 136 -85 32 -167 66 -182 74 -15 9 -69 31 -120 49 -96 36
+            -207 83 -268 115 -19 11 -73 35 -120 54 -47 19 -110 46 -140 60 -30 14 -80 33
+            -110 43 -73 23 -438 160 -728 273 -214 83 -374 142 -1285 475 -175 64 -532
+            195 -794 292 -262 96 -512 184 -557 195 -105 26 -287 33 -382 15z"/><path d="M2000 7721 c-287 -59 -317 -477 -43 -604 76 -35 11080 -35 11156 0
+            77 36 123 78 156 145 80 160 9 367 -151 439 -53 24 -53 24 -5568 25 -3033 1
+            -5531 -1 -5550 -5z"/><path d="M8895 6399 c-224 -29 -474 -128 -703 -279 -141 -93 -345 -328 -431
+            -498 -327 -643 -297 -1497 72 -2060 336 -514 1081 -763 1722 -577 280 82 571
+            307 683 531 187 372 24 766 -324 782 -155 7 -246 -31 -356 -146 -211 -224
+            -249 -251 -382 -272 -371 -59 -648 261 -663 765 -17 548 257 900 656 846 102
+            -13 160 -42 259 -129 171 -151 229 -176 402 -177 120 0 127 1 193 32 298 141
+            330 575 62 848 -259 265 -718 394 -1190 334z"/><path d="M11820 6404 c-662 -81 -1105 -595 -1215 -1414 -93 -685 115 -1368
+            521 -1716 277 -237 569 -338 974 -339 329 0 563 70 782 235 505 381 731 1309
+            513 2104 -166 606 -533 999 -1030 1106 -97 21 -444 36 -545 24z m425 -868
+            c257 -117 391 -564 329 -1095 -54 -469 -248 -691 -557 -641 -228 36 -359 174
+            -432 455 -101 391 -22 955 165 1167 120 137 337 187 495 114z"/><path d="M11992 5329 c-266 -135 -317 -1027 -72 -1260 98 -93 258 -67 332 53
+            130 212 155 729 48 1010 -67 178 -191 257 -308 197z m135 -229 c116 -234 83
+            -825 -50 -904 -62 -37 -147 220 -147 442 0 241 84 542 149 530 9 -2 30 -32 48
+            -68z"/><path d="M2685 6379 c-516 -48 -680 -140 -748 -416 -56 -225 -99 -1149 -79
+            -1706 26 -728 58 -1000 134 -1127 107 -178 445 -238 670 -118 193 103 232 304
+            167 875 -16 141 -33 131 229 130 579 -1 876 127 1153 497 189 251 249 420 249
+            695 0 617 -304 1005 -884 1130 -219 48 -618 65 -891 40z m505 -750 c456 -72
+            470 -735 17 -853 -134 -35 -344 -28 -381 13 -28 31 -39 176 -33 436 6 259 15
+            326 48 362 19 20 39 26 144 47 40 8 142 6 205 -5z"/><path d="M3038 5404 c-3 -5 -9 -103 -13 -217 -7 -209 -7 -209 51 -202 113 14
+            173 51 210 130 49 104 15 223 -79 272 -33 17 -162 30 -169 17z"/><path d="M5855 6380 c-228 -34 -393 -136 -506 -313 -110 -171 -261 -525 -364
+            -852 -138 -440 -168 -531 -201 -603 -40 -88 -151 -469 -234 -802 -31 -129 -68
+            -269 -80 -310 -40 -134 -15 -288 64 -392 148 -194 545 -215 710 -38 82 87 115
+            185 162 480 15 91 31 171 36 178 8 9 101 12 403 12 302 0 395 -3 403 -12 5 -7
+            23 -97 40 -199 17 -102 40 -214 52 -248 70 -210 246 -331 477 -331 255 0 419
+            122 453 336 31 191 -79 734 -312 1544 -27 96 -60 220 -73 275 -32 135 -58 224
+            -95 320 -17 44 -33 85 -34 90 -2 6 -10 26 -19 45 -8 19 -36 91 -62 160 -145
+            382 -308 626 -422 628 -18 0 -48 8 -67 17 -19 9 -39 14 -45 11 -5 -4 -12 -2
+            -16 4 -7 11 -193 12 -270 0z m30 -944 c91 -92 232 -548 275 -892 17 -132 37
+            -124 -310 -124 -209 0 -289 3 -298 12 -36 36 2 200 180 788 71 236 97 272 153
+            216z"/><path d="M5832 4757 c-12 -50 -22 -95 -22 -99 0 -13 90 -9 90 4 0 25 -34 188
+            -39 188 -3 0 -16 -42 -29 -93z"/><path d="M8999 5265 c-334 -107 -361 -967 -35 -1132 139 -70 236 -39 377 123
+            50 57 118 124 150 148 233 176 609 164 824 -26 56 -50 57 -49 45 43 -20 154
+            -8 408 31 683 11 76 18 140 16 142 -2 2 -17 -16 -34 -40 -77 -109 -245 -210
+            -403 -242 -228 -46 -448 19 -639 188 -131 116 -224 148 -332 113z m149 -187
+            c10 -7 44 -37 78 -68 229 -209 582 -285 875 -189 82 27 91 19 83 -70 -9 -91
+            -11 -93 -119 -69 -72 15 -114 18 -215 14 -266 -11 -435 -95 -630 -314 -51 -56
+            -103 -105 -116 -108 -125 -32 -235 270 -191 527 42 245 135 355 235 277z"/><path d="M2055 2221 c-182 -45 -277 -259 -192 -433 34 -69 92 -121 161 -145
+            87 -31 11450 -28 11517 3 119 55 174 143 174 279 0 142 -73 249 -196 288 -48
+            16 -454 17 -5743 16 -3130 -1 -5704 -4 -5721 -8z"/><path d="M2029 1014 c-254 -78 -262 -480 -13 -574 55 -20 55 -20 5748 -20
+            5073 0 5698 2 5744 15 265 79 273 494 11 578 -73 24 -11414 25 -11490 1z"/>
+              </g>
+            </svg>
+            <p class="subtitle">Reports &nbsp;/&nbsp; Dashboard &nbsp;/&nbsp; and more</p>
+            <div class="divider"></div>
+        </header>
+
+        <main>
+            <div class="links-grid">
+                <a href="bepsim.html" class="link-card">
+                    <div class="card-icon blue">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Breakeven Point Simulator</div>
+                    <div class="card-desc">Simulate and analyze your breakeven point with adjustable parameters and real-time calculations.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+
+                <a href="bepproductmixjan25mar26.html" class="link-card">
+                    <div class="card-icon cyan">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Breakeven Point vs Product/Service Mix</div>
+                    <div class="card-desc">Analyze breakeven across your product and service mix from January 2025 through March 2026.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+
+                <a href="gforceoptimizer.html" class="link-card">
+                    <div class="card-icon green">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Spun-pile G-force Optimizer</div>
+                    <div class="card-desc">Optimize centrifugal G-force parameters for spun-pile production with precision calculations.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+
+                <a href="spuncuringpit.html" class="link-card">
+                    <div class="card-icon orange">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Spun-pile Curing Chamber Optimizer</div>
+                    <div class="card-desc">Optimize curing chamber scheduling and temperature profiles for spun-pile concrete production.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+
+                <a href="projectssankey.html" class="link-card">
+                    <div class="card-icon purple">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M3 3v18h18"/>
+                            <path d="M7 16l4-8 4 4 4-8"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Projects P&L in Sankey Diagram</div>
+                    <div class="card-desc">Visualize project profit and loss flows through interactive Sankey diagrams for clear financial insight.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+            </div>
+        </main>
+
+        <footer>
+            &copy; 2026 PACO. All rights reserved.
+        </footer>
+    </div>
+
+    <script>
+    (function() {
+        // ── 1. PICK A RANDOM LANDSCAPE SCENE ──
+        const scenes = ['bluesky', 'forest', 'ocean', 'mountain', 'countryside', 'ricefields', 'desert', 'city'];
+        const chosenScene = scenes[Math.floor(Math.random() * scenes.length)];
+        document.body.classList.add('scene-' + chosenScene);
+
+        // ── 2. SCENERY SVG LIBRARY ──
+        // Each scene returns SVG markup that fills the viewport bottom-up.
+        // viewBox is 1600x500 — wide aspect for landscape; scales to 100% width.
+        const sceneryLibrary = {
+            bluesky: '', // no foreground — clouds and sun do all the work
+
+            forest: `<svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+                <!-- Distant hills -->
+                <path d="M0,320 Q200,260 400,290 T800,280 T1200,300 T1600,290 L1600,500 L0,500 Z" fill="#7BB590" opacity="0.55"/>
+                <!-- Mid-distance treeline -->
+                <path d="M0,350 L60,300 L100,330 L140,290 L180,320 L230,280 L280,310 L330,275 L380,315 L430,285 L490,320 L540,290 L590,310 L650,275 L710,305 L770,280 L830,315 L890,285 L950,310 L1010,275 L1070,310 L1130,285 L1190,315 L1250,290 L1310,310 L1370,280 L1430,310 L1490,285 L1550,315 L1600,295 L1600,500 L0,500 Z" fill="#4A8B5C" opacity="0.85"/>
+                <!-- Foreground trees - layered triangles like a coniferous forest -->
+                <g fill="#1F5A33">
+                    <polygon points="50,500 50,380 100,380 75,330 110,330 85,290 130,330 100,330 130,380 150,380 150,500"/>
+                    <polygon points="170,500 170,410 210,410 190,360 220,360 200,320 240,360 215,360 240,410 260,410 260,500"/>
+                    <polygon points="280,500 280,370 330,370 305,315 340,315 315,275 360,315 330,315 360,370 380,370 380,500"/>
+                    <polygon points="400,500 400,395 440,395 420,350 445,350 425,310 465,350 440,350 465,395 485,395 485,500"/>
+                    <polygon points="510,500 510,360 555,360 530,305 565,305 540,265 585,305 555,305 585,360 610,360 610,500"/>
+                    <polygon points="640,500 640,405 680,405 660,360 685,360 665,320 705,360 680,360 705,405 725,405 725,500"/>
+                    <polygon points="745,500 745,375 790,375 765,320 800,320 775,280 820,320 790,320 820,375 845,375 845,500"/>
+                    <polygon points="870,500 870,400 910,400 890,355 915,355 895,315 935,355 910,355 935,400 955,400 955,500"/>
+                    <polygon points="980,500 980,365 1025,365 1000,310 1035,310 1010,270 1055,310 1025,310 1055,365 1080,365 1080,500"/>
+                    <polygon points="1100,500 1100,400 1140,400 1120,355 1145,355 1125,315 1165,355 1140,355 1165,400 1185,400 1185,500"/>
+                    <polygon points="1210,500 1210,370 1255,370 1230,315 1265,315 1240,275 1285,315 1255,315 1285,370 1310,370 1310,500"/>
+                    <polygon points="1330,500 1330,405 1370,405 1350,360 1375,360 1355,320 1395,360 1370,360 1395,405 1415,405 1415,500"/>
+                    <polygon points="1440,500 1440,375 1485,375 1460,320 1495,320 1470,280 1515,320 1485,320 1515,375 1540,375 1540,500"/>
+                </g>
+            </svg>`,
+
+            ocean: `<svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+                <!-- Ocean horizon and water -->
+                <rect x="0" y="280" width="1600" height="220" fill="#2E7AA5"/>
+                <rect x="0" y="280" width="1600" height="40" fill="#3A8AB5" opacity="0.7"/>
+                <!-- Distant water shimmer lines -->
+                <g stroke="#B0E0E6" stroke-width="1.5" opacity="0.4" fill="none">
+                    <path d="M50,310 Q120,308 200,310 T350,310"/>
+                    <path d="M450,315 Q520,313 600,315 T750,315"/>
+                    <path d="M900,308 Q970,306 1050,308 T1200,308"/>
+                    <path d="M1300,313 Q1370,311 1450,313 T1580,313"/>
+                </g>
+                <g stroke="#C5E8EE" stroke-width="1" opacity="0.5" fill="none">
+                    <path d="M100,340 Q200,338 300,340 T500,340"/>
+                    <path d="M600,345 Q700,343 800,345 T1000,345"/>
+                    <path d="M1100,340 Q1200,338 1300,340 T1500,340"/>
+                </g>
+                <!-- Island silhouette -->
+                <ellipse cx="1100" cy="305" rx="180" ry="35" fill="#3D6B5C"/>
+                <path d="M920,305 Q1000,260 1100,255 Q1200,260 1280,305 Z" fill="#2D5848"/>
+                <!-- Palm tree on the island -->
+                <g transform="translate(1100,260)">
+                    <rect x="-3" y="0" width="6" height="35" fill="#3D2818"/>
+                    <path d="M0,0 Q-30,-15 -45,-5 Q-25,-5 0,0 Z" fill="#1F5A33"/>
+                    <path d="M0,0 Q-20,-25 -35,-30 Q-15,-15 0,0 Z" fill="#1F5A33"/>
+                    <path d="M0,0 Q5,-30 -5,-45 Q5,-25 0,0 Z" fill="#1F5A33"/>
+                    <path d="M0,0 Q25,-25 40,-30 Q15,-15 0,0 Z" fill="#1F5A33"/>
+                    <path d="M0,0 Q30,-15 45,-5 Q25,-5 0,0 Z" fill="#1F5A33"/>
+                </g>
+                <!-- Sun reflection on water -->
+                <ellipse cx="1100" cy="340" rx="80" ry="6" fill="#FFEFB0" opacity="0.5"/>
+                <ellipse cx="1100" cy="360" rx="120" ry="4" fill="#FFEFB0" opacity="0.3"/>
+                <ellipse cx="1100" cy="385" rx="180" ry="3" fill="#FFEFB0" opacity="0.2"/>
+                <!-- Beach in foreground -->
+                <path d="M0,470 Q400,455 800,465 T1600,460 L1600,500 L0,500 Z" fill="#F0DAB0"/>
+            </svg>`,
+
+            mountain: `<svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+                <!-- Far background mountain range -->
+                <path d="M0,400 L150,250 L280,320 L420,180 L580,290 L720,210 L880,310 L1020,200 L1180,300 L1320,220 L1450,290 L1600,240 L1600,500 L0,500 Z" fill="#A8BBD0" opacity="0.6"/>
+                <!-- Mid mountains with snow caps -->
+                <path d="M0,420 L180,310 L320,360 L480,240 L640,330 L800,260 L960,340 L1120,250 L1280,335 L1440,275 L1600,330 L1600,500 L0,500 Z" fill="#6B8AA8" opacity="0.85"/>
+                <!-- Snow caps on the major peaks -->
+                <g fill="#F0F5F8" opacity="0.9">
+                    <path d="M460,260 L480,240 L500,260 L490,270 L485,265 L475,272 Z"/>
+                    <path d="M780,280 L800,260 L820,280 L810,290 L805,283 L795,290 Z"/>
+                    <path d="M1100,270 L1120,250 L1140,270 L1130,280 L1125,275 L1115,282 Z"/>
+                </g>
+                <!-- Foreground mountain summit -->
+                <path d="M0,500 L0,440 L240,290 L420,400 L640,200 L900,380 L1120,180 L1340,360 L1600,260 L1600,500 Z" fill="#3D5872"/>
+                <!-- Snow on foreground peaks -->
+                <g fill="#F5FAFD">
+                    <path d="M600,240 L640,200 L680,240 L665,250 L655,243 L645,255 L635,243 L625,250 Z"/>
+                    <path d="M1080,220 L1120,180 L1160,220 L1145,230 L1135,222 L1125,235 L1115,222 L1105,230 Z"/>
+                    <path d="M210,330 L240,290 L270,330 L260,338 L250,330 L240,340 L230,330 L220,338 Z"/>
+                </g>
+                <!-- Some scattered pine trees in foreground -->
+                <g fill="#1F3A2E" opacity="0.85">
+                    <polygon points="280,500 280,440 295,440 285,415 300,415 290,395 305,395 295,415 310,415 300,440 315,440 315,500"/>
+                    <polygon points="780,500 780,430 800,430 790,400 805,400 793,380 810,380 798,400 815,400 805,430 825,430 825,500"/>
+                    <polygon points="1240,500 1240,440 1258,440 1248,415 1262,415 1250,393 1268,393 1255,415 1272,415 1262,440 1280,440 1280,500"/>
+                </g>
+            </svg>`,
+
+            countryside: `<svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+                <!-- Distant rolling hills -->
+                <path d="M0,340 Q300,290 600,320 T1200,310 T1600,320 L1600,500 L0,500 Z" fill="#A8C975" opacity="0.55"/>
+                <!-- Mid hills -->
+                <path d="M0,380 Q200,340 450,370 T900,360 T1400,365 T1600,370 L1600,500 L0,500 Z" fill="#86B85A" opacity="0.85"/>
+                <!-- Distant scattered trees on the hills -->
+                <g fill="#558534" opacity="0.8">
+                    <ellipse cx="200" cy="335" rx="22" ry="14"/>
+                    <ellipse cx="245" cy="338" rx="16" ry="12"/>
+                    <ellipse cx="520" cy="345" rx="20" ry="13"/>
+                    <ellipse cx="780" cy="335" rx="24" ry="15"/>
+                    <ellipse cx="820" cy="338" rx="18" ry="12"/>
+                    <ellipse cx="1100" cy="340" rx="22" ry="14"/>
+                    <ellipse cx="1380" cy="345" rx="20" ry="13"/>
+                </g>
+                <!-- Foreground rolling field -->
+                <path d="M0,420 Q400,395 800,415 T1600,410 L1600,500 L0,500 Z" fill="#6FA642"/>
+                <!-- Farmhouse on the hill -->
+                <g transform="translate(960,365)">
+                    <!-- Roof -->
+                    <polygon points="-25,0 25,0 0,-20" fill="#8B3A2B"/>
+                    <polygon points="25,0 50,0 38,-12 13,-12" fill="#6B2A1F"/>
+                    <!-- Body -->
+                    <rect x="-25" y="0" width="50" height="22" fill="#E8D8B5"/>
+                    <rect x="25" y="0" width="20" height="22" fill="#D8C8A5"/>
+                    <!-- Door -->
+                    <rect x="-5" y="8" width="10" height="14" fill="#5C3520"/>
+                    <!-- Window -->
+                    <rect x="-20" y="6" width="8" height="8" fill="#7BAFCE"/>
+                    <rect x="12" y="6" width="8" height="8" fill="#7BAFCE"/>
+                </g>
+                <!-- A few foreground trees -->
+                <g fill="#3D7028">
+                    <ellipse cx="220" cy="408" rx="32" ry="22"/>
+                    <rect x="217" y="408" width="6" height="18" fill="#5C3520"/>
+                    <ellipse cx="1340" cy="412" rx="30" ry="20"/>
+                    <rect x="1337" y="412" width="6" height="18" fill="#5C3520"/>
+                </g>
+                <!-- Field lines/furrows for depth -->
+                <g stroke="#558534" stroke-width="1" opacity="0.4" fill="none">
+                    <path d="M0,445 Q400,438 800,442 T1600,440"/>
+                    <path d="M0,465 Q400,458 800,462 T1600,460"/>
+                    <path d="M0,485 Q400,478 800,482 T1600,480"/>
+                </g>
+            </svg>`,
+
+            ricefields: `<svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+                <!-- Distant misty hills -->
+                <path d="M0,290 Q250,240 500,265 T1000,255 T1600,270 L1600,330 L0,330 Z" fill="#9BB5A0" opacity="0.5"/>
+                <path d="M0,310 Q300,275 600,295 T1200,290 T1600,300 L1600,340 L0,340 Z" fill="#7E9C82" opacity="0.6"/>
+                <!-- Mist layer -->
+                <rect x="0" y="290" width="1600" height="60" fill="#E5EDDB" opacity="0.4"/>
+                <!-- Terraced rice paddies — curved bands receding into distance -->
+                <g>
+                    <!-- Top tier (furthest, lightest) -->
+                    <path d="M0,350 Q400,335 800,345 T1600,348 L1600,375 L0,375 Z" fill="#B8D08A"/>
+                    <path d="M0,348 Q400,333 800,343 T1600,346" stroke="#6F8A40" stroke-width="2" fill="none"/>
+                    <!-- Tier 2 -->
+                    <path d="M0,380 Q400,360 800,375 T1600,378 L1600,410 L0,410 Z" fill="#A6C26A"/>
+                    <path d="M0,378 Q400,358 800,373 T1600,376" stroke="#5F7A35" stroke-width="2" fill="none"/>
+                    <!-- Tier 3 -->
+                    <path d="M0,415 Q400,395 800,410 T1600,413 L1600,448 L0,448 Z" fill="#94B254"/>
+                    <path d="M0,413 Q400,393 800,408 T1600,411" stroke="#506830" stroke-width="2" fill="none"/>
+                    <!-- Foreground tier (closest, darkest) -->
+                    <path d="M0,455 Q400,430 800,450 T1600,453 L1600,500 L0,500 Z" fill="#7FA042"/>
+                    <path d="M0,453 Q400,428 800,448 T1600,451" stroke="#3D5520" stroke-width="2" fill="none"/>
+                </g>
+                <!-- A water buffalo / silhouette far in distance for scale (small) -->
+                <g fill="#3D3528" opacity="0.5" transform="translate(800,395)">
+                    <ellipse cx="0" cy="0" rx="14" ry="6"/>
+                    <rect x="-10" y="2" width="3" height="8"/>
+                    <rect x="-4" y="2" width="3" height="8"/>
+                    <rect x="4" y="2" width="3" height="8"/>
+                    <rect x="10" y="2" width="3" height="8"/>
+                </g>
+                <!-- Reflection sparkles on wet paddies -->
+                <g fill="#FFFFFF" opacity="0.4">
+                    <circle cx="200" cy="395" r="1.5"/>
+                    <circle cx="500" cy="388" r="1"/>
+                    <circle cx="850" cy="392" r="1.5"/>
+                    <circle cx="1200" cy="395" r="1"/>
+                    <circle cx="350" cy="430" r="1.5"/>
+                    <circle cx="1100" cy="432" r="1.5"/>
+                </g>
+            </svg>`,
+
+            desert: `<svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+                <!-- Far back dunes -->
+                <path d="M0,330 Q200,290 450,310 T900,305 T1350,315 T1600,310 L1600,500 L0,500 Z" fill="#E8B97A" opacity="0.6"/>
+                <!-- Mid dunes -->
+                <path d="M0,370 Q300,330 600,355 T1100,350 T1600,360 L1600,500 L0,500 Z" fill="#D89E5A" opacity="0.85"/>
+                <!-- Front dunes -->
+                <path d="M0,430 Q400,390 800,415 T1600,420 L1600,500 L0,500 Z" fill="#BF8240"/>
+                <!-- Dune shadow ripples -->
+                <g stroke="#9C6428" stroke-width="1" opacity="0.4" fill="none">
+                    <path d="M50,455 Q250,448 450,455"/>
+                    <path d="M600,470 Q800,463 1000,470"/>
+                    <path d="M1100,455 Q1300,448 1500,455"/>
+                </g>
+                <!-- Cactus silhouettes -->
+                <g fill="#3D5832">
+                    <g transform="translate(300,420)">
+                        <rect x="-5" y="-30" width="10" height="35" rx="3"/>
+                        <rect x="-15" y="-22" width="6" height="18" rx="3"/>
+                        <rect x="-18" y="-22" width="6" height="8" rx="3"/>
+                        <rect x="9" y="-26" width="6" height="22" rx="3"/>
+                        <rect x="12" y="-26" width="6" height="10" rx="3"/>
+                    </g>
+                    <g transform="translate(1150,415)" >
+                        <rect x="-6" y="-40" width="12" height="45" rx="4"/>
+                        <rect x="-18" y="-28" width="7" height="22" rx="3"/>
+                        <rect x="11" y="-32" width="7" height="26" rx="3"/>
+                    </g>
+                </g>
+                <!-- Pyramid in the distance -->
+                <g fill="#A8743A" opacity="0.7">
+                    <polygon points="720,350 800,260 880,350"/>
+                    <polygon points="800,260 880,350 845,350 815,295" fill="#8E5A28" opacity="0.6"/>
+                </g>
+                <!-- Smaller pyramid -->
+                <g fill="#A8743A" opacity="0.65">
+                    <polygon points="900,355 940,300 980,355"/>
+                </g>
+            </svg>`,
+
+            city: `<svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+                <!-- Sun on horizon -->
+                <circle cx="900" cy="370" r="55" fill="#FFDB95" opacity="0.85"/>
+                <circle cx="900" cy="370" r="80" fill="#FFB870" opacity="0.3"/>
+                <!-- Distant city background silhouettes -->
+                <g fill="#5A4570" opacity="0.7">
+                    <rect x="0" y="350" width="80" height="150"/>
+                    <rect x="80" y="320" width="60" height="180"/>
+                    <rect x="140" y="345" width="70" height="155"/>
+                    <rect x="210" y="310" width="55" height="190"/>
+                    <rect x="265" y="335" width="65" height="165"/>
+                    <rect x="1280" y="345" width="60" height="155"/>
+                    <rect x="1340" y="310" width="70" height="190"/>
+                    <rect x="1410" y="335" width="55" height="165"/>
+                    <rect x="1465" y="320" width="65" height="180"/>
+                    <rect x="1530" y="350" width="70" height="150"/>
+                </g>
+                <!-- Mid skyline -->
+                <g fill="#3D2A50" opacity="0.9">
+                    <rect x="330" y="290" width="70" height="210"/>
+                    <rect x="400" y="260" width="55" height="240"/>
+                    <rect x="455" y="280" width="80" height="220"/>
+                    <polygon points="535,275 575,225 615,275 615,500 535,500"/>
+                    <rect x="615" y="300" width="60" height="200"/>
+                    <rect x="675" y="270" width="70" height="230"/>
+                    <rect x="745" y="250" width="50" height="250"/>
+                    <rect x="795" y="290" width="60" height="210"/>
+                    <rect x="965" y="285" width="65" height="215"/>
+                    <rect x="1030" y="255" width="55" height="245"/>
+                    <rect x="1085" y="275" width="75" height="225"/>
+                    <rect x="1160" y="295" width="60" height="205"/>
+                    <rect x="1220" y="285" width="65" height="215"/>
+                </g>
+                <!-- Tall foreground tower -->
+                <g fill="#2A1A38">
+                    <rect x="600" y="180" width="50" height="320"/>
+                    <polygon points="600,180 625,140 650,180"/>
+                    <rect x="620" y="100" width="10" height="50"/>
+                    <circle cx="625" cy="95" r="4"/>
+                </g>
+                <!-- Window lights scattered -->
+                <g fill="#FFEEB5" opacity="0.85">
+                    <rect x="345" y="310" width="3" height="3"/><rect x="355" y="320" width="3" height="3"/><rect x="365" y="330" width="3" height="3"/><rect x="375" y="310" width="3" height="3"/><rect x="385" y="340" width="3" height="3"/>
+                    <rect x="410" y="280" width="3" height="3"/><rect x="425" y="295" width="3" height="3"/><rect x="440" y="280" width="3" height="3"/><rect x="425" y="320" width="3" height="3"/>
+                    <rect x="470" y="305" width="3" height="3"/><rect x="490" y="320" width="3" height="3"/><rect x="510" y="305" width="3" height="3"/><rect x="495" y="345" width="3" height="3"/>
+                    <rect x="690" y="290" width="3" height="3"/><rect x="710" y="305" width="3" height="3"/><rect x="725" y="285" width="3" height="3"/><rect x="700" y="335" width="3" height="3"/>
+                    <rect x="760" y="265" width="3" height="3"/><rect x="775" y="285" width="3" height="3"/><rect x="765" y="320" width="3" height="3"/>
+                    <rect x="810" y="305" width="3" height="3"/><rect x="830" y="320" width="3" height="3"/><rect x="820" y="345" width="3" height="3"/>
+                    <rect x="980" y="300" width="3" height="3"/><rect x="1000" y="315" width="3" height="3"/><rect x="1015" y="300" width="3" height="3"/>
+                    <rect x="1045" y="270" width="3" height="3"/><rect x="1060" y="290" width="3" height="3"/><rect x="1050" y="320" width="3" height="3"/>
+                    <rect x="1100" y="290" width="3" height="3"/><rect x="1120" y="305" width="3" height="3"/><rect x="1135" y="290" width="3" height="3"/><rect x="1115" y="335" width="3" height="3"/>
+                    <rect x="615" y="200" width="3" height="3"/><rect x="635" y="220" width="3" height="3"/><rect x="615" y="250" width="3" height="3"/><rect x="635" y="280" width="3" height="3"/><rect x="615" y="310" width="3" height="3"/><rect x="635" y="340" width="3" height="3"/><rect x="615" y="380" width="3" height="3"/><rect x="635" y="420" width="3" height="3"/>
+                </g>
+            </svg>`,
+        };
+
+        // Inject the SVG for the chosen scene
+        const sceneryEl = document.getElementById('scenery');
+        sceneryEl.innerHTML = sceneryLibrary[chosenScene] || '';
+
+    })();
+    </script>
+
+</body>
+</html>
