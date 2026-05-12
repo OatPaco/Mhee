@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PACO Breakeven Analysis</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#f5f5f4;color:#1a1a1a;padding:12px;min-height:100vh}
+.co{max-width:920px;margin:0 auto}
+h1{font-size:19px;font-weight:600;color:#2c2c2a;white-space:nowrap}
+.h1-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.note-input{
+  font-size:16px;color:#1a1a1a;font-family:inherit;
+  border:1px solid #d8d8d4;border-radius:6px;
+  padding:4px 10px;outline:none;
+  background:#fafaf9;
+  flex:0 1 auto;
+  min-width:140px;max-width:100%;
+  width:auto;
+}
+.note-input::placeholder{color:#bbb;font-weight:400}
+.note-input:focus{border-color:#85b7eb;background:#fff;box-shadow:0 0 0 2px rgba(56,138,221,.12)}
+.note-sizer{
+  position:absolute;visibility:hidden;
+  white-space:pre;font-size:16px;font-family:inherit;
+  padding:4px 10px;border:1px solid transparent;
+  pointer-events:none;
+  left:-9999px;top:-9999px;
+}
+.save-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 14px;border-radius:6px;
+  border:1px solid #1d9e75;background:rgba(29,158,117,.08);
+  color:#1d9e75;font-size:13px;font-weight:600;
+  cursor:pointer;white-space:nowrap;
+  transition:background .15s,border-color .15s;
+}
+.save-btn:hover{background:rgba(29,158,117,.16);border-color:#178a65}
+.save-btn:active{background:rgba(29,158,117,.24)}
+.save-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.save-ok{font-size:12px;color:#1d9e75;font-weight:600;opacity:0;transition:opacity .3s}
+.save-ok.show{opacity:1}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.gr{grid-template-columns:1fr}.h1-row{flex-direction:column;align-items:flex-start}}
+.cd{background:#fff;border-radius:10px;border:1px solid #e0e0dc;padding:14px 16px}
+.st{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+
+/* Input rows */
+.ir{margin-bottom:10px}
+.ir-top{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.il{font-size:13px;color:#666;width:82px;flex-shrink:0}
+.iu{font-size:11px;color:#999;flex-shrink:0}
+.inp-num{
+  font-size:13px;font-weight:600;color:#1a1a1a;
+  width:100px;text-align:right;
+  border:1px solid #d8d8d4;border-radius:6px;
+  padding:4px 8px;outline:none;
+  background:#fafaf9;
+  -moz-appearance:textfield;
+}
+.inp-num::-webkit-inner-spin-button,.inp-num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.inp-num:focus{border-color:#85b7eb;background:#fff;box-shadow:0 0 0 2px rgba(56,138,221,.12)}
+
+/* +/- buttons */
+.pm-btn{
+  width:26px;height:26px;
+  border:1px solid #d8d8d4;border-radius:6px;
+  background:#fafaf9;color:#555;
+  font-size:15px;font-weight:600;line-height:1;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;user-select:none;
+  transition:background .1s,border-color .1s;
+  flex-shrink:0;
+}
+.pm-btn:hover{background:#eef5fc;border-color:#85b7eb;color:#185fa5}
+.pm-btn:active{background:#dceaf8}
+
+/* Percentage badge */
+.pct-badge{
+  font-size:10px;font-weight:600;
+  padding:2px 5px;border-radius:4px;
+  min-width:38px;text-align:center;
+  flex-shrink:0;
+  display:none;
+}
+.pct-badge.show{display:inline-block}
+.pct-badge.good{background:rgba(29,158,117,.1);color:#1d9e75}
+.pct-badge.bad{background:rgba(216,90,48,.1);color:#d85a30}
+.pct-badge.zero{background:rgba(136,136,128,.08);color:#888}
+
+.inp-range{
+  width:100%;height:6px;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  background:#e8e8e4;border-radius:3px;outline:none;
+}
+.inp-range::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;
+  border-radius:50%;background:#378add;border:2px solid #fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.18);cursor:pointer;
+}
+.inp-range::-moz-range-thumb{
+  width:14px;height:14px;
+  border-radius:50%;background:#378add;border:2px solid #fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.18);cursor:pointer;
+}
+
+/* Metrics grid */
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.me{background:#f5f5f4;border-radius:8px;padding:10px 12px}
+.ml2{font-size:11px;color:#888;margin-bottom:3px}
+.mv{font-size:17px;font-weight:600;color:#1a1a1a}
+.mv.profit{color:#1d9e75}
+.mv.loss{color:#d85a30}
+.np-delta{
+  font-size:12px;font-weight:600;
+  margin-left:4px;
+  display:none;
+  vertical-align:middle;
+}
+.np-delta.show{display:inline}
+.np-delta.up{color:#1d9e75}
+.np-delta.down{color:#d85a30}
+.reset-btn{
+  width:18px;height:18px;
+  border:1px solid #d8d8d4;border-radius:4px;
+  background:#fafaf9;color:#888;
+  font-size:11px;line-height:1;
+  cursor:pointer;display:none;align-items:center;justify-content:center;
+  transition:background .12s,border-color .12s,color .12s,transform .15s;
+  flex-shrink:0;
+  touch-action:manipulation;user-select:none;
+  padding:0;
+}
+.reset-btn.show{display:inline-flex}
+.reset-btn:hover{background:#eef5fc;border-color:#85b7eb;color:#185fa5}
+.reset-btn:active{transform:rotate(-90deg)}
+.np-head{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.np-head .ml2{margin-bottom:0}
+.stb{margin-top:10px;padding:9px 12px;border-radius:8px;border:1px solid #e0e0dc;font-size:12px;line-height:1.5}
+
+/* Chart */
+.cw{position:relative;width:100%;height:300px}
+@media(max-width:640px){.cw{height:240px}}
+.lg{display:flex;gap:14px;margin-top:8px;font-size:11px;color:#888;flex-wrap:wrap}
+.lg span{display:flex;align-items:center;gap:4px}
+</style>
+</head>
+<body>
+<div class="co">
+<div class="h1-row">
+  <h1>PACO breakeven analysis — interactive simulator</h1>
+  <input class="note-input" type="text" id="userNote" placeholder="Add a note..." value="(current value = January - March 2026 avg.)">
+  <span class="note-sizer" id="noteSizer" aria-hidden="true"></span>
+  <button class="save-btn" id="saveBtn" title="Save all values into this HTML file">
+    <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+    Save
+  </button>
+  <span class="save-ok" id="saveOk">✓ Saved</span>
+</div>
+<div class="gr">
+<div class="cd">
+<div class="st">Monthly inputs</div>
+
+<div class="ir" data-key="sp">
+  <div class="ir-top">
+    <span class="il">Selling price</span>
+    <input class="inp-num" type="number" id="spv" min="0" max="30000" step="1" value="8707">
+    <span class="iu">฿/m³</span>
+    <button class="pm-btn" data-dir="-1" data-key="sp">−</button>
+    <button class="pm-btn" data-dir="1" data-key="sp">+</button>
+    <span class="pct-badge" id="pct-sp"></span>
+  </div>
+  <input class="inp-range" type="range" id="sps" min="0" max="30000" step="1" value="8707">
+</div>
+
+<div class="ir" data-key="vc">
+  <div class="ir-top">
+    <span class="il">Variable cost</span>
+    <input class="inp-num" type="number" id="vcv" min="0" max="30000" step="1" value="6013">
+    <span class="iu">฿/m³</span>
+    <button class="pm-btn" data-dir="-1" data-key="vc">−</button>
+    <button class="pm-btn" data-dir="1" data-key="vc">+</button>
+    <span class="pct-badge" id="pct-vc"></span>
+  </div>
+  <input class="inp-range" type="range" id="vcs" min="0" max="30000" step="1" value="6013">
+</div>
+
+<div class="ir" data-key="fc">
+  <div class="ir-top">
+    <span class="il">Fixed cost</span>
+    <input class="inp-num" type="number" id="fcv" min="0" max="80000000" step="100000" value="31972903">
+    <span class="iu">฿/mth</span>
+    <button class="pm-btn" data-dir="-1" data-key="fc">−</button>
+    <button class="pm-btn" data-dir="1" data-key="fc">+</button>
+    <span class="pct-badge" id="pct-fc"></span>
+  </div>
+  <input class="inp-range" type="range" id="fcs" min="0" max="80000000" step="100000" value="31972903">
+</div>
+
+<div class="ir" data-key="vo">
+  <div class="ir-top">
+    <span class="il">Installation</span>
+    <input class="inp-num" type="number" id="vov" min="0" max="30000" step="1" value="13901">
+    <span class="iu">m³/mth</span>
+    <button class="pm-btn" data-dir="-1" data-key="vo">−</button>
+    <button class="pm-btn" data-dir="1" data-key="vo">+</button>
+    <span class="pct-badge" id="pct-vo"></span>
+  </div>
+  <input class="inp-range" type="range" id="vos" min="0" max="30000" step="1" value="13901">
+</div>
+
+<div class="mg">
+  <div class="me"><div class="ml2">BEP volume</div><div class="mv" id="bv">11,868 m³</div></div>
+  <div class="me"><div class="ml2">BEP price</div><div class="mv" id="bp">8,313 ฿</div></div>
+  <div class="me"><div class="np-head"><div class="ml2">Net profit</div><button class="reset-btn" id="resetBtn" title="Reset all adjustments" aria-label="Reset adjustments">⟲</button></div><div style="display:flex;align-items:baseline;gap:6px"><div class="mv profit" id="gp">+5.5M ฿</div><span class="np-delta down" id="npDelta">▼ -0.8M ฿</span></div></div>
+  <div class="me"><div class="ml2">NP margin</div><div class="mv profit" id="ma">4.5%</div></div>
+</div>
+<div class="stb" id="sb" style="background: rgba(29, 158, 117, 0.08); border-color: rgb(29, 158, 117);"><span style="color:#085041;font-weight:600">Above breakeven</span> — safety margin of <strong>2,033 m³/mth</strong> (14.6% of volume)</div>
+</div>
+<div class="cd">
+<div class="st">Cost-volume-profit chart</div>
+<div class="cw"><canvas id="cc" width="629" height="450" style="display: block; box-sizing: border-box; height: 300px; width: 419px;"></canvas></div>
+<div class="lg">
+  <span><span style="width:16px;height:2px;background:#1d9e75;display:inline-block"></span>Revenue</span>
+  <span><span style="width:16px;height:2px;background:#d85a30;display:inline-block"></span>Total cost</span>
+  <span><span style="width:16px;height:0;border-top:1.5px dashed #888;display:inline-block"></span>Fixed cost</span>
+  <span><span style="width:16px;height:0;border-top:1.5px dashed #378add;display:inline-block"></span>Installation</span>
+</div>
+</div>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var ch,SN=30,XM=24000,YM=200000000,cP=0;
+var baseProfit=null;
+var anyPMactive=false;
+
+function fm(n){return Math.round(n).toLocaleString("en-US")}
+function fM(n){return(n/1e6).toFixed(1)+"M ฿"}
+
+/* ══ SAVE: re-download this HTML with all current values baked in ══ */
+document.getElementById("saveBtn").addEventListener("click",function(){
+  var vals={
+    spv:document.getElementById("spv").value,
+    vcv:document.getElementById("vcv").value,
+    fcv:document.getElementById("fcv").value,
+    vov:document.getElementById("vov").value,
+    note:document.getElementById("userNote").value
+  };
+  var html=document.documentElement.outerHTML;
+  /* Update value="" attributes for every savable input + its paired slider */
+  html=html.replace(/(<input[^>]*id="spv"[^>]*value=")[^"]*(")/,'$1'+vals.spv+'$2');
+  html=html.replace(/(<input[^>]*id="sps"[^>]*value=")[^"]*(")/,'$1'+vals.spv+'$2');
+  html=html.replace(/(<input[^>]*id="vcv"[^>]*value=")[^"]*(")/,'$1'+vals.vcv+'$2');
+  html=html.replace(/(<input[^>]*id="vcs"[^>]*value=")[^"]*(")/,'$1'+vals.vcv+'$2');
+  html=html.replace(/(<input[^>]*id="fcv"[^>]*value=")[^"]*(")/,'$1'+vals.fcv+'$2');
+  html=html.replace(/(<input[^>]*id="fcs"[^>]*value=")[^"]*(")/,'$1'+vals.fcv+'$2');
+  html=html.replace(/(<input[^>]*id="vov"[^>]*value=")[^"]*(")/,'$1'+vals.vov+'$2');
+  html=html.replace(/(<input[^>]*id="vos"[^>]*value=")[^"]*(")/,'$1'+vals.vov+'$2');
+  html=html.replace(/(<input[^>]*id="userNote"[^>]*value=")[^"]*(")/,'$1'+vals.note.replace(/"/g,'&quot;')+'$2');
+  var full='<!DOCTYPE html>\n'+html;
+  var blob=new Blob([full],{type:'text/html'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='bepsim.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  var ok=document.getElementById('saveOk');
+  ok.classList.add('show');
+  setTimeout(function(){ok.classList.remove('show')},2000);
+});
+
+/* ── Base value & percentage tracking ──
+   Each field has an `origBase` captured ONCE on page load (or on Reset).
+   Badge percentage is always computed as (currentValue - origBase) / origBase * 100,
+   so it works the same whether the change came from +/-, slider, or typing.
+   `goodDir` tells which direction is favorable for the business (+1: increase good, -1: decrease good).
+*/
+var fields={
+  sp:{numId:"spv",slId:"sps",pctId:"pct-sp",origBase:null,goodDir:+1},
+  vc:{numId:"vcv",slId:"vcs",pctId:"pct-vc",origBase:null,goodDir:-1},
+  fc:{numId:"fcv",slId:"fcs",pctId:"pct-fc",origBase:null,goodDir:-1},
+  vo:{numId:"vov",slId:"vos",pctId:"pct-vo",origBase:null,goodDir:+1}
+};
+
+/* Capture original baseline at page load */
+function captureOriginals(){
+  for(var k in fields){
+    var f=fields[k];
+    var v=+document.getElementById(f.numId).value;
+    f.origBase=v>0?v:null;
+  }
+  var sp0=+document.getElementById("spv").value,
+      vc0=+document.getElementById("vcv").value,
+      fc0=+document.getElementById("fcv").value,
+      vol0=+document.getElementById("vov").value;
+  baseProfit=sp0*vol0-vc0*vol0-fc0;
+}
+
+function updateBadge(key){
+  var f=fields[key],el=document.getElementById(f.pctId);
+  if(f.origBase===null||f.origBase===0){
+    el.classList.remove("show","good","bad","zero");return;
+  }
+  var cur=+document.getElementById(f.numId).value;
+  var pct=Math.round((cur-f.origBase)/f.origBase*100);
+  el.classList.remove("good","bad","zero","show");
+  if(pct===0)return;
+  el.textContent=(pct>0?"+":"")+pct+"%";
+  /* color: green if change is in favorable direction, red if not */
+  var isGood=(pct>0?+1:-1)===f.goodDir;
+  el.classList.add(isGood?"good":"bad");
+  el.classList.add("show");
+}
+
+function updateAllBadges(){
+  for(var k in fields)updateBadge(k);
+  /* Show reset button if any field deviates from its original */
+  var anyChanged=false;
+  for(var k in fields){
+    var f=fields[k];
+    if(f.origBase===null)continue;
+    if(+document.getElementById(f.numId).value!==f.origBase){anyChanged=true;break}
+  }
+  var rb=document.getElementById("resetBtn");
+  if(anyChanged){rb.classList.add("show")}else{rb.classList.remove("show")}
+  anyPMactive=anyChanged;
+}
+
+function applyPM(key,dir){
+  var f=fields[key];
+  var ni=document.getElementById(f.numId),si=document.getElementById(f.slId);
+  if(f.origBase===null||f.origBase===0)return;
+  var cur=+ni.value;
+  /* compute current % step relative to origBase, then add dir */
+  var curPct=Math.round((cur-f.origBase)/f.origBase*100);
+  var newPct=curPct+dir;
+  var newVal=Math.round(f.origBase*(1+newPct*0.01));
+  if(newVal<0)newVal=0;
+  ni.value=newVal;
+  si.value=newVal;
+  updateAllBadges();
+  calc();
+}
+
+document.querySelectorAll(".pm-btn").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    applyPM(btn.dataset.key, +btn.dataset.dir);
+  });
+});
+
+/* ── Reset button: restore every field to its original value ── */
+document.getElementById("resetBtn").addEventListener("click",function(){
+  for(var k in fields){
+    var f=fields[k];
+    if(f.origBase===null)continue;
+    document.getElementById(f.numId).value=f.origBase;
+    document.getElementById(f.slId).value=f.origBase;
+  }
+  updateAllBadges();
+  calc();
+});
+
+function bind(key){
+  var f=fields[key];
+  var ni=document.getElementById(f.numId),si=document.getElementById(f.slId);
+  ni.addEventListener("input",function(){
+    si.value=ni.value;
+    updateAllBadges();
+    calc();
+  });
+  si.addEventListener("input",function(){
+    ni.value=si.value;
+    updateAllBadges();
+    calc();
+  });
+}
+bind("sp");bind("vc");bind("fc");bind("vo");
+captureOriginals();
+updateAllBadges();
+
+var pp={id:"pp",afterDraw:function(c){
+  var x=c.ctx,a=c.chartArea,s=c.scales.x,px=s.getPixelForValue((cP/XM)*SN);
+  if(px<a.left||px>a.right)return;
+  x.save();x.beginPath();x.setLineDash([5,4]);x.lineWidth=1;x.strokeStyle="#378ADD";
+  x.moveTo(px,a.top);x.lineTo(px,a.bottom);x.stroke();x.setLineDash([]);
+  x.font="10px sans-serif";x.fillStyle="#185FA5";
+  x.textAlign=px>a.right-64?"right":"left";
+  x.fillText(fm(cP)+" m³",px>a.right-64?px-4:px+4,a.top+12);
+  x.restore()}};
+
+function calc(){
+  var sp=+document.getElementById("spv").value,
+      vc=+document.getElementById("vcv").value,
+      fc=+document.getElementById("fcv").value,
+      vol=+document.getElementById("vov").value;
+
+  cP=vol;
+  var cm=sp-vc,
+      rev=sp*vol,
+      tvc=vc*vol,
+      bv=cm>0?fc/cm:Infinity,
+      bp2=vol>0?vc+fc/vol:Infinity,
+      gp2=rev-tvc-fc,
+      mp=rev>0?(gp2/rev*100):0;
+
+  document.getElementById("bv").textContent=cm>0?fm(Math.round(bv))+" m³":"∞";
+  document.getElementById("bp").textContent=isFinite(bp2)?fm(Math.round(bp2))+" ฿":"∞";
+
+  var ge=document.getElementById("gp");
+  ge.textContent=(gp2>=0?"+":"")+fM(gp2);
+  ge.className="mv "+(gp2>=0?"profit":"loss");
+
+  var del=document.getElementById("npDelta");
+  if(baseProfit!==null&&anyPMactive){
+    var diff=gp2-baseProfit;
+    if(Math.abs(diff)>=1){
+      del.classList.add("show");
+      del.classList.remove("up","down");
+      if(diff>0){
+        del.classList.add("up");
+        del.textContent="▲ +"+fM(diff);
+      }else{
+        del.classList.add("down");
+        del.textContent="▼ "+fM(diff);
+      }
+    }else{
+      del.classList.remove("show");
+    }
+  }else{
+    del.classList.remove("show");
+  }
+
+  var me=document.getElementById("ma");
+  me.textContent=mp.toFixed(1)+"%";
+  me.className="mv "+(gp2>=0?"profit":"loss");
+
+  var sb=document.getElementById("sb");
+  if(cm<=0){
+    sb.style.background="rgba(216,90,48,.08)";sb.style.borderColor="#d85a30";
+    sb.innerHTML='<span style="color:#993c1d;font-weight:600">⚠ Selling price ≤ variable cost</span>';
+  }else if(vol<bv){
+    var g=Math.round(bv-vol);
+    sb.style.background="rgba(216,90,48,.08)";sb.style.borderColor="#d85a30";
+    sb.innerHTML='<span style="color:#993c1d;font-weight:600">Below breakeven</span> — need <strong>'+fm(g)+' more m³/mth</strong> to reach BEP of '+fm(Math.round(bv))+' m³';
+  }else{
+    var su=Math.round(vol-bv);
+    sb.style.background="rgba(29,158,117,.08)";sb.style.borderColor="#1d9e75";
+    sb.innerHTML='<span style="color:#085041;font-weight:600">Above breakeven</span> — safety margin of <strong>'+fm(su)+' m³/mth</strong> ('+((su/vol)*100).toFixed(1)+'% of volume)';
+  }
+
+  var la=[],rd=[],td=[],fd=[];
+  for(var i=0;i<=SN;i++){
+    var v=Math.round((i/SN)*XM);
+    la.push(fm(v));
+    rd.push(Math.round(sp*v));
+    td.push(Math.round(fc+vc*v));
+    fd.push(Math.round(fc));
+  }
+  if(ch){
+    ch.data.datasets[0].data=rd;
+    ch.data.datasets[1].data=td;
+    ch.data.datasets[2].data=fd;
+    ch.update("none");
+    return;
+  }
+  ch=new Chart(document.getElementById("cc"),{type:"line",plugins:[pp],
+    data:{labels:la,datasets:[
+      {label:"Revenue",data:rd,borderColor:"#1d9e75",borderWidth:2,pointRadius:0,tension:0},
+      {label:"Total cost",data:td,borderColor:"#d85a30",borderWidth:2,pointRadius:0,tension:0},
+      {label:"Fixed cost",data:fd,borderColor:"#888",borderWidth:1.5,borderDash:[4,3],pointRadius:0,tension:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      interaction:{mode:"index",intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+": "+fM(c.raw)}}}},
+      scales:{
+        x:{min:0,max:SN,ticks:{maxTicksLimit:7,autoSkip:true,color:"#888",font:{size:10},callback:function(v){return fm(Math.round((v/SN)*XM))}},title:{display:true,text:"Volume (m³/mth)",color:"#888",font:{size:10}},grid:{color:"rgba(136,135,128,.15)"}},
+        y:{min:0,max:YM,ticks:{callback:function(v){return(v/1e6).toFixed(0)+"M"},color:"#888",font:{size:10},maxTicksLimit:7},title:{display:true,text:"Baht (฿)",color:"#888",font:{size:10}},grid:{color:"rgba(136,135,128,.15)"}}
+      }
+    }
+  });
+}
+/* ── Note input: auto-resize to fit content ── */
+(function(){
+  var input=document.getElementById("userNote");
+  var sizer=document.getElementById("noteSizer");
+  function fitNote(){
+    /* Use the input's text, or the placeholder when empty */
+    var txt=input.value||input.placeholder||"";
+    sizer.textContent=txt;
+    /* Add a tiny buffer so the caret has room */
+    var w=sizer.offsetWidth+8;
+    /* Cap at row width so it never overflows */
+    var rowMax=input.parentElement.offsetWidth-20;
+    if(rowMax>0&&w>rowMax)w=rowMax;
+    input.style.width=w+"px";
+  }
+  input.addEventListener("input",fitNote);
+  /* Re-fit if window resizes (row width may change) */
+  window.addEventListener("resize",fitNote);
+  /* Initial fit */
+  fitNote();
+})();
+
+calc();
+</script>
+
+</body></html>
