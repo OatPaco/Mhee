@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spun-Pile G-Force & Spin Cycle Optimizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--card:#f8f9fa;--border:#dee2e6;--t1:#212529;--t2:#495057;--t3:#868e96;--blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7;--teal:#14b8a6;--cyan:#06b6d4}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans Thai',sans-serif;background:var(--bg);color:var(--t1);padding:16px;min-height:100vh}
+.page{max-width:1500px;margin:0 auto}
+h1{font-size:22px;font-weight:800;margin-bottom:4px}h1 span{color:var(--amber)}
+.sub{font-size:12px;color:var(--t2);margin-bottom:14px}
+
+.tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tab{padding:8px 18px;font-size:12px;font-weight:600;border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;background:var(--card);color:var(--t2);cursor:pointer;font-family:inherit;margin-bottom:-1px}
+.tab.on{background:#fff;color:var(--t1);border-bottom:2px solid var(--blue)}
+.tab:hover:not(.on){background:#e9ecef}
+.view{display:none}.view.on{display:block}
+
+.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.panel-title{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.panel-title .sub-info{font-weight:400;text-transform:none;color:var(--t3);font-size:10px;margin-left:8px}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+.field{margin-bottom:10px}
+.field label{font-size:10px;font-weight:600;color:var(--t2);display:block;margin-bottom:3px}
+.field label .hint{font-weight:400;color:var(--t3);text-transform:none;font-size:9px;margin-left:4px}
+.field input,.field select,.field textarea{font-family:'JetBrains Mono',monospace;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--t1);outline:none;width:100%}
+.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(59,130,246,.12)}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+
+.btn{font-size:11px;font-weight:600;padding:5px 12px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--t2);cursor:pointer;font-family:inherit}
+.btn:hover{background:#e9ecef;color:var(--t1);border-color:var(--blue)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:#2563eb;color:#fff}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover{background:#16a34a;color:#fff}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-red:hover{background:#dc2626;color:#fff}
+.btn-sm{font-size:10px;padding:3px 9px}
+
+.toolbar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.toolbar .msg{font-size:10px;color:var(--green);display:none}
+
+table.dt{width:100%;border-collapse:collapse;font-size:11px}
+table.dt th{background:var(--card);color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:9px;padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}
+table.dt td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.dt tr:hover{background:#f8fafc}
+table.dt input,table.dt select{font-size:11px;padding:3px 6px;border:1px solid transparent;background:transparent;width:100%;font-family:inherit;border-radius:3px}
+table.dt input:focus,table.dt select:focus{border-color:var(--blue);background:#fff;outline:none}
+table.dt input[type=number]{font-family:'JetBrains Mono',monospace;text-align:right}
+.del-row{width:24px;height:24px;border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:14px;border-radius:3px;display:flex;align-items:center;justify-content:center}
+.del-row:hover{background:#fde8e8;color:var(--red)}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:700px){.stat-row{grid-template-columns:repeat(2,1fr)}}
+.stat-card{padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:8px}
+.stat-card-l{font-size:9px;color:var(--t2);text-transform:uppercase;font-weight:600;letter-spacing:.05em;margin-bottom:2px}
+.stat-card-v{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--t1)}
+.stat-card-v.warn{color:var(--amber)}.stat-card-v.danger{color:var(--red)}.stat-card-v.good{color:var(--green)}.stat-card-v.info{color:var(--blue)}
+.stat-card .unit{font-size:11px;color:var(--t3);margin-left:4px;font-weight:400}
+
+.chart-wrap{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px}
+.chart-wrap canvas{display:block;width:100%}
+
+.add-btn{font-size:11px;padding:5px 14px;border:1px dashed var(--border);border-radius:5px;background:transparent;color:var(--t3);cursor:pointer;font-family:inherit;margin-top:8px}
+.add-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* Stage colors */
+.stage-1{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.stage-2{background:#dcfce7;color:#166534;border-color:#86efac}
+.stage-3{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.stage-4{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+
+.stage-chip{display:inline-block;padding:3px 9px;font-size:10px;font-weight:700;border-radius:4px;border:1px solid;letter-spacing:.03em}
+
+.recipe-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px}
+.recipe-card-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap}
+.recipe-name{font-size:14px;font-weight:700;color:var(--t1)}
+.recipe-meta{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace}
+
+.stage-row{display:grid;grid-template-columns:80px 1fr 1fr 1fr 1fr 28px;gap:6px;align-items:center;margin-bottom:5px;padding:6px;background:var(--card);border-radius:6px}
+.stage-row .stage-label{font-size:10px;font-weight:700;padding:4px 6px;border-radius:4px;text-align:center}
+.stage-row input{font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:#fff;font-family:'JetBrains Mono',monospace;text-align:right;width:100%}
+
+.gforce-display{display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px}
+.gforce-display .g-inner,.gforce-display .g-outer{padding:2px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;text-align:right;font-weight:700}
+.g-inner{background:#dbeafe;color:#1d4ed8}
+.g-outer{background:#fee2e2;color:#991b1b}
+
+.note-box{background:#fef9c3;border:1px solid #facc15;border-radius:8px;padding:12px 16px;margin-top:10px;font-size:11px;line-height:1.6;color:#713f12}
+.note-box b{color:#854d0e}
+.info-box{background:#dbeafe;border:1px solid #93c5fd;border-radius:8px;padding:12px 16px;margin-top:10px;font-size:11px;line-height:1.6;color:#1e3a8a}
+.info-box b{color:#1d4ed8}
+.warn-box{background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;margin-top:10px;font-size:11px;line-height:1.6;color:#7f1d1d}
+.warn-box b{color:#991b1b}
+
+/* Pressure visualization */
+.pressure-viz{background:#fff;border:1px solid var(--border);border-radius:8px;padding:20px}
+.pressure-viz canvas{display:block;margin:0 auto}
+
+/* Doc section */
+.doc-section{font-size:13px;line-height:1.7;color:var(--t2)}
+.doc-section h3{font-size:14px;font-weight:700;color:var(--t1);margin:16px 0 8px}
+.doc-section h4{font-size:12px;font-weight:700;color:var(--t1);margin:12px 0 6px}
+.doc-section p{margin-bottom:8px}
+.doc-section ul{margin:6px 0 8px 22px}
+.doc-section li{margin-bottom:4px}
+.doc-section code{font-family:'JetBrains Mono',monospace;background:var(--card);padding:1px 5px;border-radius:3px;font-size:11px;color:#9d174d}
+.doc-section .formula{font-family:'JetBrains Mono',monospace;background:var(--card);padding:10px 14px;border-radius:6px;font-size:13px;color:var(--t1);text-align:center;margin:10px 0;border:1px solid var(--border)}
+
+/* Quick calc */
+.quick-calc{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.quick-calc{grid-template-columns:1fr}}
+.quick-calc-section{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px}
+.quick-calc-section h4{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.calc-result{margin-top:10px;padding:10px 14px;background:#dcfce7;border:1px solid #86efac;border-radius:6px}
+.calc-result-l{font-size:10px;color:#166534;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.calc-result-v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#166534}
+.calc-result.warn{background:#fef9c3;border-color:#facc15}
+.calc-result.warn .calc-result-l{color:#854d0e}
+.calc-result.warn .calc-result-v{color:#854d0e}
+
+/* Slurry */
+.slurry-est{background:#fef3c7;border:1px solid #fcd34d;padding:10px 14px;border-radius:8px;margin-top:10px}
+.slurry-est-l{font-size:10px;color:#92400e;font-weight:600;text-transform:uppercase;margin-bottom:3px}
+.slurry-est-v{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:#92400e}
+
+/* Cycle timeline visualization */
+.timeline-wrap{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:10px}
+
+/* Print friendly */
+@media print{
+  body{padding:0}
+  .toolbar,.tabs,.btn{display:none}
+  .view{display:block!important;page-break-after:always}
+  .panel{break-inside:avoid;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<h1>Spun-Pile <span>G-Force & Spin Cycle Optimizer</span></h1>
+<div class="sub">Calculate G-force · Design 4-stage spin recipes · Visualize pressure distribution · Predict slurry waste</div>
+
+<div class="tabs">
+  <button class="tab on" data-view="calculator" onclick="switchView('calculator')">⚡ Quick Calculator</button>
+  <button class="tab" data-view="recipe" onclick="switchView('recipe')">📋 Spin Recipe Designer</button>
+  <button class="tab" data-view="library" onclick="switchView('library')">📚 Recipe Library</button>
+  <button class="tab" data-view="pressure" onclick="switchView('pressure')">📊 Pressure & Visualization</button>
+  <button class="tab" data-view="slurry" onclick="switchView('slurry')">💧 Slurry Estimator</button>
+  <button class="tab" data-view="theory" onclick="switchView('theory')">📖 Theory & Reference</button>
+</div>
+
+<div class="toolbar">
+  <button class="btn" onclick="saveReport()">💾 Save Report</button>
+  <button class="btn" onclick="loadReport()">📂 Load Report</button>
+  <button class="btn btn-sm" onclick="loadDefaults()">↻ Load Default Recipes</button>
+  <button class="btn btn-sm" onclick="window.print()">🖨 Print</button>
+  <span class="msg" id="msg"></span>
+</div>
+
+<!-- ═══ QUICK CALCULATOR VIEW ═══ -->
+<div class="view on" id="v-calculator">
+  <div class="quick-calc">
+    <div class="quick-calc-section">
+      <h4>🎯 RPM → G-Force</h4>
+      <div class="field">
+        <label>Pile Outer Diameter (mm) <span class="hint">mold OD</span></label>
+        <input type="number" id="qOD" value="400" min="50" max="2000" step="10" oninput="rpmToG()">
+      </div>
+      <div class="field">
+        <label>Wall Thickness (mm)</label>
+        <input type="number" id="qWall" value="70" min="20" max="200" step="5" oninput="rpmToG()">
+      </div>
+      <div class="field">
+        <label>Mold RPM</label>
+        <input type="number" id="qRPM" value="450" min="50" max="1500" step="10" oninput="rpmToG()">
+      </div>
+      <div class="calc-result" id="qResult1">
+        <div class="calc-result-l">G-Force at OUTER wall</div>
+        <div class="calc-result-v" id="qGOuter">— G</div>
+      </div>
+      <div style="margin-top:6px;padding:8px 14px;background:#dbeafe;border:1px solid #93c5fd;border-radius:6px">
+        <div style="font-size:10px;color:#1e3a8a;font-weight:600;text-transform:uppercase;margin-bottom:2px">G-Force at INNER wall</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:#1d4ed8" id="qGInner">— G</div>
+      </div>
+      <div style="margin-top:6px;font-size:10px;color:var(--t3);line-height:1.5" id="qInterpretation"></div>
+    </div>
+
+    <div class="quick-calc-section">
+      <h4>🔄 Target G-Force → RPM</h4>
+      <div class="field">
+        <label>Pile Outer Diameter (mm)</label>
+        <input type="number" id="rOD" value="400" min="50" max="2000" step="10" oninput="gToRPM()">
+      </div>
+      <div class="field">
+        <label>Target G at OUTER wall</label>
+        <input type="number" id="rG" value="35" min="1" max="100" step="1" oninput="gToRPM()">
+      </div>
+      <div class="field">
+        <label>Target Stage <span class="hint">to select recommendation range</span></label>
+        <select id="rStage" onchange="gToRPM()">
+          <option value="1">Stage 1 — Low (Distribution) · 3–5 G</option>
+          <option value="2">Stage 2 — Medium (Initial compaction) · 8–12 G</option>
+          <option value="3">Stage 3 — Medium-High (Main compaction) · 18–25 G</option>
+          <option value="4" selected>Stage 4 — High (Final densification) · 30–40+ G</option>
+        </select>
+      </div>
+      <div class="calc-result" id="rResult">
+        <div class="calc-result-l">Required Mold RPM</div>
+        <div class="calc-result-v" id="rRPM">— RPM</div>
+      </div>
+      <div style="margin-top:6px;font-size:10px;color:var(--t3);line-height:1.5" id="rInterpretation"></div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <b>💡 Formula:</b> G = (RPM × 2π / 60)² × r / 9.81 — where r is the radius in meters and 9.81 m/s² is gravity.<br>
+    G-force varies across the wall thickness: <b>maximum at the outer wall</b> (where concrete is pushed) and <b>minimum at the inner wall</b> (the hollow core).
+  </div>
+</div>
+
+<!-- ═══ SPIN RECIPE DESIGNER ═══ -->
+<div class="view" id="v-recipe">
+  <div class="panel">
+    <div class="panel-title">🏗 Pile Specifications</div>
+    <div class="grid-3">
+      <div class="field">
+        <label>Recipe Name</label>
+        <input type="text" id="recName" value="PHC Ø400 × 12m" placeholder="e.g. PHC 400 × 12m">
+      </div>
+      <div class="field">
+        <label>Outer Diameter (mm)</label>
+        <input type="number" id="recOD" value="400" min="50" max="2000" step="10" oninput="updateRecipe()">
+      </div>
+      <div class="field">
+        <label>Wall Thickness (mm)</label>
+        <input type="number" id="recWall" value="70" min="20" max="200" step="5" oninput="updateRecipe()">
+      </div>
+      <div class="field">
+        <label>Pile Length (m)</label>
+        <input type="number" id="recLength" value="12" min="3" max="20" step="0.5" oninput="updateRecipe()">
+      </div>
+      <div class="field">
+        <label>Concrete Grade</label>
+        <select id="recGrade" onchange="updateRecipe()">
+          <option value="M40">M40</option><option value="M50">M50</option>
+          <option value="M60" selected>M60</option><option value="M70">M70</option>
+          <option value="M80">M80</option><option value="M90">M90</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Concrete Volume (L)</label>
+        <input type="number" id="recVol" value="350" min="20" max="3000" step="10" oninput="updateRecipe()">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">⚙ 4-Stage Spin Cycle <span class="sub-info">Industry standard: Low → Medium → Medium-High → High</span></div>
+    <div id="stagesEditor"></div>
+    <div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div style="font-size:11px;color:var(--t2)"><b>Total cycle time:</b> <span id="totalTime" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--t1)">— min</span></div>
+      <div style="font-size:11px;color:var(--t2)">|</div>
+      <div style="font-size:11px;color:var(--t2)"><b>Peak G:</b> <span id="peakG" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--red)">— G</span> at outer wall</div>
+      <div style="font-size:11px;color:var(--t2)">|</div>
+      <div style="font-size:11px;color:var(--t2)"><b>Peak RPM:</b> <span id="peakRPM" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--blue)">— RPM</span></div>
+      <button class="btn btn-green btn-sm" style="margin-left:auto" onclick="saveCurrentRecipe()">💾 Save to Library</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">📈 Spin Cycle Timeline</div>
+    <div class="chart-wrap">
+      <canvas id="timelineCanvas"></canvas>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">⚠ Recipe Validation</div>
+    <div id="validationResults"></div>
+  </div>
+</div>
+
+<!-- ═══ RECIPE LIBRARY ═══ -->
+<div class="view" id="v-library">
+  <div class="panel">
+    <div class="panel-title">📚 Saved Recipes <span class="sub-info" id="libCount">0 recipes</span></div>
+    <div id="libraryList"></div>
+    <button class="add-btn" onclick="addBlankRecipe()">+ Add New Recipe</button>
+  </div>
+</div>
+
+<!-- ═══ PRESSURE & VISUALIZATION ═══ -->
+<div class="view" id="v-pressure">
+  <div class="panel">
+    <div class="panel-title">📊 Cross-Section Pressure Distribution</div>
+    <div class="grid-2">
+      <div>
+        <div class="field">
+          <label>Pile Outer Diameter (mm)</label>
+          <input type="number" id="pOD" value="400" min="50" max="2000" step="10" oninput="renderPressure()">
+        </div>
+        <div class="field">
+          <label>Wall Thickness (mm)</label>
+          <input type="number" id="pWall" value="70" min="20" max="200" step="5" oninput="renderPressure()">
+        </div>
+        <div class="field">
+          <label>RPM</label>
+          <input type="number" id="pRPM" value="500" min="50" max="1500" step="10" oninput="renderPressure()">
+        </div>
+        <div class="field">
+          <label>Fresh Concrete Density (kg/m³)</label>
+          <input type="number" id="pDensity" value="2400" min="2000" max="2800" step="50" oninput="renderPressure()">
+        </div>
+        <div class="stat-row" style="grid-template-columns:1fr 1fr">
+          <div class="stat-card"><div class="stat-card-l">Inner Wall G</div><div class="stat-card-v info" id="pGInner">—</div></div>
+          <div class="stat-card"><div class="stat-card-l">Outer Wall G</div><div class="stat-card-v danger" id="pGOuter">—</div></div>
+          <div class="stat-card"><div class="stat-card-l">Inner Pressure</div><div class="stat-card-v info" id="pPInner">— <span class="unit">kPa</span></div></div>
+          <div class="stat-card"><div class="stat-card-l">Outer Pressure</div><div class="stat-card-v danger" id="pPOuter">— <span class="unit">kPa</span></div></div>
+        </div>
+      </div>
+      <div class="pressure-viz">
+        <canvas id="pressureCanvas" width="380" height="380"></canvas>
+      </div>
+    </div>
+    <div class="info-box">
+      <b>📖 Why pressure is triangular:</b> Research shows the moulding pressure across the concrete wall is non-uniform — it's approximately zero at the inner wall (the hollow core) and reaches maximum at the outer wall. This is why outer concrete is densest and strongest — exactly where bending stress is greatest during pile driving.
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">📈 G-Force vs RPM Curves</div>
+    <div class="chart-wrap">
+      <canvas id="curveCanvas"></canvas>
+    </div>
+    <div style="font-size:11px;color:var(--t2);margin-top:8px">
+      💡 At the same RPM, larger piles experience higher G-force. To achieve the same G-force on a Ø600 pile vs Ø300 pile, you need <b>lower RPM</b> for the larger pile.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SLURRY ESTIMATOR ═══ -->
+<div class="view" id="v-slurry">
+  <div class="panel">
+    <div class="panel-title">💧 Concrete Slurry Waste Estimator</div>
+    <div class="grid-2">
+      <div>
+        <div class="field">
+          <label>Pile Outer Diameter (mm)</label>
+          <input type="number" id="sOD" value="400" min="50" max="2000" step="10" oninput="renderSlurry()">
+        </div>
+        <div class="field">
+          <label>Pile Length (m)</label>
+          <input type="number" id="sLength" value="12" min="3" max="20" step="0.5" oninput="renderSlurry()">
+        </div>
+        <div class="field">
+          <label>Fresh Concrete Volume per Pile (L)</label>
+          <input type="number" id="sVol" value="350" min="20" max="3000" step="10" oninput="renderSlurry()">
+        </div>
+        <div class="field">
+          <label>Water/Cement Ratio</label>
+          <input type="number" id="sWC" value="0.32" min="0.2" max="0.5" step="0.01" oninput="renderSlurry()">
+        </div>
+      </div>
+      <div>
+        <div class="field">
+          <label>Peak G-Force at Outer Wall</label>
+          <input type="number" id="sG" value="35" min="5" max="80" step="1" oninput="renderSlurry()">
+        </div>
+        <div class="field">
+          <label>High-Speed Stage Duration (sec)</label>
+          <input type="number" id="sDur" value="240" min="30" max="900" step="10" oninput="renderSlurry()">
+        </div>
+        <div class="field">
+          <label>Piles per Shift</label>
+          <input type="number" id="sPiles" value="20" min="1" max="200" step="1" oninput="renderSlurry()">
+        </div>
+        <div class="field">
+          <label>Cement Cost (per kg, your currency)</label>
+          <input type="number" id="sCemCost" value="4" min="0" step="0.1" oninput="renderSlurry()">
+        </div>
+      </div>
+    </div>
+    <div class="stat-row" id="slurryStats"></div>
+    <div class="note-box" id="slurryNote"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">📊 Slurry vs G-Force Curve</div>
+    <div class="chart-wrap"><canvas id="slurryCurveCanvas"></canvas></div>
+    <div style="font-size:11px;color:var(--t2);margin-top:8px;line-height:1.5">
+      💡 <b>Higher G-force = more slurry expelled.</b> The slurry contains water + fine cement particles (mostly cement paste). Some slurry expulsion is intentional — it densifies the concrete. But excessive slurry indicates:<br>
+      • Mix is too wet (reduce W/C ratio)<br>
+      • Spinning too long at peak G<br>
+      • Material cost loss (the cement is the most expensive ingredient)
+    </div>
+  </div>
+</div>
+
+<!-- ═══ THEORY & REFERENCE ═══ -->
+<div class="view" id="v-theory">
+  <div class="panel">
+    <div class="panel-title">📖 Theory of Centrifugal Compaction</div>
+    <div class="doc-section">
+      <h3>The Physics</h3>
+      <p>When a mold rotates, every particle of fresh concrete experiences centripetal acceleration pulling it outward. The G-force at any radius is given by:</p>
+      <div class="formula">G = ω² × r / g = (RPM × 2π / 60)² × r / 9.81</div>
+      <p>Where <code>ω</code> is angular velocity in rad/s, <code>r</code> is radius in meters, and <code>g</code> = 9.81 m/s². Because G-force scales with both <b>radius</b> and <b>RPM squared</b>, doubling the RPM quadruples the G-force, while doubling the radius only doubles it.</p>
+      <p><b>Key implication:</b> The same RPM produces different G-forces on different pile sizes. A Ø1000 pile at 300 RPM experiences ~5× the G-force of a Ø200 pile at the same RPM. This is why you cannot use one RPM setting for all pile diameters.</p>
+
+      <h3>The 4-Stage Spin Cycle</h3>
+      <p>Modern spun-pile production uses a graduated 4-stage process. Each stage serves a distinct purpose, and skipping or rushing stages causes defects:</p>
+
+      <h4>Stage 1: Low Speed (Distribution)</h4>
+      <ul>
+        <li><b>G-Force:</b> 3–5 G at outer wall</li>
+        <li><b>Duration:</b> 1–2 minutes</li>
+        <li><b>Purpose:</b> Gently distribute fresh concrete evenly around the mold circumference. Prevents splashing and uneven initial deposition.</li>
+        <li><b>What happens:</b> Concrete settles against the mold wall, large air pockets begin to migrate inward.</li>
+      </ul>
+
+      <h4>Stage 2: Medium Speed (Initial Compaction)</h4>
+      <ul>
+        <li><b>G-Force:</b> 8–12 G at outer wall</li>
+        <li><b>Duration:</b> 2–4 minutes</li>
+        <li><b>Purpose:</b> Begin compaction. Eliminate large voids. Allow concrete to flow into reinforcement gaps.</li>
+        <li><b>What happens:</b> Air bubbles rise toward the inner surface (the future hollow core). The hollow core begins to form.</li>
+      </ul>
+
+      <h4>Stage 3: Medium-High Speed (Main Compaction)</h4>
+      <ul>
+        <li><b>G-Force:</b> 18–25 G at outer wall</li>
+        <li><b>Duration:</b> 3–5 minutes</li>
+        <li><b>Purpose:</b> Primary densification. Develop the final hollow core diameter. Compact aggregate against the outer wall.</li>
+        <li><b>What happens:</b> Concrete particles are pressed firmly against each other and against the outer wall. The cross-section takes its final shape.</li>
+      </ul>
+
+      <h4>Stage 4: High Speed (Final Densification)</h4>
+      <ul>
+        <li><b>G-Force:</b> 30–40+ G at outer wall (often up to 45 G for high-grade concrete)</li>
+        <li><b>Duration:</b> 2–4 minutes</li>
+        <li><b>Purpose:</b> Final densification. Expel excess water and cement slurry from the inner wall.</li>
+        <li><b>What happens:</b> Centrifugal force is so high that excess water (and some fine cement) is pushed out through the open ends. The remaining concrete is at maximum density.</li>
+      </ul>
+
+      <h3>Pressure Distribution</h3>
+      <p>The moulding pressure inside the concrete is <b>NOT uniform</b>. It increases linearly from zero at the inner wall to maximum at the outer wall. This creates a triangular pressure profile across the wall thickness:</p>
+      <div class="formula">P(r) = ρ × ω² × (r² - r_inner²) / 2</div>
+      <p>Where <code>ρ</code> is concrete density (~2400 kg/m³), <code>r</code> is the radius at that point, and <code>r_inner</code> is the inner wall radius. The peak pressure at the outer wall can reach <b>50–200 kPa</b> during high-speed spinning.</p>
+      <p><b>Why this matters:</b> The outer wall ends up with the densest, strongest concrete. This is structurally ideal because the outer fibers carry the most bending stress during pile driving and service loads.</p>
+
+      <h3>Common Mistakes & Defects</h3>
+      <ul>
+        <li><b>Skipping Stage 1:</b> Concrete splashes unevenly → wall thickness variation, "fin" defects on the seams.</li>
+        <li><b>Accelerating too fast between stages:</b> Causes "caking" — concrete clumps unevenly. Always ramp gradually.</li>
+        <li><b>Insufficient Stage 3:</b> Honeycomb voids in the concrete, low compressive strength.</li>
+        <li><b>Too short Stage 4:</b> Excess water remains → lower strength, longer curing time, more shrinkage.</li>
+        <li><b>Too long Stage 4 at very high G:</b> Excessive cement loss as slurry → reduced cement content, weaker concrete, higher cost.</li>
+        <li><b>Wrong G for diameter:</b> Operators using "RPM by habit" instead of recalculating for each diameter — produces inconsistent quality across pile sizes.</li>
+      </ul>
+
+      <h3>Recommended G-Force Targets by Pile Diameter</h3>
+      <p>Target G-force at outer wall during Stage 4 (peak):</p>
+      <table class="dt" style="margin-top:8px">
+        <thead><tr><th>Pile Diameter</th><th style="text-align:right">Stage 1</th><th style="text-align:right">Stage 2</th><th style="text-align:right">Stage 3</th><th style="text-align:right">Stage 4</th><th style="text-align:right">Total Time</th></tr></thead>
+        <tbody>
+          <tr><td>Ø150–250 (poles)</td><td style="text-align:right">3–4 G</td><td style="text-align:right">8–10 G</td><td style="text-align:right">18–22 G</td><td style="text-align:right">32–38 G</td><td style="text-align:right">12–15 min</td></tr>
+          <tr><td>Ø300–400 (small piles)</td><td style="text-align:right">3–5 G</td><td style="text-align:right">8–12 G</td><td style="text-align:right">18–25 G</td><td style="text-align:right">30–40 G</td><td style="text-align:right">14–17 min</td></tr>
+          <tr><td>Ø500–700 (medium)</td><td style="text-align:right">4–5 G</td><td style="text-align:right">10–13 G</td><td style="text-align:right">20–28 G</td><td style="text-align:right">35–42 G</td><td style="text-align:right">16–20 min</td></tr>
+          <tr><td>Ø800–1200 (large)</td><td style="text-align:right">4–6 G</td><td style="text-align:right">11–14 G</td><td style="text-align:right">22–30 G</td><td style="text-align:right">38–45 G</td><td style="text-align:right">18–24 min</td></tr>
+          <tr><td>Ø1400–2000 (giant)</td><td style="text-align:right">5–6 G</td><td style="text-align:right">12–15 G</td><td style="text-align:right">25–32 G</td><td style="text-align:right">40–50 G</td><td style="text-align:right">22–30 min</td></tr>
+        </tbody>
+      </table>
+
+      <h3>References</h3>
+      <ul>
+        <li>GB 13467-2023 — Pretensioned Spun Concrete Piles (Chinese national standard)</li>
+        <li>Budi, G.S. et al. (2017). Spinning Induced Compression Strength of Precast Hollow Concrete Piles. Civil Engineering Dimension, 19(2), 99–104.</li>
+        <li>Völgyi, I. et al. (2010). Concrete Strength Tendency in the Wall of Cylindrical Spuncast Elements. Periodica Polytechnica, Civil Engineering, 54(10), 23–30.</li>
+        <li>CN102211353A — Patent: 4-stage manufacturing process of centrifugal concrete pile</li>
+      </ul>
+
+      <p style="margin-top:14px;font-style:italic;color:var(--t3)"><b>Disclaimer:</b> Values shown are industry-typical reference ranges. Always validate against your specific concrete mix design, equipment capability, and applicable national codes. Calibrate by cutting test cores and verifying density/strength.</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ═══ CORE STATE ═══ */
+var uid=0;function nid(){return++uid}
+var $=function(id){return document.getElementById(id)}
+
+var STAGE_INFO=[
+  {name:"Stage 1 — Low (Distribution)",cls:"stage-1",gMin:3,gMax:5,reason:"Distribute concrete evenly",color:"#3b82f6"},
+  {name:"Stage 2 — Medium (Initial)",cls:"stage-2",gMin:8,gMax:12,reason:"Initial compaction",color:"#22c55e"},
+  {name:"Stage 3 — Med-High (Main)",cls:"stage-3",gMin:18,gMax:25,reason:"Main densification",color:"#f59e0b"},
+  {name:"Stage 4 — High (Final)",cls:"stage-4",gMin:30,gMax:45,reason:"Expel slurry, max density",color:"#ef4444"}
+];
+
+var currentRecipe={
+  name:"PHC Ø400 × 12m",
+  od:400,wall:70,length:12,grade:"M60",vol:350,
+  stages:[
+    {rpm:120,duration:90},   /* Stage 1 */
+    {rpm:240,duration:180},  /* Stage 2 */
+    {rpm:380,duration:240},  /* Stage 3 */
+    {rpm:480,duration:210}   /* Stage 4 */
+  ]
+};
+
+var library=[]; /* Saved recipes */
+
+/* ═══ UTILS ═══ */
+function fmt(n,d){d=d||0;if(!isFinite(n))return"-";return n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d})}
+function showMsg(t){var m=$("msg");m.textContent=t;m.style.display="inline";setTimeout(function(){m.style.display="none"},2500)}
+
+/* G-force calculation */
+function rpmToGForce(rpm,radius_mm){
+  var w=rpm*2*Math.PI/60; /* rad/s */
+  var r=radius_mm/1000; /* m */
+  return w*w*r/9.81;
+}
+function gForceToRPM(g,radius_mm){
+  var r=radius_mm/1000;
+  var w=Math.sqrt(g*9.81/r);
+  return w*60/(2*Math.PI);
+}
+function getStageRange(stage){return STAGE_INFO[stage-1]}
+
+/* Tab switching */
+function switchView(v){
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("on",t.dataset.view===v)});
+  document.querySelectorAll(".view").forEach(function(el){el.classList.toggle("on",el.id==="v-"+v)});
+  if(v==="recipe"){renderStagesEditor();drawTimeline();validateRecipe()}
+  if(v==="library")renderLibrary();
+  if(v==="pressure"){renderPressure();drawCurveChart()}
+  if(v==="slurry"){renderSlurry();drawSlurryCurve()}
+}
+
+/* ═══ QUICK CALCULATOR ═══ */
+function rpmToG(){
+  var od=+$("qOD").value||400;
+  var wall=+$("qWall").value||70;
+  var rpm=+$("qRPM").value||450;
+  var rOuter=od/2;
+  var rInner=rOuter-wall;
+  if(rInner<10)rInner=10;
+  var gOuter=rpmToGForce(rpm,rOuter);
+  var gInner=rpmToGForce(rpm,rInner);
+  $("qGOuter").textContent=fmt(gOuter,1)+" G";
+  $("qGInner").textContent=fmt(gInner,1)+" G";
+
+  /* Interpretation */
+  var interp="";
+  if(gOuter<5)interp="Very low — only suitable for initial distribution (Stage 1).";
+  else if(gOuter<13)interp="Medium range — suitable for Stage 2 (initial compaction).";
+  else if(gOuter<26)interp="Med-high range — suitable for Stage 3 (main compaction).";
+  else if(gOuter<46)interp="High range — suitable for Stage 4 (final densification).";
+  else interp="<span style='color:#ef4444;font-weight:700'>⚠ Very high</span> — risk of excessive slurry expulsion and cement loss. Verify equipment limits.";
+  $("qInterpretation").innerHTML=interp;
+}
+
+function gToRPM(){
+  var od=+$("rOD").value||400;
+  var g=+$("rG").value||35;
+  var stage=+$("rStage").value||4;
+  var rOuter=od/2;
+  var rpm=gForceToRPM(g,rOuter);
+  $("rRPM").textContent=fmt(rpm,0)+" RPM";
+
+  var info=getStageRange(stage);
+  var interp='<b>'+info.name+'</b> targets <b>'+info.gMin+'–'+info.gMax+' G</b>. ';
+  if(g<info.gMin)interp+='<span style="color:#f59e0b">⚠ Below recommended range</span>';
+  else if(g>info.gMax)interp+='<span style="color:#ef4444">⚠ Above recommended range</span>';
+  else interp+='<span style="color:#22c55e">✓ Within recommended range</span>';
+  $("rInterpretation").innerHTML=interp;
+}
+
+/* ═══ RECIPE DESIGNER ═══ */
+function renderStagesEditor(){
+  var el=$("stagesEditor");el.innerHTML="";
+  /* Header */
+  var hdr=document.createElement("div");hdr.className="stage-row";hdr.style.fontWeight="700";hdr.style.fontSize="9px";hdr.style.color="var(--t3)";hdr.style.textTransform="uppercase";hdr.style.background="transparent";
+  hdr.innerHTML='<div>Stage</div><div style="text-align:right">RPM</div><div style="text-align:right">Duration (sec)</div><div>G @ Outer</div><div>G @ Inner</div><div></div>';
+  el.appendChild(hdr);
+
+  var od=+$("recOD").value||400;
+  var wall=+$("recWall").value||70;
+  var rOuter=od/2,rInner=Math.max(10,rOuter-wall);
+
+  currentRecipe.stages.forEach(function(s,i){
+    var info=STAGE_INFO[i];
+    var gOuter=rpmToGForce(s.rpm,rOuter);
+    var gInner=rpmToGForce(s.rpm,rInner);
+    var inRange=gOuter>=info.gMin&&gOuter<=info.gMax;
+    var row=document.createElement("div");row.className="stage-row";
+    row.innerHTML=
+      '<div class="stage-label '+info.cls+'">Stage '+(i+1)+'</div>'+
+      '<input type="number" value="'+s.rpm+'" min="0" max="1500" step="10" onchange="currentRecipe.stages['+i+'].rpm=Math.max(0,+this.value||0);updateRecipe()">'+
+      '<input type="number" value="'+s.duration+'" min="0" max="900" step="10" onchange="currentRecipe.stages['+i+'].duration=Math.max(0,+this.value||0);updateRecipe()">'+
+      '<div class="gforce-display"><span class="g-outer" title="G at outer wall">'+fmt(gOuter,1)+' G</span></div>'+
+      '<div class="gforce-display"><span class="g-inner" title="G at inner wall">'+fmt(gInner,1)+' G</span></div>'+
+      '<div style="text-align:center;font-size:14px">'+(inRange?'<span style="color:#22c55e" title="Within recommended range">✓</span>':'<span style="color:#f59e0b" title="Outside recommended range">⚠</span>')+'</div>';
+    el.appendChild(row);
+  });
+}
+
+function updateRecipe(){
+  $("recName") && (currentRecipe.name=$("recName").value);
+  currentRecipe.od=+$("recOD").value||400;
+  currentRecipe.wall=+$("recWall").value||70;
+  currentRecipe.length=+$("recLength").value||12;
+  currentRecipe.grade=$("recGrade").value;
+  currentRecipe.vol=+$("recVol").value||350;
+  renderStagesEditor();
+  drawTimeline();
+  validateRecipe();
+  /* Stats */
+  var totalSec=currentRecipe.stages.reduce(function(a,s){return a+s.duration},0);
+  $("totalTime").textContent=Math.floor(totalSec/60)+":"+("0"+(totalSec%60)).slice(-2)+" ("+fmt(totalSec/60,1)+" min)";
+  var rOuter=currentRecipe.od/2;
+  var peakRPM=Math.max.apply(null,currentRecipe.stages.map(function(s){return s.rpm}));
+  var peakG=rpmToGForce(peakRPM,rOuter);
+  $("peakRPM").textContent=fmt(peakRPM,0)+" RPM";
+  $("peakG").textContent=fmt(peakG,1)+" G";
+}
+
+function drawTimeline(){
+  var cv=$("timelineCanvas");if(!cv)return;
+  var dpr=window.devicePixelRatio||1;
+  var W=cv.parentElement.clientWidth-28,H=260;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+"px";cv.style.height=H+"px";
+  var cx=cv.getContext("2d");cx.scale(dpr,dpr);cx.clearRect(0,0,W,H);
+
+  var pad={l:60,r:60,t:30,b:40};
+  var cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+
+  /* Build cumulative time points */
+  var totalSec=currentRecipe.stages.reduce(function(a,s){return a+s.duration},0)||1;
+  var rOuter=currentRecipe.od/2;
+  var maxRPM=Math.max.apply(null,currentRecipe.stages.map(function(s){return s.rpm}))*1.1||500;
+  var maxG=rpmToGForce(maxRPM,rOuter)*1.1||50;
+
+  /* Y-axis gridlines */
+  cx.strokeStyle="#e5e7eb";cx.lineWidth=1;
+  cx.font="9px 'JetBrains Mono',monospace";cx.fillStyle="#3b82f6";cx.textAlign="right";cx.textBaseline="middle";
+  for(var i=0;i<=5;i++){
+    var y=pad.t+ch-(ch*i/5);
+    cx.beginPath();cx.moveTo(pad.l,y);cx.lineTo(pad.l+cw,y);cx.stroke();
+    var rpmVal=Math.round(maxRPM*i/5);
+    cx.fillText(rpmVal,pad.l-6,y);
+  }
+  /* Right axis G */
+  cx.textAlign="left";cx.fillStyle="#ef4444";
+  for(var i=0;i<=5;i++){
+    var y=pad.t+ch-(ch*i/5);
+    var gVal=(maxG*i/5).toFixed(1);
+    cx.fillText(gVal,pad.l+cw+6,y);
+  }
+  /* Axis labels */
+  cx.font="bold 10px 'Noto Sans Thai',sans-serif";
+  cx.fillStyle="#3b82f6";cx.textAlign="center";cx.save();cx.translate(15,pad.t+ch/2);cx.rotate(-Math.PI/2);cx.fillText("RPM",0,0);cx.restore();
+  cx.fillStyle="#ef4444";cx.save();cx.translate(W-15,pad.t+ch/2);cx.rotate(Math.PI/2);cx.fillText("G-Force",0,0);cx.restore();
+
+  /* Draw stage backgrounds */
+  var cumTime=0;
+  currentRecipe.stages.forEach(function(s,i){
+    var x0=pad.l+(cumTime/totalSec)*cw;
+    var x1=pad.l+((cumTime+s.duration)/totalSec)*cw;
+    var info=STAGE_INFO[i];
+    cx.fillStyle=info.color+"15";
+    cx.fillRect(x0,pad.t,x1-x0,ch);
+    /* Stage label */
+    cx.font="bold 9px 'Noto Sans Thai',sans-serif";cx.fillStyle=info.color;cx.textAlign="center";cx.textBaseline="top";
+    if(x1-x0>40){
+      cx.fillText("Stage "+(i+1),(x0+x1)/2,pad.t+4);
+      cx.font="9px 'JetBrains Mono',monospace";
+      cx.fillText(s.duration+"s",(x0+x1)/2,pad.t+16);
+    }
+    cumTime+=s.duration;
+  });
+
+  /* Draw RPM line */
+  cx.strokeStyle="#3b82f6";cx.lineWidth=2.5;cx.beginPath();
+  cumTime=0;
+  /* Start at 0 */
+  cx.moveTo(pad.l,pad.t+ch);
+  /* Ramp up to each stage */
+  currentRecipe.stages.forEach(function(s,i){
+    var prevRPM=i>0?currentRecipe.stages[i-1].rpm:0;
+    /* Ramp from previous to current (10% of stage duration) */
+    var rampSec=s.duration*0.15;
+    var x0=pad.l+(cumTime/totalSec)*cw;
+    var xRampEnd=pad.l+((cumTime+rampSec)/totalSec)*cw;
+    var xStageEnd=pad.l+((cumTime+s.duration)/totalSec)*cw;
+    var yPrev=pad.t+ch-(prevRPM/maxRPM)*ch;
+    var yCur=pad.t+ch-(s.rpm/maxRPM)*ch;
+    cx.lineTo(x0,yPrev);
+    cx.lineTo(xRampEnd,yCur);
+    cx.lineTo(xStageEnd,yCur);
+    cumTime+=s.duration;
+  });
+  cx.stroke();
+
+  /* Draw G-force line */
+  cx.strokeStyle="#ef4444";cx.lineWidth=2.5;cx.setLineDash([5,3]);cx.beginPath();
+  cumTime=0;
+  cx.moveTo(pad.l,pad.t+ch);
+  currentRecipe.stages.forEach(function(s,i){
+    var prevRPM=i>0?currentRecipe.stages[i-1].rpm:0;
+    var prevG=rpmToGForce(prevRPM,rOuter);
+    var curG=rpmToGForce(s.rpm,rOuter);
+    var rampSec=s.duration*0.15;
+    var x0=pad.l+(cumTime/totalSec)*cw;
+    var xRampEnd=pad.l+((cumTime+rampSec)/totalSec)*cw;
+    var xStageEnd=pad.l+((cumTime+s.duration)/totalSec)*cw;
+    var yPrev=pad.t+ch-(prevG/maxG)*ch;
+    var yCur=pad.t+ch-(curG/maxG)*ch;
+    cx.lineTo(x0,yPrev);
+    cx.lineTo(xRampEnd,yCur);
+    cx.lineTo(xStageEnd,yCur);
+    cumTime+=s.duration;
+  });
+  cx.stroke();
+  cx.setLineDash([]);
+
+  /* X-axis timeline */
+  cx.fillStyle="#9ca3af";cx.font="9px 'JetBrains Mono',monospace";cx.textAlign="center";cx.textBaseline="top";
+  for(var i=0;i<=10;i++){
+    var x=pad.l+cw*i/10;
+    var t=Math.round(totalSec*i/10);
+    cx.fillText(Math.floor(t/60)+":"+("0"+(t%60)).slice(-2),x,pad.t+ch+6);
+  }
+
+  /* Legend */
+  cx.font="bold 10px 'Noto Sans Thai',sans-serif";cx.textAlign="left";
+  cx.fillStyle="#3b82f6";cx.fillRect(pad.l,8,12,3);
+  cx.fillStyle="#1e293b";cx.fillText("RPM",pad.l+18,11);
+  cx.strokeStyle="#ef4444";cx.lineWidth=2;cx.setLineDash([5,3]);cx.beginPath();cx.moveTo(pad.l+60,10);cx.lineTo(pad.l+72,10);cx.stroke();cx.setLineDash([]);
+  cx.fillStyle="#1e293b";cx.fillText("G-Force (outer wall)",pad.l+78,11);
+}
+
+function validateRecipe(){
+  var issues=[];
+  var rOuter=currentRecipe.od/2;
+  currentRecipe.stages.forEach(function(s,i){
+    var info=STAGE_INFO[i];
+    var gOuter=rpmToGForce(s.rpm,rOuter);
+    if(gOuter<info.gMin)issues.push({sev:"warn",msg:"Stage "+(i+1)+": G-force "+gOuter.toFixed(1)+" G is below recommended range ("+info.gMin+"–"+info.gMax+" G). Concrete may not compact properly."});
+    else if(gOuter>info.gMax*1.2)issues.push({sev:"danger",msg:"Stage "+(i+1)+": G-force "+gOuter.toFixed(1)+" G significantly exceeds recommended range ("+info.gMin+"–"+info.gMax+" G). Risk of excessive slurry/cement loss."});
+    else if(gOuter>info.gMax)issues.push({sev:"warn",msg:"Stage "+(i+1)+": G-force "+gOuter.toFixed(1)+" G slightly above recommended range ("+info.gMin+"–"+info.gMax+" G)."});
+
+    if(s.duration<30)issues.push({sev:"warn",msg:"Stage "+(i+1)+": duration "+s.duration+"s is very short. Stages typically need 60–300 seconds."});
+
+    /* Check acceleration between stages */
+    if(i>0){
+      var prevRpm=currentRecipe.stages[i-1].rpm;
+      var ratio=s.rpm/Math.max(prevRpm,1);
+      if(ratio>2.5)issues.push({sev:"warn",msg:"Stage "+i+"→"+(i+1)+": RPM jump from "+prevRpm+" to "+s.rpm+" ("+ratio.toFixed(1)+"×) is steep. Risk of uneven wall thickness from rapid acceleration."});
+    }
+  });
+
+  var totalSec=currentRecipe.stages.reduce(function(a,s){return a+s.duration},0);
+  if(totalSec<540)issues.push({sev:"warn",msg:"Total cycle time "+(totalSec/60).toFixed(1)+" min is shorter than typical (12–20 min). May not fully compact concrete."});
+  if(totalSec>1500)issues.push({sev:"warn",msg:"Total cycle time "+(totalSec/60).toFixed(1)+" min is longer than typical. Verify if extended cycle is needed."});
+
+  /* Check Stage 4 peak G */
+  var stage4G=rpmToGForce(currentRecipe.stages[3].rpm,rOuter);
+  if(stage4G<25)issues.push({sev:"warn",msg:"Final stage peak G-force only "+stage4G.toFixed(1)+" G. Insufficient densification may cause low strength."});
+
+  if(issues.length===0){
+    $("validationResults").innerHTML='<div style="padding:14px 16px;background:#dcfce7;border:1px solid #86efac;border-radius:6px;color:#166534;font-size:12px;font-weight:600">✓ Recipe looks good. All stages within recommended ranges and acceleration is gradual.</div>';
+  }else{
+    var html="";
+    issues.forEach(function(iss){
+      var bg=iss.sev==="danger"?"#fee2e2":"#fef9c3";
+      var bd=iss.sev==="danger"?"#fca5a5":"#facc15";
+      var col=iss.sev==="danger"?"#991b1b":"#854d0e";
+      var icon=iss.sev==="danger"?"⚠":"⚠";
+      html+='<div style="padding:8px 12px;background:'+bg+';border:1px solid '+bd+';border-radius:6px;color:'+col+';font-size:11px;margin-bottom:6px"><b>'+icon+'</b> '+iss.msg+'</div>';
+    });
+    $("validationResults").innerHTML=html;
+  }
+}
+
+function saveCurrentRecipe(){
+  var copy=JSON.parse(JSON.stringify(currentRecipe));
+  copy.id=nid();
+  copy.savedAt=new Date().toISOString();
+  library.push(copy);
+  showMsg("✓ Recipe saved to library");
+}
+
+/* ═══ RECIPE LIBRARY ═══ */
+function renderLibrary(){
+  var el=$("libraryList");el.innerHTML="";
+  $("libCount").textContent=library.length+" recipe"+(library.length!==1?"s":"");
+  if(library.length===0){
+    el.innerHTML='<div style="padding:24px;text-align:center;color:var(--t3);font-size:12px">No saved recipes yet. Design recipes in the Spin Recipe Designer and save them here.</div>';
+    return;
+  }
+  library.forEach(function(r,i){
+    var rOuter=r.od/2;
+    var peakRPM=Math.max.apply(null,r.stages.map(function(s){return s.rpm}));
+    var peakG=rpmToGForce(peakRPM,rOuter);
+    var totalSec=r.stages.reduce(function(a,s){return a+s.duration},0);
+
+    var card=document.createElement("div");card.className="recipe-card";
+    var h='<div class="recipe-card-h">';
+    h+='<input type="text" value="'+r.name.replace(/"/g,"&quot;")+'" onchange="library['+i+'].name=this.value;renderLibrary()" style="font-size:14px;font-weight:700;background:transparent;border:none;border-bottom:1px solid var(--border);padding:2px 4px;flex:1;min-width:120px;outline:none;font-family:inherit;color:var(--t1)">';
+    h+='<span class="recipe-meta">Ø'+r.od+'×'+r.length+'m · '+r.grade+'</span>';
+    h+='<button class="btn btn-sm btn-primary" onclick="loadRecipeToDesigner('+i+')">📝 Edit</button>';
+    h+='<button class="btn btn-sm" onclick="duplicateRecipe('+i+')">📋 Duplicate</button>';
+    h+='<button class="btn btn-sm btn-red" onclick="deleteRecipe('+i+')">✕</button>';
+    h+='</div>';
+
+    /* Compact stages display */
+    h+='<table class="dt" style="margin-top:8px"><thead><tr><th>Stage</th><th style="text-align:right">RPM</th><th style="text-align:right">Duration</th><th style="text-align:right">G @ Outer</th><th>Range Check</th></tr></thead><tbody>';
+    r.stages.forEach(function(s,si){
+      var info=STAGE_INFO[si];
+      var g=rpmToGForce(s.rpm,rOuter);
+      var inRange=g>=info.gMin&&g<=info.gMax;
+      h+='<tr><td><span class="stage-chip '+info.cls+'">Stage '+(si+1)+'</span></td>';
+      h+='<td style="text-align:right;font-family:\'JetBrains Mono\',monospace;font-weight:700">'+s.rpm+'</td>';
+      h+='<td style="text-align:right;font-family:\'JetBrains Mono\',monospace">'+s.duration+'s</td>';
+      h+='<td style="text-align:right;font-family:\'JetBrains Mono\',monospace;font-weight:700;color:'+(inRange?"#166534":"#854d0e")+'">'+g.toFixed(1)+' G</td>';
+      h+='<td style="font-size:10px;color:var(--t3)">'+info.gMin+'–'+info.gMax+' G '+(inRange?'<span style="color:#22c55e">✓</span>':'<span style="color:#f59e0b">⚠</span>')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+
+    h+='<div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--t2);flex-wrap:wrap"><b>Total time:</b> '+Math.floor(totalSec/60)+":"+("0"+(totalSec%60)).slice(-2)+' · <b>Peak G:</b> '+peakG.toFixed(1)+' G · <b>Peak RPM:</b> '+peakRPM+'</div>';
+
+    card.innerHTML=h;
+    el.appendChild(card);
+  });
+}
+
+function loadRecipeToDesigner(i){
+  currentRecipe=JSON.parse(JSON.stringify(library[i]));
+  $("recName").value=currentRecipe.name;
+  $("recOD").value=currentRecipe.od;
+  $("recWall").value=currentRecipe.wall;
+  $("recLength").value=currentRecipe.length;
+  $("recGrade").value=currentRecipe.grade;
+  $("recVol").value=currentRecipe.vol;
+  switchView("recipe");
+  updateRecipe();
+}
+
+function duplicateRecipe(i){
+  var copy=JSON.parse(JSON.stringify(library[i]));
+  copy.id=nid();copy.name=copy.name+" (copy)";
+  library.push(copy);renderLibrary();
+}
+
+function deleteRecipe(i){
+  if(!confirm("Delete recipe '"+library[i].name+"'?"))return;
+  library.splice(i,1);renderLibrary();
+}
+
+function addBlankRecipe(){
+  library.push({
+    id:nid(),
+    name:"New Recipe",
+    od:400,wall:70,length:12,grade:"M60",vol:350,
+    stages:[
+      {rpm:100,duration:90},
+      {rpm:220,duration:180},
+      {rpm:360,duration:240},
+      {rpm:460,duration:210}
+    ]
+  });
+  renderLibrary();
+}
+
+/* ═══ PRESSURE VISUALIZATION ═══ */
+function renderPressure(){
+  var od=+$("pOD").value||400;
+  var wall=+$("pWall").value||70;
+  var rpm=+$("pRPM").value||500;
+  var density=+$("pDensity").value||2400;
+  var rOuter=od/2;
+  var rInner=Math.max(10,rOuter-wall);
+
+  var gOuter=rpmToGForce(rpm,rOuter);
+  var gInner=rpmToGForce(rpm,rInner);
+
+  /* Pressure: P(r) = rho * w^2 * (r^2 - r_inner^2) / 2 */
+  var w=rpm*2*Math.PI/60;
+  var pInner=0; /* always zero at inner wall */
+  var pOuter=density*w*w*((rOuter/1000)*(rOuter/1000)-(rInner/1000)*(rInner/1000))/2 /1000; /* kPa */
+
+  $("pGOuter").textContent=fmt(gOuter,1)+" G";
+  $("pGInner").textContent=fmt(gInner,1)+" G";
+  $("pPOuter").innerHTML=fmt(pOuter,1)+' <span class="unit">kPa</span>';
+  $("pPInner").innerHTML=fmt(pInner,1)+' <span class="unit">kPa</span>';
+
+  drawPressureCanvas(rOuter,rInner,density,w);
+}
+
+function drawPressureCanvas(rOuter,rInner,density,w){
+  var cv=$("pressureCanvas");if(!cv)return;
+  var dpr=window.devicePixelRatio||1;
+  var size=380;
+  cv.width=size*dpr;cv.height=size*dpr;cv.style.width=size+"px";cv.style.height=size+"px";
+  var cx=cv.getContext("2d");cx.scale(dpr,dpr);cx.clearRect(0,0,size,size);
+
+  var center=size/2;
+  var scale=(size*0.4)/rOuter;
+  var rO=rOuter*scale,rI=rInner*scale;
+
+  /* Background grid */
+  cx.fillStyle="#f9fafb";cx.fillRect(0,0,size,size);
+
+  /* Draw cross-section with pressure gradient (from inner=blue to outer=red) */
+  var steps=30;
+  for(var i=0;i<steps;i++){
+    var t=i/steps;
+    var r=rI+(rO-rI)*t;
+    var rN=rI+(rO-rI)*(i+1)/steps;
+    /* Color: blue (low) → red (high) */
+    var red=Math.round(59+(239-59)*t);
+    var green=Math.round(130+(68-130)*t);
+    var blue=Math.round(246+(68-246)*t);
+    cx.fillStyle="rgba("+red+","+green+","+blue+",0.85)";
+    cx.beginPath();cx.arc(center,center,rN,0,Math.PI*2);
+    cx.arc(center,center,r,Math.PI*2,0,true);
+    cx.fill();
+  }
+
+  /* Inner hole (white) */
+  cx.fillStyle="#fff";cx.beginPath();cx.arc(center,center,rI,0,Math.PI*2);cx.fill();
+  cx.strokeStyle="#94a3b8";cx.lineWidth=1;cx.stroke();
+
+  /* Outer ring */
+  cx.strokeStyle="#1e293b";cx.lineWidth=2;cx.beginPath();cx.arc(center,center,rO,0,Math.PI*2);cx.stroke();
+
+  /* Rotation arrow */
+  cx.strokeStyle="rgba(59,130,246,0.6)";cx.lineWidth=2;
+  cx.beginPath();cx.arc(center,center,rO+12,-Math.PI/2-0.5,-Math.PI/2+0.5);cx.stroke();
+  /* Arrow head */
+  cx.beginPath();
+  var ax=center+(rO+12)*Math.cos(-Math.PI/2+0.5);
+  var ay=center+(rO+12)*Math.sin(-Math.PI/2+0.5);
+  cx.moveTo(ax,ay);cx.lineTo(ax-5,ay-5);cx.moveTo(ax,ay);cx.lineTo(ax+5,ay-3);cx.stroke();
+
+  /* Triangle pressure profile on right side */
+  var profileX=center+rO+22;
+  var profileY1=center-rO,profileY2=center+rO;
+  /* Axis */
+  cx.strokeStyle="#1e293b";cx.lineWidth=1.5;
+  cx.beginPath();cx.moveTo(profileX,profileY1);cx.lineTo(profileX,profileY2);cx.stroke();
+  /* Triangle gradient */
+  var grad=cx.createLinearGradient(profileX,0,profileX+50,0);
+  grad.addColorStop(0,"rgba(59,130,246,0.6)");grad.addColorStop(1,"rgba(239,68,68,0.6)");
+  cx.fillStyle=grad;
+  cx.beginPath();cx.moveTo(profileX,center-rI);cx.lineTo(profileX,center+rI);cx.lineTo(profileX+50,center+rO);cx.lineTo(profileX+50,center-rO);cx.closePath();cx.fill();
+  cx.strokeStyle="#1e293b";cx.lineWidth=1;cx.stroke();
+
+  /* Labels */
+  cx.font="bold 11px 'Noto Sans Thai',sans-serif";cx.fillStyle="#1e293b";cx.textAlign="left";cx.textBaseline="middle";
+  cx.fillText("P_max",profileX+55,center-rO+5);
+  cx.fillText("P=0",profileX+55,center-rI);
+  cx.font="9px 'Noto Sans Thai',sans-serif";cx.fillStyle="#64748b";
+  cx.fillText("Pressure",profileX+10,profileY1-12);
+  cx.fillText("profile",profileX+10,profileY1-2);
+
+  /* Diameter labels */
+  cx.font="10px 'JetBrains Mono',monospace";cx.fillStyle="#1e293b";cx.textAlign="center";
+  cx.fillText("Ø"+(rOuter*2)+" outer",center,center+rO+25);
+  cx.fillText("Ø"+(rInner*2)+" inner",center,center+rI-10);
+
+  /* Title */
+  cx.font="bold 12px 'Noto Sans Thai',sans-serif";cx.fillStyle="#1e293b";cx.textAlign="center";cx.textBaseline="top";
+  cx.fillText("Cross-Section Pressure Distribution",center,8);
+}
+
+function drawCurveChart(){
+  var cv=$("curveCanvas");if(!cv)return;
+  var dpr=window.devicePixelRatio||1;
+  var W=cv.parentElement.clientWidth-28,H=280;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+"px";cv.style.height=H+"px";
+  var cx=cv.getContext("2d");cx.scale(dpr,dpr);cx.clearRect(0,0,W,H);
+
+  var pad={l:50,r:80,t:25,b:40};
+  var cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+
+  var maxRPM=600,maxG=80;
+  /* Gridlines */
+  cx.strokeStyle="#e5e7eb";cx.lineWidth=1;
+  cx.font="9px 'JetBrains Mono',monospace";cx.fillStyle="#9ca3af";
+  cx.textAlign="right";cx.textBaseline="middle";
+  for(var i=0;i<=8;i++){
+    var y=pad.t+ch-(ch*i/8);
+    cx.beginPath();cx.moveTo(pad.l,y);cx.lineTo(pad.l+cw,y);cx.stroke();
+    cx.fillText(Math.round(maxG*i/8),pad.l-6,y);
+  }
+  cx.textAlign="center";cx.textBaseline="top";
+  for(var i=0;i<=6;i++){
+    var x=pad.l+cw*i/6;
+    cx.fillText(Math.round(maxRPM*i/6),x,pad.t+ch+6);
+  }
+
+  /* Curves for different pile diameters */
+  var diameters=[200,400,600,800,1200];
+  var colors=["#3b82f6","#22c55e","#f59e0b","#a855f7","#ef4444"];
+
+  diameters.forEach(function(od,i){
+    var r=od/2;
+    cx.strokeStyle=colors[i];cx.lineWidth=2;cx.beginPath();
+    for(var rpm=0;rpm<=maxRPM;rpm+=10){
+      var g=rpmToGForce(rpm,r);
+      var x=pad.l+(rpm/maxRPM)*cw;
+      var y=pad.t+ch-(Math.min(g,maxG)/maxG)*ch;
+      if(rpm===0)cx.moveTo(x,y);else cx.lineTo(x,y);
+    }
+    cx.stroke();
+  });
+
+  /* Legend */
+  cx.font="10px 'Noto Sans Thai',sans-serif";cx.textAlign="left";cx.textBaseline="middle";
+  diameters.forEach(function(od,i){
+    var y=pad.t+15+i*16;
+    cx.fillStyle=colors[i];cx.fillRect(pad.l+cw+10,y-2,12,3);
+    cx.fillStyle="#1e293b";cx.fillText("Ø"+od,pad.l+cw+26,y);
+  });
+
+  /* Stage zones */
+  cx.fillStyle="rgba(59,130,246,0.04)";cx.fillRect(pad.l,pad.t+ch-(5/maxG)*ch,cw,(5/maxG)*ch);
+  cx.fillStyle="rgba(34,197,94,0.04)";cx.fillRect(pad.l,pad.t+ch-(12/maxG)*ch,cw,(7/maxG)*ch);
+  cx.fillStyle="rgba(245,158,11,0.04)";cx.fillRect(pad.l,pad.t+ch-(25/maxG)*ch,cw,(13/maxG)*ch);
+  cx.fillStyle="rgba(239,68,68,0.04)";cx.fillRect(pad.l,pad.t+ch-(45/maxG)*ch,cw,(20/maxG)*ch);
+
+  /* Axis titles */
+  cx.font="bold 10px 'Noto Sans Thai',sans-serif";cx.fillStyle="#1e293b";cx.textAlign="center";cx.textBaseline="bottom";
+  cx.fillText("RPM",pad.l+cw/2,H-4);
+  cx.save();cx.translate(12,pad.t+ch/2);cx.rotate(-Math.PI/2);cx.fillText("G-Force at outer wall",0,0);cx.restore();
+
+  cx.font="bold 11px 'Noto Sans Thai',sans-serif";cx.textAlign="left";cx.textBaseline="top";
+  cx.fillText("G-Force vs RPM by Pile Diameter",pad.l,5);
+}
+
+/* ═══ SLURRY ESTIMATOR ═══ */
+function renderSlurry(){
+  var od=+$("sOD").value||400;
+  var len=+$("sLength").value||12;
+  var vol=+$("sVol").value||350; /* L per pile */
+  var wc=+$("sWC").value||0.32;
+  var g=+$("sG").value||35;
+  var dur=+$("sDur").value||240;
+  var piles=+$("sPiles").value||20;
+  var cemCost=+$("sCemCost").value||4;
+
+  /* Empirical model:
+     Slurry % of total concrete volume expelled = f(G, duration)
+     Above 20G threshold, slurry expulsion accelerates.
+     Approximation based on industry observation:
+     slurryPct = max(0, 0.001 * (G - 15) * sqrt(duration/60) * 100)
+     Typical: 35G * 4min → ~5-8% slurry */
+  var slurryFactor=Math.max(0,(g-15)*0.001)*Math.sqrt(dur/60);
+  var slurryPct=slurryFactor*100;
+  if(slurryPct>20)slurryPct=20; /* cap */
+
+  /* Calculate */
+  var slurryPerPile=vol*slurryPct/100; /* L */
+  /* Slurry composition: roughly water + cement + fines */
+  /* For W/C=0.32, weight ratio: cement 1, water 0.32 */
+  /* Slurry typically has higher water ratio than the original mix */
+  var waterPerPile=slurryPerPile*0.55; /* roughly 55% water by volume */
+  var cementPerPile=slurryPerPile*0.30; /* cement lost in slurry */
+  /* Cement density ~1440 kg/m³, so cement kg = L * 1.44 */
+  var cementKgPerPile=cementPerPile*1.44;
+  var costPerPile=cementKgPerPile*cemCost;
+  var costPerShift=costPerPile*piles;
+  var costPerYear=costPerShift*250; /* ~250 working days */
+
+  var html='';
+  html+='<div class="stat-card"><div class="stat-card-l">Slurry per pile</div><div class="stat-card-v warn">'+fmt(slurryPerPile,1)+' <span class="unit">L</span></div></div>';
+  html+='<div class="stat-card"><div class="stat-card-l">Cement loss per pile</div><div class="stat-card-v warn">'+fmt(cementKgPerPile,1)+' <span class="unit">kg</span></div></div>';
+  html+='<div class="stat-card"><div class="stat-card-l">Cost per pile (cement)</div><div class="stat-card-v warn">'+fmt(costPerPile,2)+'</div></div>';
+  html+='<div class="stat-card"><div class="stat-card-l">Daily cost ('+piles+' piles)</div><div class="stat-card-v danger">'+fmt(costPerShift,0)+'</div></div>';
+  $("slurryStats").innerHTML=html;
+
+  /* Annual cost */
+  var noteHtml='<b>📊 Estimated annual cement loss</b> (assuming 250 working days, '+piles+' piles/day): <b>'+fmt(cementKgPerPile*piles*250,0)+' kg</b> of cement worth approximately <b>'+fmt(costPerYear,0)+'</b> per year.<br><br>';
+  noteHtml+='<b>💡 Optimization tips:</b><br>';
+  if(slurryPct>10)noteHtml+='• <b>Slurry expulsion of '+slurryPct.toFixed(1)+'%</b> is on the high side. Consider reducing Stage 4 duration or peak G slightly.<br>';
+  else if(slurryPct<3)noteHtml+='• Slurry expulsion of '+slurryPct.toFixed(1)+'% is low. Concrete may not be fully compacted — consider verifying core density.<br>';
+  else noteHtml+='• Slurry expulsion of '+slurryPct.toFixed(1)+'% is within typical range (3–8% is common).<br>';
+  noteHtml+='• Lower W/C ratio (currently '+wc.toFixed(2)+') reduces slurry but may reduce workability. Range: 0.28–0.36.<br>';
+  noteHtml+='• Collect and recycle slurry where possible — it can be reused as concrete filler or recovered solids for low-strength applications.<br>';
+  noteHtml+='• Track slurry volume per batch to detect mix design or spinning anomalies early.';
+  $("slurryNote").innerHTML=noteHtml;
+}
+
+function drawSlurryCurve(){
+  var cv=$("slurryCurveCanvas");if(!cv)return;
+  var dpr=window.devicePixelRatio||1;
+  var W=cv.parentElement.clientWidth-28,H=240;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+"px";cv.style.height=H+"px";
+  var cx=cv.getContext("2d");cx.scale(dpr,dpr);cx.clearRect(0,0,W,H);
+
+  var pad={l:50,r:80,t:25,b:40};
+  var cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+
+  var maxG=60,maxPct=15;
+  cx.strokeStyle="#e5e7eb";cx.lineWidth=1;
+  cx.font="9px 'JetBrains Mono',monospace";cx.fillStyle="#9ca3af";
+  cx.textAlign="right";cx.textBaseline="middle";
+  for(var i=0;i<=5;i++){
+    var y=pad.t+ch-(ch*i/5);
+    cx.beginPath();cx.moveTo(pad.l,y);cx.lineTo(pad.l+cw,y);cx.stroke();
+    cx.fillText((maxPct*i/5).toFixed(1)+"%",pad.l-6,y);
+  }
+  cx.textAlign="center";cx.textBaseline="top";
+  for(var i=0;i<=6;i++){
+    var x=pad.l+cw*i/6;
+    cx.fillText(Math.round(maxG*i/6)+" G",x,pad.t+ch+6);
+  }
+
+  var durations=[60,180,300,480];
+  var colors=["#3b82f6","#22c55e","#f59e0b","#ef4444"];
+  durations.forEach(function(dur,i){
+    cx.strokeStyle=colors[i];cx.lineWidth=2.5;cx.beginPath();
+    for(var g=0;g<=maxG;g+=1){
+      var pct=Math.max(0,(g-15)*0.001)*Math.sqrt(dur/60)*100;
+      if(pct>maxPct)pct=maxPct;
+      var x=pad.l+(g/maxG)*cw;
+      var y=pad.t+ch-(pct/maxPct)*ch;
+      if(g===0)cx.moveTo(x,y);else cx.lineTo(x,y);
+    }
+    cx.stroke();
+  });
+
+  /* Legend */
+  cx.font="10px 'Noto Sans Thai',sans-serif";cx.textAlign="left";cx.textBaseline="middle";
+  durations.forEach(function(dur,i){
+    var y=pad.t+15+i*15;
+    cx.fillStyle=colors[i];cx.fillRect(pad.l+cw+8,y-2,12,3);
+    cx.fillStyle="#1e293b";cx.fillText(dur+"s",pad.l+cw+24,y);
+  });
+
+  /* Axis titles */
+  cx.font="bold 10px 'Noto Sans Thai',sans-serif";cx.fillStyle="#1e293b";cx.textAlign="center";cx.textBaseline="bottom";
+  cx.fillText("G-Force at outer wall",pad.l+cw/2,H-4);
+  cx.save();cx.translate(12,pad.t+ch/2);cx.rotate(-Math.PI/2);cx.fillText("Slurry % of mix",0,0);cx.restore();
+
+  cx.font="bold 11px 'Noto Sans Thai',sans-serif";cx.textAlign="left";cx.textBaseline="top";
+  cx.fillText("Slurry Expulsion vs G-Force (by Stage 4 duration)",pad.l,5);
+}
+
+/* ═══ DEFAULT RECIPES ═══ */
+function loadDefaults(){
+  library=[
+    {id:nid(),name:"PHC Ø300 × 9m (M50)",od:300,wall:60,length:9,grade:"M50",vol:200,stages:[{rpm:140,duration:90},{rpm:280,duration:180},{rpm:440,duration:240},{rpm:540,duration:180}]},
+    {id:nid(),name:"PHC Ø400 × 12m (M60)",od:400,wall:70,length:12,grade:"M60",vol:350,stages:[{rpm:120,duration:90},{rpm:240,duration:180},{rpm:380,duration:240},{rpm:480,duration:210}]},
+    {id:nid(),name:"PHC Ø500 × 12m (M60)",od:500,wall:90,length:12,grade:"M60",vol:520,stages:[{rpm:100,duration:90},{rpm:200,duration:200},{rpm:330,duration:270},{rpm:420,duration:240}]},
+    {id:nid(),name:"PHC Ø600 × 15m (M70)",od:600,wall:100,length:15,grade:"M70",vol:780,stages:[{rpm:90,duration:120},{rpm:180,duration:210},{rpm:300,duration:300},{rpm:390,duration:270}]},
+    {id:nid(),name:"PHC Ø800 × 15m (M80)",od:800,wall:110,length:15,grade:"M80",vol:1350,stages:[{rpm:75,duration:120},{rpm:160,duration:240},{rpm:265,duration:330},{rpm:345,duration:300}]},
+    {id:nid(),name:"PHC Ø1000 × 15m (M80)",od:1000,wall:130,length:15,grade:"M80",vol:1950,stages:[{rpm:65,duration:150},{rpm:140,duration:270},{rpm:240,duration:360},{rpm:310,duration:330}]}
+  ];
+  renderLibrary();showMsg("✓ "+library.length+" default recipes loaded");
+}
+
+/* ═══ SAVE / LOAD ═══ */
+function saveReport(){
+  var state={currentRecipe:currentRecipe,library:library};
+  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+  var html=document.documentElement.outerHTML;
+  html=html.replace(/<script>var __D__="[^"]*";<\/script>\s*/g,"");
+  var tag='<'+'script>var __D__="'+b64+'";</'+'script>';
+  html=html.replace("</head>",tag+"\n</head>");
+  var blob=new Blob(["<!DOCTYPE html>\n<html lang=\"en\">\n"+html.slice(html.indexOf("<head>"))],{type:"text/html"});
+  var a=document.createElement("a");a.download="spin_recipe_report.html";a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
+  showMsg("✓ Report saved");
+}
+
+function loadReport(){
+  var inp=document.createElement("input");inp.type="file";inp.accept=".html";
+  inp.onchange=function(){
+    var f=inp.files[0];if(!f)return;
+    var rd=new FileReader();rd.onload=function(e){
+      try{
+        var m=e.target.result.match(/var __D__="([^"]+)"/);
+        if(!m){alert("No saved data found");return}
+        var st=JSON.parse(decodeURIComponent(escape(atob(m[1]))));
+        if(st.currentRecipe)currentRecipe=st.currentRecipe;
+        if(st.library)library=st.library;
+        $("recName").value=currentRecipe.name;
+        $("recOD").value=currentRecipe.od;
+        $("recWall").value=currentRecipe.wall;
+        $("recLength").value=currentRecipe.length;
+        $("recGrade").value=currentRecipe.grade;
+        $("recVol").value=currentRecipe.vol;
+        updateRecipe();renderLibrary();
+        showMsg("✓ Loaded");
+      }catch(err){alert("Invalid file: "+err.message)}
+    };rd.readAsText(f);
+  };inp.click();
+}
+
+function tryAutoLoad(){
+  if(typeof __D__==="undefined")return;
+  try{
+    var st=JSON.parse(decodeURIComponent(escape(atob(__D__))));
+    if(st.currentRecipe)currentRecipe=st.currentRecipe;
+    if(st.library)library=st.library;
+  }catch(e){console.error(e)}
+}
+
+/* ═══ INIT ═══ */
+window.addEventListener("load",function(){
+  tryAutoLoad();
+  if(library.length===0)loadDefaults();
+  rpmToG();gToRPM();
+  $("recName").value=currentRecipe.name;
+  $("recOD").value=currentRecipe.od;
+  $("recWall").value=currentRecipe.wall;
+  $("recLength").value=currentRecipe.length;
+  $("recGrade").value=currentRecipe.grade;
+  $("recVol").value=currentRecipe.vol;
+  updateRecipe();
+});
+
+window.addEventListener("resize",function(){
+  var v=document.querySelector(".tab.on").dataset.view;
+  if(v==="recipe")drawTimeline();
+  if(v==="pressure"){renderPressure();drawCurveChart()}
+  if(v==="slurry")drawSlurryCurve();
+});
+</script>
+</body>
+</html>

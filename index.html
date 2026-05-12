@@ -1,341 +1,463 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PACO Breakeven Analysis</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#f5f5f4;color:#1a1a1a;padding:12px;min-height:100vh}
-.co{max-width:920px;margin:0 auto}
-h1{font-size:16px;font-weight:600;margin-bottom:12px;color:#2c2c2a}
-.gr{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:640px){.gr{grid-template-columns:1fr}}
-.cd{background:#fff;border-radius:10px;border:1px solid #e0e0dc;padding:14px 16px}
-.st{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PACO - Reports / Dashboard / and more</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-card: rgba(255, 255, 255, 0.6);
+            --bg-card-hover: rgba(255, 255, 255, 0.82);
+            --accent: #2E86DE;
+            --accent-secondary: #48BAFE;
+            --text-primary: #1A3A5C;
+            --text-secondary: #3B6B96;
+            --text-muted: #6A9BC7;
+            --border: rgba(255, 255, 255, 0.55);
+            --border-hover: rgba(46, 134, 222, 0.35);
+        }
 
-/* Input rows */
-.ir{margin-bottom:10px}
-.ir-top{display:flex;align-items:center;gap:5px;margin-bottom:4px}
-.il{font-size:13px;color:#666;width:82px;flex-shrink:0}
-.iu{font-size:11px;color:#999;flex-shrink:0}
-.inp-num{
-  font-size:13px;font-weight:600;color:#1a1a1a;
-  width:100px;text-align:right;
-  border:1px solid #d8d8d4;border-radius:6px;
-  padding:4px 8px;outline:none;
-  background:#fafaf9;
-  -moz-appearance:textfield;
-}
-.inp-num::-webkit-inner-spin-button,.inp-num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-.inp-num:focus{border-color:#85b7eb;background:#fff;box-shadow:0 0 0 2px rgba(56,138,221,.12)}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* +/- buttons */
-.pm-btn{
-  width:26px;height:26px;
-  border:1px solid #d8d8d4;border-radius:6px;
-  background:#fafaf9;color:#555;
-  font-size:15px;font-weight:600;line-height:1;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  touch-action:manipulation;user-select:none;
-  transition:background .1s,border-color .1s;
-  flex-shrink:0;
-}
-.pm-btn:hover{background:#eef5fc;border-color:#85b7eb;color:#185fa5}
-.pm-btn:active{background:#dceaf8}
+        body {
+            font-family: 'Instrument Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: var(--text-primary);
+            background: linear-gradient(180deg, #5DADE2 0%, #85C1E9 20%, #AED6F1 45%, #D6EAF8 70%, #EBF5FB 100%);
+        }
 
-/* Percentage badge */
-.pct-badge{
-  font-size:10px;font-weight:600;
-  padding:2px 5px;border-radius:4px;
-  min-width:38px;text-align:center;
-  flex-shrink:0;
-  display:none;
-}
-.pct-badge.show{display:inline-block}
-.pct-badge.up{background:rgba(29,158,117,.1);color:#1d9e75}
-.pct-badge.down{background:rgba(216,90,48,.1);color:#d85a30}
-.pct-badge.zero{background:rgba(136,136,128,.08);color:#888}
+        /* ── Sky & Cloud System ── */
+        .sky {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
 
-.inp-range{
-  width:100%;height:6px;cursor:pointer;
-  -webkit-appearance:none;appearance:none;
-  background:#e8e8e4;border-radius:3px;outline:none;
-}
-.inp-range::-webkit-slider-thumb{
-  -webkit-appearance:none;width:16px;height:16px;
-  border-radius:50%;background:#378add;border:2px solid #fff;
-  box-shadow:0 1px 3px rgba(0,0,0,.18);cursor:pointer;
-}
-.inp-range::-moz-range-thumb{
-  width:14px;height:14px;
-  border-radius:50%;background:#378add;border:2px solid #fff;
-  box-shadow:0 1px 3px rgba(0,0,0,.18);cursor:pointer;
-}
+        .sun {
+            position: absolute;
+            top: 40px;
+            right: 12%;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,244,200,0.95) 0%, rgba(255,223,120,0.5) 40%, transparent 70%);
+            box-shadow: 0 0 80px 40px rgba(255,223,120,0.25), 0 0 160px 80px rgba(255,200,80,0.1);
+            animation: sunPulse 6s ease-in-out infinite;
+        }
 
-/* Metrics grid */
-.mg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.me{background:#f5f5f4;border-radius:8px;padding:10px 12px}
-.ml2{font-size:11px;color:#888;margin-bottom:3px}
-.mv{font-size:17px;font-weight:600;color:#1a1a1a}
-.mv.profit{color:#1d9e75}
-.mv.loss{color:#d85a30}
-.stb{margin-top:10px;padding:9px 12px;border-radius:8px;border:1px solid #e0e0dc;font-size:12px;line-height:1.5}
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.08); opacity: 1; }
+        }
 
-/* Chart */
-.cw{position:relative;width:100%;height:300px}
-@media(max-width:640px){.cw{height:240px}}
-.lg{display:flex;gap:14px;margin-top:8px;font-size:11px;color:#888;flex-wrap:wrap}
-.lg span{display:flex;align-items:center;gap:4px}
-</style>
+        .sun::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 300px; height: 300px;
+            transform: translate(-50%, -50%);
+            background: conic-gradient(from 0deg, transparent 0deg, rgba(255,230,150,0.06) 10deg, transparent 20deg, transparent 30deg, rgba(255,230,150,0.04) 40deg, transparent 50deg);
+            border-radius: 50%;
+            animation: rotateSlow 30s linear infinite;
+        }
+
+        @keyframes rotateSlow { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+            filter: blur(0.5px);
+        }
+        .cloud::before, .cloud::after {
+            content: ''; position: absolute; background: white; border-radius: 50%;
+        }
+
+        .cloud-1 { width: 220px; height: 60px; top: 10%; animation: driftRight 50s linear infinite; opacity: 0.92; filter: blur(0px); }
+        .cloud-1::before { width: 100px; height: 100px; top: -55px; left: 40px; }
+        .cloud-1::after { width: 80px; height: 80px; top: -35px; left: 110px; }
+
+        .cloud-2 { width: 180px; height: 45px; top: 22%; animation: driftLeft 65s linear infinite; opacity: 0.8; }
+        .cloud-2::before { width: 70px; height: 70px; top: -40px; left: 30px; }
+        .cloud-2::after { width: 60px; height: 60px; top: -25px; left: 90px; }
+
+        .cloud-3 { width: 120px; height: 30px; top: 6%; animation: driftRight 80s linear infinite; animation-delay: -20s; opacity: 0.55; filter: blur(1px); }
+        .cloud-3::before { width: 50px; height: 50px; top: -30px; left: 20px; }
+        .cloud-3::after { width: 40px; height: 40px; top: -18px; left: 60px; }
+
+        .cloud-4 { width: 260px; height: 55px; top: 35%; animation: driftLeft 70s linear infinite; animation-delay: -10s; opacity: 0.7; filter: blur(0.5px); }
+        .cloud-4::before { width: 90px; height: 90px; top: -50px; left: 55px; }
+        .cloud-4::after { width: 70px; height: 70px; top: -30px; left: 140px; }
+
+        .cloud-5 { width: 150px; height: 28px; top: 15%; animation: driftRight 90s linear infinite; animation-delay: -40s; opacity: 0.45; filter: blur(1.5px); }
+        .cloud-5::before { width: 45px; height: 45px; top: -25px; left: 25px; }
+        .cloud-5::after { width: 55px; height: 55px; top: -28px; left: 75px; }
+
+        .cloud-6 { width: 300px; height: 50px; top: 55%; animation: driftRight 55s linear infinite; animation-delay: -15s; opacity: 0.35; filter: blur(2px); }
+        .cloud-6::before { width: 110px; height: 80px; top: -45px; left: 60px; }
+        .cloud-6::after { width: 90px; height: 70px; top: -30px; left: 160px; }
+
+        @keyframes driftRight {
+            0% { left: -320px; opacity: 0; }
+            5% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { left: 110%; opacity: 0; }
+        }
+        @keyframes driftLeft {
+            0% { right: -320px; left: auto; opacity: 0; }
+            5% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { right: 110%; left: auto; opacity: 0; }
+        }
+
+        .haze {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 40%;
+            background: linear-gradient(to top, rgba(255,255,255,0.35) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        /* ── Layout ── */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 52px 0 0;
+            text-align: center;
+            animation: fadeDown 1s ease-out;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-badge {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #2E86DE, #48BAFE);
+            padding: 7px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(46, 134, 222, 0.3);
+        }
+
+        .company-name {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(44px, 6vw, 68px);
+            letter-spacing: -1px;
+            color: var(--text-primary);
+            line-height: 1.1;
+            text-shadow: 0 2px 12px rgba(255,255,255,0.5);
+        }
+
+        .subtitle {
+            font-size: 17px;
+            color: var(--text-secondary);
+            margin-top: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .divider {
+            width: 80px; height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            margin: 32px auto;
+            border-radius: 3px;
+            box-shadow: 0 2px 10px rgba(46,134,222,0.2);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0 80px;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            width: 100%;
+        }
+
+        .link-card {
+            position: relative;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 32px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 8px 32px rgba(31, 97, 150, 0.08);
+        }
+
+        .link-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .link-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 24px 64px rgba(31, 97, 150, 0.15), 0 0 0 1px var(--border-hover);
+        }
+
+        .card-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card-icon.blue {
+            background: linear-gradient(135deg, rgba(46,134,222,0.15), rgba(72,186,254,0.1));
+            color: var(--accent);
+            border: 1px solid rgba(46,134,222,0.2);
+        }
+
+        .card-icon.cyan {
+            background: linear-gradient(135deg, rgba(72,186,254,0.15), rgba(46,134,222,0.1));
+            color: #1A8FE3;
+            border: 1px solid rgba(72,186,254,0.25);
+        }
+
+        .card-icon.green {
+            background: linear-gradient(135deg, rgba(39,174,96,0.15), rgba(46,204,113,0.1));
+            color: #27AE60;
+            border: 1px solid rgba(39,174,96,0.2);
+        }
+
+        .card-icon.orange {
+            background: linear-gradient(135deg, rgba(243,156,18,0.15), rgba(241,196,15,0.1));
+            color: #F39C12;
+            border: 1px solid rgba(243,156,18,0.2);
+        }
+
+        .card-icon.purple {
+            background: linear-gradient(135deg, rgba(142,68,173,0.15), rgba(155,89,182,0.1));
+            color: #8E44AD;
+            border: 1px solid rgba(142,68,173,0.2);
+        }
+
+        .card-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 22px;
+            line-height: 1.3;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .card-arrow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: auto;
+            padding-top: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: gap 0.3s ease;
+        }
+
+        .link-card:hover .card-arrow { gap: 14px; }
+
+        footer {
+            text-align: center;
+            padding: 24px 0;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .link-card:nth-child(1) { animation: fadeUp 0.8s ease-out 0.3s both; }
+        .link-card:nth-child(2) { animation: fadeUp 0.8s ease-out 0.5s both; }
+        .link-card:nth-child(3) { animation: fadeUp 0.8s ease-out 0.7s both; }
+        .link-card:nth-child(4) { animation: fadeUp 0.8s ease-out 0.9s both; }
+        .link-card:nth-child(5) { animation: fadeUp 0.8s ease-out 1.1s both; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sparkle {
+            position: fixed;
+            width: 4px; height: 4px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: float 8s ease-in-out infinite;
+        }
+        .sparkle:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; animation-duration: 7s; }
+        .sparkle:nth-child(2) { top: 40%; left: 85%; animation-delay: 2s; animation-duration: 9s; width: 3px; height: 3px; }
+        .sparkle:nth-child(3) { top: 60%; left: 25%; animation-delay: 4s; animation-duration: 6s; width: 5px; height: 5px; opacity: 0.6; }
+        .sparkle:nth-child(4) { top: 15%; left: 65%; animation-delay: 1s; animation-duration: 10s; }
+        .sparkle:nth-child(5) { top: 70%; left: 75%; animation-delay: 3s; animation-duration: 8s; width: 3px; height: 3px; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+            50% { transform: translateY(-20px) scale(1.5); opacity: 0.9; }
+        }
+
+        @media (max-width: 640px) {
+            .links-grid { grid-template-columns: 1fr; }
+            header { padding-top: 36px; }
+            .link-card { padding: 32px 24px; }
+        }
+    </style>
 </head>
 <body>
-<div class="co">
-<h1>PACO breakeven analysis — interactive simulator</h1>
-<div class="gr">
-<div class="cd">
-<div class="st">Monthly inputs</div>
 
-<div class="ir" data-key="sp">
-  <div class="ir-top">
-    <span class="il">Selling price</span>
-    <input class="inp-num" type="number" id="spv" min="0" max="30000" step="1" value="8015">
-    <span class="iu">฿/m³</span>
-    <button class="pm-btn" data-dir="-1" data-key="sp">−</button>
-    <button class="pm-btn" data-dir="1" data-key="sp">+</button>
-    <span class="pct-badge" id="pct-sp"></span>
-  </div>
-  <input class="inp-range" type="range" id="sps" min="0" max="30000" step="1" value="8015">
-</div>
+    <div class="sky">
+        <div class="sun"></div>
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="cloud cloud-4"></div>
+        <div class="cloud cloud-5"></div>
+        <div class="cloud cloud-6"></div>
+        <div class="haze"></div>
+    </div>
 
-<div class="ir" data-key="vc">
-  <div class="ir-top">
-    <span class="il">Variable cost</span>
-    <input class="inp-num" type="number" id="vcv" min="0" max="30000" step="1" value="5713">
-    <span class="iu">฿/m³</span>
-    <button class="pm-btn" data-dir="-1" data-key="vc">−</button>
-    <button class="pm-btn" data-dir="1" data-key="vc">+</button>
-    <span class="pct-badge" id="pct-vc"></span>
-  </div>
-  <input class="inp-range" type="range" id="vcs" min="0" max="30000" step="1" value="5713">
-</div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
 
-<div class="ir" data-key="fc">
-  <div class="ir-top">
-    <span class="il">Fixed cost</span>
-    <input class="inp-num" type="number" id="fcv" min="0" max="80000000" step="100000" value="24744972">
-    <span class="iu">฿/mth</span>
-    <button class="pm-btn" data-dir="-1" data-key="fc">−</button>
-    <button class="pm-btn" data-dir="1" data-key="fc">+</button>
-    <span class="pct-badge" id="pct-fc"></span>
-  </div>
-  <input class="inp-range" type="range" id="fcs" min="0" max="80000000" step="100000" value="24744972">
-</div>
+    <div class="container">
+        <header>
+            <div class="logo-badge">PACO</div>
+            <h1 class="company-name">PACO</h1>
+            <p class="subtitle">Reports &nbsp;/&nbsp; Dashboard &nbsp;/&nbsp; and more</p>
+            <div class="divider"></div>
+        </header>
 
-<div class="ir" data-key="vo">
-  <div class="ir-top">
-    <span class="il">Installation</span>
-    <input class="inp-num" type="number" id="vov" min="0" max="30000" step="1" value="14309">
-    <span class="iu">m³/mth</span>
-    <button class="pm-btn" data-dir="-1" data-key="vo">−</button>
-    <button class="pm-btn" data-dir="1" data-key="vo">+</button>
-    <span class="pct-badge" id="pct-vo"></span>
-  </div>
-  <input class="inp-range" type="range" id="vos" min="0" max="30000" step="1" value="14309">
-</div>
+        <main>
+            <div class="links-grid">
+                <a href="bepsim.html" class="link-card">
+                    <div class="card-icon blue">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Breakeven Point Simulator</div>
+                    <div class="card-desc">Simulate and analyze your breakeven point with adjustable parameters and real-time calculations.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
 
-<div class="mg">
-  <div class="me"><div class="ml2">BEP volume</div><div class="mv" id="bv"></div></div>
-  <div class="me"><div class="ml2">BEP price</div><div class="mv" id="bp"></div></div>
-  <div class="me"><div class="ml2">Net profit</div><div class="mv" id="gp"></div></div>
-  <div class="me"><div class="ml2">NP margin</div><div class="mv" id="ma"></div></div>
-</div>
-<div class="stb" id="sb"></div>
-</div>
-<div class="cd">
-<div class="st">Cost-volume-profit chart</div>
-<div class="cw"><canvas id="cc"></canvas></div>
-<div class="lg">
-  <span><span style="width:16px;height:2px;background:#1d9e75;display:inline-block"></span>Revenue</span>
-  <span><span style="width:16px;height:2px;background:#d85a30;display:inline-block"></span>Total cost</span>
-  <span><span style="width:16px;height:0;border-top:1.5px dashed #888;display:inline-block"></span>Fixed cost</span>
-  <span><span style="width:16px;height:0;border-top:1.5px dashed #378add;display:inline-block"></span>Installation</span>
-</div>
-</div>
-</div>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>
-var ch,SN=30,XM=24000,YM=200000000,cP=0;
+                <a href="bepproductmixjan25mar26.html" class="link-card">
+                    <div class="card-icon cyan">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Breakeven Point vs Product/Service Mix</div>
+                    <div class="card-desc">Analyze breakeven across your product and service mix from January 2025 through March 2026.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
 
-function fm(n){return Math.round(n).toLocaleString("en-US")}
-function fM(n){return(n/1e6).toFixed(1)+"M ฿"}
+                <a href="gforceoptimizer.html" class="link-card">
+                    <div class="card-icon green">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Spun-pile G-force Optimizer</div>
+                    <div class="card-desc">Optimize centrifugal G-force parameters for spun-pile production with precision calculations.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
 
-/* ── Base value & percentage tracking ── */
-var fields={
-  sp:{numId:"spv",slId:"sps",pctId:"pct-sp",base:null,clicks:0},
-  vc:{numId:"vcv",slId:"vcs",pctId:"pct-vc",base:null,clicks:0},
-  fc:{numId:"fcv",slId:"fcs",pctId:"pct-fc",base:null,clicks:0},
-  vo:{numId:"vov",slId:"vos",pctId:"pct-vo",base:null,clicks:0}
-};
+                <a href="spuncuringpit.html" class="link-card">
+                    <div class="card-icon orange">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Spun-pile Curing Chamber Optimizer</div>
+                    <div class="card-desc">Optimize curing chamber scheduling and temperature profiles for spun-pile concrete production.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
 
-function resetBase(key){
-  var f=fields[key];
-  f.base=null;
-  f.clicks=0;
-  updateBadge(key);
-}
+                <a href="projectssankey.html" class="link-card">
+                    <div class="card-icon purple">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M3 3v18h18"/>
+                            <path d="M7 16l4-8 4 4 4-8"/>
+                        </svg>
+                    </div>
+                    <div class="card-title">Projects P&L in Sankey Diagram</div>
+                    <div class="card-desc">Visualize project profit and loss flows through interactive Sankey diagrams for clear financial insight.</div>
+                    <div class="card-arrow">
+                        Open tool
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </a>
+            </div>
+        </main>
 
-function updateBadge(key){
-  var f=fields[key],el=document.getElementById(f.pctId);
-  if(f.base===null||f.clicks===0){
-    el.classList.remove("show");return;
-  }
-  var pct=f.clicks; // each click = 1%
-  el.classList.add("show");
-  el.textContent=(pct>0?"+":"")+pct+"%";
-  el.classList.remove("up","down","zero");
-  el.classList.add(pct>0?"up":pct<0?"down":"zero");
-  if(pct===0){el.classList.remove("show")}
-}
-
-function applyPM(key,dir){
-  var f=fields[key];
-  var ni=document.getElementById(f.numId),si=document.getElementById(f.slId);
-  var cur=+ni.value;
-  // set base on first click if not set
-  if(f.base===null){
-    if(cur===0)return; // can't do % of 0
-    f.base=cur;
-    f.clicks=0;
-  }
-  f.clicks+=dir;
-  var newVal=Math.round(f.base*(1+f.clicks*0.01));
-  if(newVal<0)newVal=0;
-  ni.value=newVal;
-  si.value=newVal;
-  updateBadge(key);
-  calc();
-}
-
-/* Bind +/- buttons */
-document.querySelectorAll(".pm-btn").forEach(function(btn){
-  btn.addEventListener("click",function(){
-    applyPM(btn.dataset.key, +btn.dataset.dir);
-  });
-});
-
-/* Sync slider ↔ number input, reset base on manual input */
-function bind(key){
-  var f=fields[key];
-  var ni=document.getElementById(f.numId),si=document.getElementById(f.slId);
-  ni.addEventListener("input",function(){
-    si.value=ni.value;
-    resetBase(key);
-    calc();
-  });
-  si.addEventListener("input",function(){
-    ni.value=si.value;
-    resetBase(key);
-    calc();
-  });
-}
-bind("sp");bind("vc");bind("fc");bind("vo");
-
-/* Installation volume dashed line plugin */
-var pp={id:"pp",afterDraw:function(c){
-  var x=c.ctx,a=c.chartArea,s=c.scales.x,px=s.getPixelForValue((cP/XM)*SN);
-  if(px<a.left||px>a.right)return;
-  x.save();x.beginPath();x.setLineDash([5,4]);x.lineWidth=1;x.strokeStyle="#378ADD";
-  x.moveTo(px,a.top);x.lineTo(px,a.bottom);x.stroke();x.setLineDash([]);
-  x.font="10px sans-serif";x.fillStyle="#185FA5";
-  x.textAlign=px>a.right-64?"right":"left";
-  x.fillText(fm(cP)+" m\u00B3",px>a.right-64?px-4:px+4,a.top+12);
-  x.restore()}};
-
-function calc(){
-  var sp=+document.getElementById("spv").value,
-      vc=+document.getElementById("vcv").value,
-      fc=+document.getElementById("fcv").value,
-      vol=+document.getElementById("vov").value;
-
-  cP=vol;
-  var cm=sp-vc,
-      rev=sp*vol,
-      tvc=vc*vol,
-      bv=cm>0?fc/cm:Infinity,
-      bp2=vol>0?vc+fc/vol:Infinity,
-      gp2=rev-tvc-fc,
-      mp=rev>0?(gp2/rev*100):0;
-
-  document.getElementById("bv").textContent=cm>0?fm(Math.round(bv))+" m\u00B3":"\u221E";
-  document.getElementById("bp").textContent=isFinite(bp2)?fm(Math.round(bp2))+" \u0E3F":"\u221E";
-
-  var ge=document.getElementById("gp");
-  ge.textContent=(gp2>=0?"+":"")+fM(gp2);
-  ge.className="mv "+(gp2>=0?"profit":"loss");
-
-  var me=document.getElementById("ma");
-  me.textContent=mp.toFixed(1)+"%";
-  me.className="mv "+(gp2>=0?"profit":"loss");
-
-  var sb=document.getElementById("sb");
-  if(cm<=0){
-    sb.style.background="rgba(216,90,48,.08)";sb.style.borderColor="#d85a30";
-    sb.innerHTML='<span style="color:#993c1d;font-weight:600">\u26A0 Selling price \u2264 variable cost</span>';
-  }else if(vol<bv){
-    var g=Math.round(bv-vol);
-    sb.style.background="rgba(216,90,48,.08)";sb.style.borderColor="#d85a30";
-    sb.innerHTML='<span style="color:#993c1d;font-weight:600">Below breakeven</span> \u2014 need <strong>'+fm(g)+' more m\u00B3/mth</strong> to reach BEP of '+fm(Math.round(bv))+' m\u00B3';
-  }else{
-    var su=Math.round(vol-bv);
-    sb.style.background="rgba(29,158,117,.08)";sb.style.borderColor="#1d9e75";
-    sb.innerHTML='<span style="color:#085041;font-weight:600">Above breakeven</span> \u2014 safety margin of <strong>'+fm(su)+' m\u00B3/mth</strong> ('+((su/vol)*100).toFixed(1)+'% of volume)';
-  }
-
-  /* Chart data */
-  var la=[],rd=[],td=[],fd=[];
-  for(var i=0;i<=SN;i++){
-    var v=Math.round((i/SN)*XM);
-    la.push(fm(v));
-    rd.push(Math.round(sp*v));
-    td.push(Math.round(fc+vc*v));
-    fd.push(Math.round(fc));
-  }
-  if(ch){
-    ch.data.datasets[0].data=rd;
-    ch.data.datasets[1].data=td;
-    ch.data.datasets[2].data=fd;
-    ch.update("none");
-    return;
-  }
-  ch=new Chart(document.getElementById("cc"),{type:"line",plugins:[pp],
-    data:{labels:la,datasets:[
-      {label:"Revenue",data:rd,borderColor:"#1d9e75",borderWidth:2,pointRadius:0,tension:0},
-      {label:"Total cost",data:td,borderColor:"#d85a30",borderWidth:2,pointRadius:0,tension:0},
-      {label:"Fixed cost",data:fd,borderColor:"#888",borderWidth:1.5,borderDash:[4,3],pointRadius:0,tension:0}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,
-      interaction:{mode:"index",intersect:false},
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+": "+fM(c.raw)}}}},
-      scales:{
-        x:{min:0,max:SN,ticks:{maxTicksLimit:7,autoSkip:true,color:"#888",font:{size:10},callback:function(v){return fm(Math.round((v/SN)*XM))}},title:{display:true,text:"Volume (m\u00B3/mth)",color:"#888",font:{size:10}},grid:{color:"rgba(136,135,128,.15)"}},
-        y:{min:0,max:YM,ticks:{callback:function(v){return(v/1e6).toFixed(0)+"M"},color:"#888",font:{size:10},maxTicksLimit:7},title:{display:true,text:"Baht (\u0E3F)",color:"#888",font:{size:10}},grid:{color:"rgba(136,135,128,.15)"}}
-      }
-    }
-  });
-}
-calc();
-</script>
-
-<!-- Navigation -->
-<div style="max-width:920px;margin:28px auto 0;padding:14px 20px;background:#f5f5f4;border-radius:10px;border:1px solid #e0e0dc;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-  <span style="font-size:12px;color:#888;font-weight:500">PACO Dashboard Tools</span>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <a href="visualization.html" style="padding:6px 14px;font-size:12px;font-weight:600;border-radius:6px;border:1px solid #e0e0dc;background:#fff;color:#185fa5;text-decoration:none;transition:all .15s" onmouseover="this.style.background='#e6f1fb';this.style.borderColor='#85b7eb'" onmouseout="this.style.background='#fff';this.style.borderColor='#e0e0dc'">← 📊 Combined Dashboard</a>
-    <span style="padding:6px 14px;font-size:12px;font-weight:600;border-radius:6px;background:#185fa5;color:#fff">🔧 BEP Simulator</span>
-  </div>
-</div>
-
+        <footer>
+            &copy; 2026 PACO. All rights reserved.
+        </footer>
+    </div>
 </body>
 </html>

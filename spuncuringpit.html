@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spun-Pile Packing Optimizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--card:#f8f9fa;--border:#dee2e6;--t1:#212529;--t2:#495057;--t3:#868e96;--blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans Thai',sans-serif;background:var(--bg);color:var(--t1);padding:16px;min-height:100vh}
+.page{max-width:1500px;margin:0 auto}
+h1{font-size:22px;font-weight:800;margin-bottom:4px}h1 span{color:var(--amber)}
+.sub{font-size:12px;color:var(--t2);margin-bottom:18px}
+.layout{display:grid;grid-template-columns:380px 1fr;gap:16px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.panel-title{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.field{margin-bottom:10px}
+.field label{font-size:10px;font-weight:600;color:var(--t2);display:block;margin-bottom:3px}
+.field-row{display:flex;gap:8px;align-items:center}
+.field-row input{flex:1}
+input[type=number],input[type=text],select{font-family:'JetBrains Mono',monospace;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--t1);outline:none;width:100%}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(59,130,246,.12)}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+.unit-sel{width:60px}
+.btn{font-size:11px;font-weight:600;padding:5px 12px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--t2);cursor:pointer;font-family:inherit}
+.btn:hover{background:#e9ecef;color:var(--t1);border-color:var(--blue)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:#2563eb;color:#fff}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover{background:#16a34a;color:#fff}
+.btn-sm{font-size:9px;padding:3px 8px}
+.toggle-group{display:flex;gap:4px;background:var(--border);padding:2px;border-radius:6px;margin-bottom:10px}
+.toggle-group button{flex:1;font-size:10px;font-weight:600;padding:5px 10px;border:none;border-radius:4px;background:transparent;color:var(--t2);cursor:pointer;font-family:inherit}
+.toggle-group button.on{background:#fff;color:var(--t1);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.mold-row{display:grid;grid-template-columns:1fr 70px 70px 24px;gap:6px;align-items:center;margin-bottom:4px}
+.mold-row input{font-size:11px;padding:3px 6px}
+.mold-row .swatch{width:14px;height:14px;border-radius:3px;border:1px solid var(--border);cursor:pointer;padding:0}
+.mold-name{display:flex;gap:5px;align-items:center}
+.del-btn{width:22px;height:22px;border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:13px;border-radius:3px;display:flex;align-items:center;justify-content:center}
+.del-btn:hover{background:#fde8e8;color:var(--red)}
+.add-btn{font-size:10px;padding:3px 10px;border:1px dashed var(--border);border-radius:5px;background:transparent;color:var(--t3);cursor:pointer;margin-top:4px;font-family:inherit;width:100%}
+.add-btn:hover{border-color:var(--blue);color:var(--blue)}
+.solve-btn{width:100%;padding:10px;font-size:13px;font-weight:700;margin-top:10px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;box-shadow:0 2px 6px rgba(34,197,94,.3)}
+.solve-btn:hover{background:#16a34a}
+.solve-btn:disabled{opacity:.5;cursor:wait}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.results-grid{grid-template-columns:1fr}}
+.result-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;position:relative}
+.result-card:hover{border-color:var(--blue);transform:translateY(-1px)}
+.result-card.selected{border-color:var(--green);border-width:2px;background:#f0fdf4}
+.result-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.result-title{font-size:13px;font-weight:700;color:var(--t1)}
+.result-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+.badge-area{background:#dbeafe;color:#1d4ed8}
+.badge-count{background:#fef3c7;color:#92400e}
+.badge-winner{background:#dcfce7;color:#166534}
+.result-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat{padding:6px 10px;background:#fff;border:1px solid var(--border);border-radius:6px}
+.stat-label{font-size:9px;color:var(--t2);text-transform:uppercase;font-weight:600;letter-spacing:.05em}
+.stat-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--t1)}
+.result-canvas-wrap{background:#fff;border:1px solid var(--border);border-radius:6px;overflow:hidden;position:relative}
+.result-canvas-wrap canvas{display:block;width:100%;height:auto}
+.mold-counts{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.mold-count{font-size:9px;padding:2px 7px;border-radius:3px;color:#fff;font-weight:600;font-family:'JetBrains Mono',monospace}
+.detail-panel{margin-top:16px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.detail-canvas-wrap{background:#fff;border:1px solid var(--border);border-radius:8px;overflow:auto;position:relative;height:520px;resize:vertical;margin-bottom:10px}
+.zoom-bar{position:absolute;top:6px;right:6px;display:flex;gap:3px;z-index:10;padding:3px 5px;background:rgba(255,255,255,.95);border-radius:5px;border:1px solid var(--border)}
+.zoom-bar button{width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:#fff;color:var(--t1);font-size:11px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace}
+.zoom-bar .zl{font-size:9px;font-weight:600;color:var(--t2);min-width:30px;text-align:center;font-family:'JetBrains Mono',monospace;padding:0 4px;line-height:22px}
+.export-bar{display:flex;gap:6px;margin-bottom:6px}
+.mix-card{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.mix-item{background:#fff;border:1px solid var(--border);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:6px}
+.mix-dot{width:10px;height:10px;border-radius:50%}
+.mix-text{font-size:11px;color:var(--t1)}
+.mix-text b{font-family:'JetBrains Mono',monospace;color:var(--t1)}
+.progress{margin-top:10px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;display:none}
+.progress-bar{height:100%;background:var(--green);transition:width .2s}
+</style>
+</head>
+<body>
+<div class="page">
+<h1>Spun-Pile <span>Packing Optimizer</span></h1>
+<div class="sub">Find the best mold arrangement in your steam curing chamber · Gravity-based packing simulation</div>
+
+<div class="layout">
+  <!-- LEFT: Input panel -->
+  <div>
+    <div class="panel">
+      <div class="panel-title">🛁 Steam Curing Pit</div>
+      <div class="field">
+        <label>Pit Width × Depth</label>
+        <div class="field-row">
+          <input id="pitW" type="number" value="3000" min="100" step="100">
+          <span style="color:var(--t3);font-size:11px">×</span>
+          <input id="pitH" type="number" value="2000" min="100" step="100">
+          <select id="unit" class="unit-sel" style="flex:0 0 60px">
+            <option value="mm">mm</option><option value="cm">cm</option><option value="m">m</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:12px">
+      <div class="panel-title">🎯 Mold Mix</div>
+      <div class="toggle-group">
+        <button id="modeFixed" class="on" onclick="setMode('fixed')">Fixed Quantity</button>
+        <button id="modeUnlimited" onclick="setMode('unlimited')">Unlimited (auto-mix)</button>
+      </div>
+      <div id="moldList"></div>
+      <button class="add-btn" onclick="addMold()">+ Add Mold Size</button>
+    </div>
+
+    <button class="solve-btn" id="solveBtn" onclick="solve()">🚀 Solve & Optimize</button>
+    <div class="progress" id="prog"><div class="progress-bar" id="progBar"></div></div>
+  </div>
+
+  <!-- RIGHT: Results -->
+  <div>
+    <div class="results-grid" id="resultsGrid"></div>
+    <div id="detailPanel" style="display:none">
+      <div class="detail-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="panel-title" style="margin:0;padding:0;border:none">📐 Selected Pattern Detail</div>
+          <div class="export-bar">
+            <button class="btn btn-sm" onclick="exportPNG()">📷 PNG</button>
+            <button class="btn btn-sm" onclick="exportSVG()">🖼 SVG</button>
+            <button class="btn btn-sm" onclick="saveConfig()">💾 Save</button>
+            <button class="btn btn-sm" onclick="loadConfig()">📂 Load</button>
+          </div>
+        </div>
+        <div id="detailStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px"></div>
+        <div class="detail-canvas-wrap" id="detailWrap">
+          <div class="zoom-bar">
+            <button onclick="dZoom(-0.1)">−</button>
+            <span class="zl" id="dZl">100%</span>
+            <button onclick="dZoom(0.1)">+</button>
+            <button onclick="dFit()" style="width:auto;padding:0 6px;font-size:9px">Fit</button>
+          </div>
+          <canvas id="detailCv"></canvas>
+        </div>
+        <div id="detailMix" class="mix-card"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+/* ═══ CONSTANTS ═══ */
+var MOLD_COLORS=["#3b82f6","#ef4444","#22c55e","#f59e0b","#a855f7","#06b6d4","#ec4899","#10b981","#f97316","#6366f1"];
+var uid=0;function nid(){return++uid}
+
+/* ═══ STATE ═══ */
+var mode="fixed"; /* fixed | unlimited */
+var molds=[
+  {id:nid(),dia:400,qty:20,color:"#3b82f6"},
+  {id:nid(),dia:350,qty:15,color:"#ef4444"},
+  {id:nid(),dia:300,qty:10,color:"#22c55e"}
+];
+var results=[]; /* {label,circles,area,count,utilization,winner} */
+var selectedResult=-1;
+
+function unitFactor(){var u=document.getElementById("unit").value;return u==="mm"?1:u==="cm"?10:1000}
+
+/* ═══ RENDER MOLD LIST ═══ */
+function setMode(m){mode=m;document.getElementById("modeFixed").classList.toggle("on",m==="fixed");
+  document.getElementById("modeUnlimited").classList.toggle("on",m==="unlimited");renderMolds()}
+
+function renderMolds(){
+  var el=document.getElementById("moldList");el.innerHTML="";
+  /* Header */
+  var hdr=document.createElement("div");hdr.className="mold-row";hdr.style.fontSize="9px";hdr.style.color="var(--t3)";hdr.style.fontWeight="700";hdr.style.textTransform="uppercase";hdr.style.letterSpacing=".05em";
+  hdr.innerHTML='<div>Mold</div><div style="text-align:center">Ø Dia.</div><div style="text-align:center">'+(mode==="fixed"?"Qty":"Pri.")+'</div><div></div>';
+  el.appendChild(hdr);
+  molds.forEach(function(m,i){
+    var row=document.createElement("div");row.className="mold-row";
+    var qtyLabel=mode==="fixed"?"Quantity available":"Priority weight (higher = preferred)";
+    row.innerHTML=
+      '<div class="mold-name"><input type="color" class="swatch" value="'+m.color+'" onchange="molds['+i+'].color=this.value;renderMolds()"><span style="font-size:11px;color:var(--t2)">Type '+(i+1)+'</span></div>'+
+      '<input type="number" value="'+m.dia+'" min="10" step="10" title="Outer diameter" onchange="molds['+i+'].dia=Math.max(10,+this.value||10);renderMolds()">'+
+      '<input type="number" value="'+m.qty+'" min="0" step="1" title="'+qtyLabel+'" onchange="molds['+i+'].qty=Math.max(0,+this.value||0);renderMolds()">';
+    var delBtn='<button class="del-btn" '+(molds.length<=1?'disabled style="opacity:.3"':'onclick="molds.splice('+i+',1);renderMolds()"')+' title="Remove">✕</button>';
+    row.innerHTML+=delBtn;
+    el.appendChild(row);
+  });
+}
+
+function addMold(){
+  var ci=molds.length%MOLD_COLORS.length;
+  var newDia=molds.length>0?Math.max(100,molds[molds.length-1].dia-50):400;
+  molds.push({id:nid(),dia:newDia,qty:mode==="fixed"?5:1,color:MOLD_COLORS[ci]});
+  renderMolds();
+}
+
+/* ═══ PACKING ALGORITHM ═══ */
+/* Strategy: drop each circle from above and let it settle to lowest position */
+
+function tryPackCircle(placed,radius,pitW,pitH){
+  /* Find position where circle settles LOWEST (max y = closest to floor) */
+  /* Coordinate: y=0 is top, y=pitH is floor */
+  var bestX=-1,bestY=-Infinity;
+  var minX=radius,maxX=pitW-radius;
+  if(minX>maxX)return null;
+  /* Candidate x positions */
+  var candidates=[minX,maxX];
+  placed.forEach(function(c){
+    candidates.push(c.x);
+    candidates.push(c.x+c.r+radius);
+    candidates.push(c.x-c.r-radius);
+  });
+  /* Dense sweep */
+  var step=Math.max(radius/10,3);
+  for(var x=minX;x<=maxX;x+=step)candidates.push(x);
+  candidates.push(maxX);
+  
+  candidates=candidates.filter(function(x){return x>=minX&&x<=maxX});
+  candidates.sort(function(a,b){return a-b});
+  
+  for(var i=0;i<candidates.length;i++){
+    var x=candidates[i];
+    /* Find the LOWEST physical position (max y) where circle settles */
+    /* Start at floor (y = pitH - radius), move UP (decrease y) if overlapping anything */
+    var y=pitH-radius; /* Resting on floor */
+    var changed=true,iter=0;
+    while(changed&&iter<placed.length+3){
+      changed=false;iter++;
+      for(var j=0;j<placed.length;j++){
+        var c=placed[j];
+        var dx=x-c.x;
+        var minDist=radius+c.r;
+        if(Math.abs(dx)>=minDist)continue;
+        /* Overlap horizontally — circle must sit ABOVE c (smaller y) */
+        var dy=Math.sqrt(minDist*minDist-dx*dx);
+        var newY=c.y-dy; /* Above c.y */
+        if(newY<y){y=newY;changed=true} /* y is moved up (smaller) */
+      }
+    }
+    /* Validate: must fit in pit and not overlap */
+    if(y<radius)continue; /* Sticks out of top */
+    var ok=true;
+    for(var j=0;j<placed.length;j++){
+      var c=placed[j];
+      var dx=x-c.x,dy=y-c.y;
+      if(dx*dx+dy*dy<(radius+c.r)*(radius+c.r)-0.5){ok=false;break}
+    }
+    if(!ok)continue;
+    /* Pick position closest to floor (max y) */
+    if(y>bestY){bestY=y;bestX=x}
+  }
+  if(bestX<0)return null;
+  return{x:bestX,y:bestY,r:radius};
+}
+
+function packCircles(circleList,pitW,pitH){
+  /* circleList: array of {radius, color, typeIdx} */
+  var placed=[];
+  for(var i=0;i<circleList.length;i++){
+    var c=circleList[i];
+    var pos=tryPackCircle(placed,c.radius,pitW,pitH);
+    if(pos){placed.push({x:pos.x,y:pos.y,r:pos.r,color:c.color,typeIdx:c.typeIdx})}
+  }
+  return placed;
+}
+
+function solveBoth(){
+  var pitW=+document.getElementById("pitW").value;
+  var pitH=+document.getElementById("pitH").value;
+  if(pitW<=0||pitH<=0)return[];
+
+  var sols=[];
+
+  if(mode==="fixed"){
+    /* Try multiple orderings of the exact mold list */
+    var fixedList=[];
+    molds.forEach(function(m,idx){for(var i=0;i<m.qty;i++)fixedList.push({radius:m.dia/2,color:m.color,typeIdx:idx})});
+    
+    /* Strategy 1: Largest first */
+    var s1=fixedList.slice().sort(function(a,b){return b.radius-a.radius});
+    sols.push({label:"Largest First",placed:packCircles(s1,pitW,pitH)});
+    
+    /* Strategy 2: Smallest first */
+    var s2=fixedList.slice().sort(function(a,b){return a.radius-b.radius});
+    sols.push({label:"Smallest First",placed:packCircles(s2,pitW,pitH)});
+    
+    /* Strategy 3: Random shuffles (try 30) */
+    for(var k=0;k<30;k++){
+      var s=fixedList.slice();
+      for(var i=s.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=s[i];s[i]=s[j];s[j]=t}
+      sols.push({label:"Random "+(k+1),placed:packCircles(s,pitW,pitH)});
+    }
+  }else{
+    /* Unlimited: try strategies that prioritize certain mold types */
+    /* Strategy A: Pack ONLY largest mold */
+    /* Strategy B: Pack each mold type alone, see which fits best */
+    /* Strategy C: Mix based on priority weights */
+    var sorted=molds.slice().sort(function(a,b){return b.dia-a.dia});
+    
+    /* Try ALL largest first then fill with smaller */
+    for(var attempt=0;attempt<3;attempt++){
+      var list=[];
+      sorted.forEach(function(m,idx){
+        var origIdx=molds.indexOf(m);
+        /* Estimate max possible: pit area / mold area, weighted by priority */
+        var maxFit=Math.ceil((pitW*pitH)/(m.dia*m.dia)*4)*Math.max(1,m.qty);
+        for(var i=0;i<maxFit;i++)list.push({radius:m.dia/2,color:m.color,typeIdx:origIdx});
+      });
+      if(attempt===1){/* Shuffle within same diameter */
+        var groups={};list.forEach(function(c){if(!groups[c.radius])groups[c.radius]=[];groups[c.radius].push(c)});
+        list=[];Object.keys(groups).sort(function(a,b){return +b-+a}).forEach(function(k){
+          var g=groups[k];for(var i=g.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=g[i];g[i]=g[j];g[j]=t}
+          list=list.concat(g);
+        });
+      }
+      if(attempt===2){/* Random full shuffle */
+        for(var i=list.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=list[i];list[i]=list[j];list[j]=t}
+      }
+      sols.push({label:"Unlim "+(attempt+1),placed:packCircles(list,pitW,pitH)});
+    }
+    
+    /* Pack each mold type alone */
+    sorted.forEach(function(m){
+      var origIdx=molds.indexOf(m);
+      var maxFit=Math.ceil((pitW*pitH)/(m.dia*m.dia)*4);
+      var list=[];for(var i=0;i<maxFit;i++)list.push({radius:m.dia/2,color:m.color,typeIdx:origIdx});
+      sols.push({label:"Only Ø"+m.dia,placed:packCircles(list,pitW,pitH)});
+    });
+    
+    /* More random mixes */
+    for(var k=0;k<15;k++){
+      var list=[];
+      sorted.forEach(function(m){
+        var origIdx=molds.indexOf(m);
+        var n=Math.ceil((pitW*pitH)/(m.dia*m.dia)*2);
+        for(var i=0;i<n;i++)list.push({radius:m.dia/2,color:m.color,typeIdx:origIdx});
+      });
+      for(var i=list.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=list[i];list[i]=list[j];list[j]=t}
+      sols.push({label:"Mix "+(k+1),placed:packCircles(list,pitW,pitH)});
+    }
+  }
+
+  /* Calculate metrics */
+  sols.forEach(function(s){
+    s.area=s.placed.reduce(function(a,c){return a+Math.PI*c.r*c.r},0);
+    s.count=s.placed.length;
+    s.utilization=s.area/(pitW*pitH);
+  });
+
+  /* Find winners */
+  var maxArea=sols.reduce(function(a,s){return s.area>a.area?s:a},sols[0]);
+  var maxCount=sols.reduce(function(a,s){return s.count>a.count?s:a},sols[0]);
+
+  return{maxArea:maxArea,maxCount:maxCount};
+}
+
+function solve(){
+  document.getElementById("solveBtn").disabled=true;
+  document.getElementById("solveBtn").textContent="⏳ Optimizing...";
+  document.getElementById("prog").style.display="block";
+  document.getElementById("progBar").style.width="30%";
+  
+  setTimeout(function(){
+    var sols=solveBoth();
+    document.getElementById("progBar").style.width="100%";
+    setTimeout(function(){
+      results=[
+        {label:"Max Cross-Section Area",badge:"badge-area",badgeText:"Most Area",sol:sols.maxArea,key:"area"},
+        {label:"Max Pile Count",badge:"badge-count",badgeText:"Most Piles",sol:sols.maxCount,key:"count"}
+      ];
+      renderResults();
+      document.getElementById("solveBtn").disabled=false;
+      document.getElementById("solveBtn").textContent="🚀 Solve & Optimize";
+      document.getElementById("prog").style.display="none";
+      document.getElementById("progBar").style.width="0%";
+    },200);
+  },50);
+}
+
+/* ═══ RENDER RESULTS ═══ */
+function renderResults(){
+  var grid=document.getElementById("resultsGrid");grid.innerHTML="";
+  var pitW=+document.getElementById("pitW").value,pitH=+document.getElementById("pitH").value;
+  var unit=document.getElementById("unit").value;
+  results.forEach(function(r,idx){
+    var card=document.createElement("div");card.className="result-card";card.onclick=function(){selectResult(idx)};
+    var s=r.sol;
+    /* Mold counts */
+    var counts={};s.placed.forEach(function(c){counts[c.typeIdx]=(counts[c.typeIdx]||0)+1});
+    var countsHTML='<div class="mold-counts">';
+    Object.keys(counts).sort(function(a,b){return +a-+b}).forEach(function(ti){
+      var m=molds[+ti];if(!m)return;
+      countsHTML+='<span class="mold-count" style="background:'+m.color+'">Ø'+m.dia+': '+counts[ti]+'</span>';
+    });
+    countsHTML+='</div>';
+    card.innerHTML='<div class="result-hdr"><div class="result-title">'+r.label+'</div><div class="result-badge '+r.badge+'">'+r.badgeText+'</div></div>'+
+      '<div class="result-stats"><div class="stat"><div class="stat-label">Total Piles</div><div class="stat-value">'+s.count+'</div></div>'+
+      '<div class="stat"><div class="stat-label">Area Used</div><div class="stat-value">'+(s.utilization*100).toFixed(1)+'%</div></div></div>'+
+      '<div class="result-canvas-wrap"><canvas id="rc'+idx+'"></canvas></div>'+countsHTML;
+    grid.appendChild(card);
+    /* Draw preview */
+    setTimeout(function(){drawPreview(idx,s,pitW,pitH)},10);
+  });
+  /* Auto-select max area */
+  selectResult(0);
+}
+
+function drawPreview(idx,sol,pitW,pitH){
+  var cv=document.getElementById("rc"+idx);if(!cv)return;
+  var dpr=window.devicePixelRatio||1;
+  var maxW=cv.parentElement.clientWidth-2;
+  var aspect=pitH/pitW;
+  var W=maxW,H=Math.min(maxW*aspect,260);
+  if(H/maxW<aspect)W=H/aspect;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+"px";cv.style.height=H+"px";
+  var cx=cv.getContext("2d");cx.scale(dpr,dpr);
+  var sx=W/pitW,sy=H/pitH;
+  /* Pit */
+  cx.fillStyle="#f1f5f9";cx.fillRect(0,0,W,H);
+  cx.strokeStyle="#475569";cx.lineWidth=1.5;cx.strokeRect(0,0,W,H);
+  /* Circles */
+  sol.placed.forEach(function(c){
+    cx.beginPath();cx.arc(c.x*sx,c.y*sy,c.r*Math.min(sx,sy),0,Math.PI*2);
+    cx.fillStyle=c.color;cx.globalAlpha=.85;cx.fill();
+    cx.globalAlpha=1;cx.strokeStyle="rgba(0,0,0,.25)";cx.lineWidth=.5;cx.stroke();
+  });
+}
+
+function selectResult(idx){
+  selectedResult=idx;
+  document.querySelectorAll(".result-card").forEach(function(c,i){c.classList.toggle("selected",i===idx)});
+  document.getElementById("detailPanel").style.display="block";
+  renderDetail();
+}
+
+/* ═══ DETAIL VIEW ═══ */
+var dZoomLevel=1,dCv,dCx;
+function renderDetail(){
+  if(selectedResult<0||!results[selectedResult])return;
+  var r=results[selectedResult],s=r.sol;
+  var pitW=+document.getElementById("pitW").value,pitH=+document.getElementById("pitH").value;
+  var unit=document.getElementById("unit").value;
+  /* Stats */
+  var statsHTML="";
+  var totalArea=s.area;var pitArea=pitW*pitH;
+  statsHTML+='<div class="stat"><div class="stat-label">Total Piles</div><div class="stat-value">'+s.count+'</div></div>';
+  statsHTML+='<div class="stat"><div class="stat-label">Cross-Section Area</div><div class="stat-value">'+formatArea(totalArea,unit)+'</div></div>';
+  statsHTML+='<div class="stat"><div class="stat-label">Pit Utilization</div><div class="stat-value">'+(s.utilization*100).toFixed(1)+'%</div></div>';
+  statsHTML+='<div class="stat"><div class="stat-label">Pit Area</div><div class="stat-value">'+formatArea(pitArea,unit)+'</div></div>';
+  document.getElementById("detailStats").innerHTML=statsHTML;
+  /* Mix */
+  var counts={};s.placed.forEach(function(c){counts[c.typeIdx]=(counts[c.typeIdx]||0)+1});
+  var mixHTML="";
+  Object.keys(counts).sort(function(a,b){return +a-+b}).forEach(function(ti){
+    var m=molds[+ti];if(!m)return;
+    var areaPart=Math.PI*Math.pow(m.dia/2,2)*counts[ti];
+    var pctOfTotal=areaPart/totalArea*100;
+    mixHTML+='<div class="mix-item"><span class="mix-dot" style="background:'+m.color+'"></span><span class="mix-text">Ø<b>'+m.dia+'</b> '+unit+' × <b>'+counts[ti]+'</b> · <b>'+pctOfTotal.toFixed(1)+'%</b> of area</span></div>';
+  });
+  document.getElementById("detailMix").innerHTML=mixHTML;
+  /* Canvas */
+  dCv=document.getElementById("detailCv");dCx=dCv.getContext("2d");
+  drawDetail(pitW,pitH);
+  setTimeout(dFit,30);
+}
+
+function drawDetail(pitW,pitH){
+  if(!dCv)return;
+  var dpr=window.devicePixelRatio||1;
+  /* Internal canvas dimensions = pit dims, displayed via CSS scaling */
+  dCv.width=pitW*dpr;dCv.height=pitH*dpr;
+  applyDZoom();
+  dCx.setTransform(1,0,0,1,0,0);dCx.scale(dpr,dpr);
+  var r=results[selectedResult],s=r.sol;
+  /* Pit floor pattern */
+  dCx.fillStyle="#f8fafc";dCx.fillRect(0,0,pitW,pitH);
+  /* Grid lines every 100 units */
+  dCx.strokeStyle="#e2e8f0";dCx.lineWidth=1;
+  var gridStep=pitW>5000?1000:pitW>1500?500:100;
+  for(var x=gridStep;x<pitW;x+=gridStep){dCx.beginPath();dCx.moveTo(x,0);dCx.lineTo(x,pitH);dCx.stroke()}
+  for(var y=gridStep;y<pitH;y+=gridStep){dCx.beginPath();dCx.moveTo(0,y);dCx.lineTo(pitW,y);dCx.stroke()}
+  /* Pit walls */
+  dCx.strokeStyle="#1e293b";dCx.lineWidth=4;dCx.strokeRect(0,0,pitW,pitH);
+  /* Circles */
+  s.placed.forEach(function(c,i){
+    dCx.beginPath();dCx.arc(c.x,c.y,c.r,0,Math.PI*2);
+    dCx.fillStyle=c.color;dCx.globalAlpha=.85;dCx.fill();
+    dCx.globalAlpha=1;dCx.strokeStyle="rgba(0,0,0,.35)";dCx.lineWidth=1.5;dCx.stroke();
+    /* Diameter label inside */
+    var fontSize=Math.min(c.r*0.4,18);
+    if(fontSize>=8){
+      dCx.font="bold "+fontSize+"px 'JetBrains Mono',monospace";dCx.fillStyle="#fff";dCx.textAlign="center";dCx.textBaseline="middle";
+      dCx.fillText("Ø"+(c.r*2),c.x,c.y);
+    }
+  });
+  /* Dimension labels */
+  var unit=document.getElementById("unit").value;
+  dCx.font="bold 16px 'JetBrains Mono',monospace";dCx.fillStyle="#1e293b";dCx.textAlign="center";dCx.textBaseline="top";
+  dCx.fillText(pitW+" "+unit,pitW/2,4);
+  dCx.save();dCx.translate(4,pitH/2);dCx.rotate(-Math.PI/2);dCx.textBaseline="bottom";
+  dCx.fillText(pitH+" "+unit,0,0);dCx.restore();
+}
+
+function dZoom(d){dZoomLevel=Math.max(0.2,Math.min(4,dZoomLevel+d));applyDZoom();document.getElementById("dZl").textContent=Math.round(dZoomLevel*100)+"%"}
+function applyDZoom(){if(!dCv)return;var pitW=+document.getElementById("pitW").value,pitH=+document.getElementById("pitH").value;
+  dCv.style.width=(pitW*dZoomLevel)+"px";dCv.style.height=(pitH*dZoomLevel)+"px"}
+function dFit(){
+  var wrap=document.getElementById("detailWrap");if(!wrap||!dCv)return;
+  var pitW=+document.getElementById("pitW").value,pitH=+document.getElementById("pitH").value;
+  var zx=(wrap.clientWidth-30)/pitW,zy=(wrap.clientHeight-30)/pitH;
+  dZoomLevel=Math.max(0.05,Math.min(2,Math.min(zx,zy)));applyDZoom();
+  document.getElementById("dZl").textContent=Math.round(dZoomLevel*100)+"%";
+}
+
+/* ═══ EXPORT ═══ */
+function exportPNG(){
+  if(selectedResult<0)return;
+  var pitW=+document.getElementById("pitW").value,pitH=+document.getElementById("pitH").value;
+  var sc=2;var tc=document.createElement("canvas");
+  tc.width=pitW*sc;tc.height=pitH*sc;
+  var tctx=tc.getContext("2d");tctx.scale(sc,sc);
+  tctx.fillStyle="#fff";tctx.fillRect(0,0,pitW,pitH);
+  var dpr=window.devicePixelRatio||1;
+  tctx.drawImage(dCv,0,0,pitW*dpr,pitH*dpr,0,0,pitW,pitH);
+  var a=document.createElement("a");a.download="pile_packing.png";a.href=tc.toDataURL("image/png");a.click();
+}
+
+function exportSVG(){
+  if(selectedResult<0)return;
+  var r=results[selectedResult],s=r.sol;
+  var pitW=+document.getElementById("pitW").value,pitH=+document.getElementById("pitH").value;
+  var unit=document.getElementById("unit").value;
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+pitW+'" height="'+pitH+'" viewBox="0 0 '+pitW+' '+pitH+'">';
+  svg+='<rect width="'+pitW+'" height="'+pitH+'" fill="#f8fafc"/>';
+  svg+='<rect x="0" y="0" width="'+pitW+'" height="'+pitH+'" fill="none" stroke="#1e293b" stroke-width="4"/>';
+  s.placed.forEach(function(c){
+    svg+='<circle cx="'+c.x+'" cy="'+c.y+'" r="'+c.r+'" fill="'+c.color+'" fill-opacity="0.85" stroke="rgba(0,0,0,0.35)" stroke-width="1.5"/>';
+    var fs=Math.min(c.r*.4,18);
+    if(fs>=8){svg+='<text x="'+c.x+'" y="'+(c.y+fs/3)+'" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="'+fs+'" fill="#fff">Ø'+(c.r*2)+'</text>'}
+  });
+  svg+='<text x="'+(pitW/2)+'" y="20" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="16" fill="#1e293b">'+pitW+' '+unit+'</text>';
+  svg+='</svg>';
+  var blob=new Blob([svg],{type:"image/svg+xml"});
+  var a=document.createElement("a");a.download="pile_packing.svg";a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
+}
+
+function saveConfig(){
+  var state={pitW:+document.getElementById("pitW").value,pitH:+document.getElementById("pitH").value,unit:document.getElementById("unit").value,mode:mode,molds:molds};
+  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+  var html=document.documentElement.outerHTML;
+  html=html.replace(/<script>var __SAVED__="[^"]*";<\/script>\s*/g,"");
+  var inject='<'+'script>var __SAVED__="'+b64+'";</'+'script>';
+  html=html.replace("</head>",inject+"\n</head>");
+  var blob=new Blob(["<!DOCTYPE html>\n<html lang=\"en\">\n"+html.slice(html.indexOf("<head>"))],{type:"text/html"});
+  var a=document.createElement("a");a.download="pile_packing_config.html";a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
+}
+
+function loadConfig(){
+  var inp=document.createElement("input");inp.type="file";inp.accept=".json,.html";
+  inp.onchange=function(){
+    var f=inp.files[0];if(!f)return;
+    var rd=new FileReader();rd.onload=function(e){
+      try{
+        var text=e.target.result,st;
+        var m=text.match(/var __SAVED__="([^"]+)"/);
+        if(m){st=JSON.parse(decodeURIComponent(escape(atob(m[1]))))}
+        else{st=JSON.parse(text)}
+        if(st.pitW)document.getElementById("pitW").value=st.pitW;
+        if(st.pitH)document.getElementById("pitH").value=st.pitH;
+        if(st.unit)document.getElementById("unit").value=st.unit;
+        if(st.mode)setMode(st.mode);
+        if(st.molds){molds=st.molds;renderMolds()}
+      }catch(err){alert("Invalid config file")}
+    };rd.readAsText(f);
+  };inp.click();
+}
+
+function formatArea(a,unit){
+  /* a is in unit^2 */
+  if(unit==="mm"){if(a>=1e6)return(a/1e6).toFixed(2)+" m²";if(a>=1e4)return(a/1e4).toFixed(2)+" cm²";return Math.round(a)+" mm²"}
+  if(unit==="cm"){if(a>=1e4)return(a/1e4).toFixed(2)+" m²";return Math.round(a)+" cm²"}
+  return a.toFixed(2)+" m²";
+}
+
+/* ═══ LOAD SAVED ═══ */
+function tryLoad(){
+  if(typeof __SAVED__==="undefined")return false;
+  try{
+    var st=JSON.parse(decodeURIComponent(escape(atob(__SAVED__))));
+    if(st.pitW)document.getElementById("pitW").value=st.pitW;
+    if(st.pitH)document.getElementById("pitH").value=st.pitH;
+    if(st.unit)document.getElementById("unit").value=st.unit;
+    if(st.mode)mode=st.mode;
+    if(st.molds)molds=st.molds;
+    return true;
+  }catch(e){return false}
+}
+
+/* ═══ INIT ═══ */
+window.addEventListener("load",function(){tryLoad();renderMolds()});
+window.addEventListener("resize",function(){
+  if(results.length>0){results.forEach(function(r,i){drawPreview(i,r.sol,+document.getElementById("pitW").value,+document.getElementById("pitH").value)})}
+});
+</script>
+</body>
+</html>
