@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Head-to-Head: ทักษิณคอนกรีต vs สยามเทคนิคคอนกรีต vs ปทุมธานีคอนกรีต ปี 2568</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f9fc;--s1:#ffffff;--s2:#f1f3f8;--s3:#e8ebf2;
+  --bdr:#dde1ea;--bdr2:#c8cdd9;
+  --blue:#2563eb;--blue2:#1d4ed8;--bluebg:rgba(37,99,235,.08);
+  --orange:#ea580c;--orange2:#c2410c;--orangebg:rgba(234,88,12,.08);
+  --green:#059669;--green2:#047857;--greenbg:rgba(5,150,105,.08);
+  --g:#10b981;--gbg:rgba(16,185,129,.08);
+  --r:#dc2626;--rbg:rgba(220,38,38,.08);
+  --y:#d97706;--ybg:rgba(217,119,6,.08);
+  --t1:#1e293b;--t2:#475569;--t3:#64748b;--t4:#94a3b8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--bg);color:var(--t1);line-height:1.7;font-size:14px}
+.c{max-width:1400px;margin:0 auto;padding:0 20px}
+
+.hero{background:linear-gradient(135deg,#f0f4ff,#e8f0fe,#f5f0ff);border-bottom:1px solid var(--bdr);padding:44px 0 36px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;top:-40%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(37,99,235,.06),transparent 70%);pointer-events:none}
+.hero-badge{display:inline-block;padding:5px 14px;border-radius:16px;font-size:11px;font-weight:600;letter-spacing:.5px;margin-bottom:14px;background:var(--bluebg);color:var(--blue);border:1px solid rgba(37,99,235,.2)}
+.hero h1{font-size:28px;font-weight:800;letter-spacing:-.5px;color:var(--t1)}
+.hero h1 .vs{color:var(--t4);font-weight:400;margin:0 8px}
+.co-blue{color:var(--blue)}
+.co-orange{color:var(--orange)}
+.co-green{color:var(--green)}
+.hero-sub{color:var(--t2);font-size:13px;margin-top:6px}
+
+.tabs{position:sticky;top:0;z-index:100;background:rgba(248,249,252,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs-inner{display:flex;gap:0}
+.tb{padding:13px 22px;font-size:12.5px;font-weight:600;color:var(--t3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;font-family:inherit;transition:.2s}
+.tb:hover{color:var(--t2)}
+.tb.on{color:var(--blue);border-bottom-color:var(--blue)}
+
+.sec{display:none;padding:28px 0 44px;animation:fi .35s ease}
+.sec.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stit{font-size:20px;font-weight:700;margin-bottom:4px;color:var(--t1)}
+.sdsc{color:var(--t2);font-size:13px;margin-bottom:24px}
+
+.tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.tag-tk{background:var(--bluebg);color:var(--blue)}
+.tag-st{background:var(--orangebg);color:var(--orange)}
+.tag-pa{background:var(--greenbg);color:var(--green)}
+
+.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;margin-bottom:24px}
+.cc{background:var(--s1);border:1px solid var(--bdr);border-radius:12px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.cc:hover{background:var(--s2);border-color:var(--bdr2)}
+.cc-label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.cc-item{text-align:center;flex:1}
+.cc-val{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.cc-vs{color:var(--t4);font-size:16px;font-weight:300;flex-shrink:0}
+.win{position:relative}
+.win::after{content:'★';position:absolute;top:-6px;right:-2px;font-size:9px;color:var(--g)}
+
+.tw{overflow-x:auto;margin-bottom:20px;border-radius:10px;border:1px solid var(--bdr);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--s2);color:var(--t2);font-weight:600;padding:11px 14px;text-align:right;white-space:nowrap;border-bottom:2px solid var(--bdr)}
+thead th:first-child{text-align:left}
+thead th.h-tk{color:var(--blue)}
+thead th.h-st{color:var(--orange)}
+thead th.h-pa{color:var(--green)}
+thead th.h-diff{color:var(--t3)}
+tbody td{padding:9px 14px;text-align:right;border-bottom:1px solid var(--bdr)}
+tbody td:first-child{text-align:left;font-weight:500}
+tbody tr:hover{background:rgba(37,99,235,.03)}
+tr.hl{background:rgba(37,99,235,.04);font-weight:700}
+tr.hl td{border-top:1.5px solid var(--bdr2)}
+.better{color:var(--g);font-weight:600}
+.worse{color:var(--r);font-weight:600}
+.pct{color:var(--t3);font-size:11.5px}
+.num-tk{color:var(--blue)}
+.num-st{color:var(--orange)}
+.num-pa{color:var(--green)}
+
+.bars{margin:16px 0}
+.bar-title{font-size:12px;color:var(--t3);margin-bottom:8px;font-weight:600}
+.br{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.br-label{width:50px;font-size:11px;text-align:right;flex-shrink:0;font-weight:700}
+.br-track{flex:1;height:28px;background:rgba(0,0,0,.04);border-radius:6px;display:flex;overflow:hidden;position:relative}
+.br-fill{height:100%;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#fff;border-radius:6px}
+.br-fill.tk{background:linear-gradient(90deg,#2563eb,#3b82f6)}
+.br-fill.st{background:linear-gradient(90deg,#ea580c,#f97316)}
+.br-fill.pa{background:linear-gradient(90deg,#059669,#10b981)}
+
+.ig{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:20px 0}
+.ins{background:var(--s1);border:1px solid var(--bdr);border-radius:10px;padding:18px;border-left:3px solid var(--blue);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.ins.pos{border-left-color:var(--g)}
+.ins.neg{border-left-color:var(--r)}
+.ins.warn{border-left-color:var(--y)}
+.ins.tk-win{border-left-color:var(--blue)}
+.ins.st-win{border-left-color:var(--orange)}
+.ins.pa-win{border-left-color:var(--green)}
+.ins-t{font-weight:700;font-size:13.5px;margin-bottom:5px}
+.ins-b{font-size:12.5px;color:var(--t2);line-height:1.85}
+
+.legend{display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+.legend-i{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2)}
+.legend-d{width:12px;height:12px;border-radius:3px}
+.legend-d.tk{background:var(--blue)}
+.legend-d.st{background:var(--orange)}
+.legend-d.pa{background:var(--green)}
+
+@media(max-width:768px){
+.hero h1{font-size:18px}
+.cc-val{font-size:16px}
+.tb{padding:11px 14px;font-size:11.5px}
+.cg{grid-template-columns:1fr}
+}
+@media print{.tabs{position:relative}.sec{display:block!important;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<div class="c">
+  <div class="hero-badge">งบเฉพาะกิจการ ปี 2568 (พ.ศ.) — เปรียบเทียบ 3 บริษัท</div>
+  <h1><span class="co-blue">ทักษิณคอนกรีต</span><span class="vs">vs</span><span class="co-orange">สยามเทคนิคคอนกรีต</span><span class="vs">vs</span><span class="co-green">ปทุมธานีคอนกรีต</span></h1>
+  <div class="hero-sub">เปรียบเทียบ Head-to-Head ตัวชี้วัดทางการเงินที่สำคัญ — <span class="tag tag-tk">TK</span> = ทักษิณคอนกรีต &nbsp; <span class="tag tag-st">ST</span> = สยามเทคนิคคอนกรีต &nbsp; <span class="tag tag-pa">PACO</span> = ปทุมธานีคอนกรีต (งบเดี่ยว)</div>
+</div>
+</div>
+
+<div class="tabs">
+<div class="c">
+<div class="tabs-inner">
+  <button class="tb on" data-t="overview">ภาพรวม</button>
+  <button class="tb" data-t="pl">กำไรขาดทุน</button>
+  <button class="tb" data-t="cost">โครงสร้างต้นทุน</button>
+  <button class="tb" data-t="bs">ฐานะการเงิน</button>
+  <button class="tb" data-t="ratio">อัตราส่วนการเงิน</button>
+  <button class="tb" data-t="verdict">สรุปจุดแข็ง-จุดอ่อน</button>
+</div>
+</div>
+</div>
+
+<div class="c">
+
+<!-- ==================== OVERVIEW ==================== -->
+<div class="sec on" id="overview">
+<div class="stit">ภาพรวมเปรียบเทียบ 3 บริษัท</div>
+<div class="sdsc">ตัวเลขสำคัญปี 2568 — งบเฉพาะกิจการ</div>
+
+<div class="legend">
+  <div class="legend-i"><div class="legend-d tk"></div>ทักษิณคอนกรีต (TK)</div>
+  <div class="legend-i"><div class="legend-d st"></div>สยามเทคนิคคอนกรีต (ST)</div>
+  <div class="legend-i"><div class="legend-d pa"></div>ปทุมธานีคอนกรีต (PACO)</div>
+</div>
+
+<div class="cg">
+  <div class="cc">
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-tk">TK</span> รายได้รวม</div><div class="cc-val num-tk">2,283 M</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-st">ST</span> รายได้รวม</div><div class="cc-val num-st">1,904 M</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-pa">PACO</span> รายได้รวม</div><div class="cc-val num-pa">1,325 M</div></div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-item win"><div class="cc-label"><span class="tag tag-tk">TK</span> Gross Margin</div><div class="cc-val num-tk">28.09%</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-st">ST</span> Gross Margin</div><div class="cc-val num-st">19.17%</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-pa">PACO</span> Gross Margin</div><div class="cc-val num-pa">8.26%</div></div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-item win"><div class="cc-label"><span class="tag tag-tk">TK</span> Net Margin</div><div class="cc-val num-tk">12.82%</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-st">ST</span> Net Margin</div><div class="cc-val num-st">7.25%</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-pa">PACO</span> Net Margin</div><div class="cc-val num-pa">0.65%</div></div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-item win"><div class="cc-label"><span class="tag tag-tk">TK</span> กำไรสุทธิ</div><div class="cc-val num-tk">293 M</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-st">ST</span> กำไรสุทธิ</div><div class="cc-val num-st">138 M</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-pa">PACO</span> กำไรสุทธิ</div><div class="cc-val num-pa">8.6 M</div></div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-tk">TK</span> สินทรัพย์รวม</div><div class="cc-val num-tk">2,682 M</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-st">ST</span> สินทรัพย์รวม</div><div class="cc-val num-st">2,634 M</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-pa">PACO</span> สินทรัพย์รวม</div><div class="cc-val num-pa">1,342 M</div></div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-item win"><div class="cc-label"><span class="tag tag-tk">TK</span> D/E Ratio</div><div class="cc-val num-tk">0.22x</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-st">ST</span> D/E Ratio</div><div class="cc-val num-st">0.61x</div></div>
+    <div class="cc-vs">vs</div>
+    <div class="cc-item"><div class="cc-label"><span class="tag tag-pa">PACO</span> D/E Ratio</div><div class="cc-val num-pa">0.41x</div></div>
+  </div>
+</div>
+
+<div class="bars">
+  <div class="bar-title">Gross Profit Margin (%) — ใครควบคุมต้นทุนได้ดีกว่า</div>
+  <div class="br"><div class="br-label" style="color:var(--blue)">TK</div><div class="br-track"><div class="br-fill tk" style="width:70%">28.09%</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--orange)">ST</div><div class="br-track"><div class="br-fill st" style="width:48%">19.17%</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--green)">PACO</div><div class="br-track"><div class="br-fill pa" style="width:21%">8.26%</div></div></div>
+</div>
+<div class="bars">
+  <div class="bar-title">Net Profit Margin (%)</div>
+  <div class="br"><div class="br-label" style="color:var(--blue)">TK</div><div class="br-track"><div class="br-fill tk" style="width:64%">12.82%</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--orange)">ST</div><div class="br-track"><div class="br-fill st" style="width:36%">7.25%</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--green)">PACO</div><div class="br-track"><div class="br-fill pa" style="width:5%">0.65%</div></div></div>
+</div>
+<div class="bars">
+  <div class="bar-title">D/E Ratio (เท่า) — ยิ่งต่ำยิ่งมีภาระหนี้น้อย</div>
+  <div class="br"><div class="br-label" style="color:var(--blue)">TK</div><div class="br-track"><div class="br-fill tk" style="width:22%">0.22</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--orange)">ST</div><div class="br-track"><div class="br-fill st" style="width:61%">0.61</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--green)">PACO</div><div class="br-track"><div class="br-fill pa" style="width:41%">0.41</div></div></div>
+</div>
+</div>
+
+<!-- ==================== P&L ==================== -->
+<div class="sec" id="pl">
+<div class="stit">งบกำไรขาดทุน ปี 2568</div>
+<div class="sdsc">หน่วย: ล้านบาท | % = สัดส่วนต่อรวมรายได้</div>
+<div class="tw">
+<table>
+<thead><tr><th>รายการ</th><th class="h-tk">TK (ล้าน)</th><th class="h-tk">%</th><th class="h-st">ST (ล้าน)</th><th class="h-st">%</th><th class="h-pa">PACO (ล้าน)</th><th class="h-pa">%</th><th class="h-diff">หมายเหตุ</th></tr></thead>
+<tbody>
+<tr><td>รายได้จากการขาย</td><td>2,253.05</td><td class="pct">98.69</td><td>1,867.92</td><td class="pct">98.09</td><td>1,264.58</td><td class="pct">95.44</td><td>TK ใหญ่สุด</td></tr>
+<tr><td>— ขายผลิตภัณฑ์ (เสา)</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>1,122.26</td><td class="pct">84.70</td><td>PACO เปิดเผยแยก</td></tr>
+<tr><td>— รายได้จากบริการ</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>137.45</td><td class="pct">10.37</td><td>ค่าตอก/บริการ</td></tr>
+<tr><td>รายได้อื่น</td><td>29.85</td><td class="pct">1.31</td><td>26.08</td><td class="pct">1.37</td><td>60.41</td><td class="pct">4.56</td><td>PACO รายได้อื่นสูงสุด</td></tr>
+<tr class="hl"><td>รวมรายได้</td><td>2,282.90</td><td class="pct">100.00</td><td>1,904.33</td><td class="pct">100.00</td><td>1,325.00</td><td class="pct">100.00</td><td></td></tr>
+<tr><td>ต้นทุนขายรวม</td><td>1,620.20</td><td class="pct">70.97</td><td>1,519.62</td><td class="pct">79.79</td><td>1,215.57</td><td class="pct">91.74</td><td class="worse">PACO สูงสุด</td></tr>
+<tr><td>— ต้นทุนขายสินค้า</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>832.94</td><td class="pct">62.86</td><td></td></tr>
+<tr><td>— ต้นทุนขายวัตถุดิบ</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>20.75</td><td class="pct">1.57</td><td></td></tr>
+<tr><td>— ค่าใช้จ่ายในการตอก</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>291.71</td><td class="pct">22.02</td><td></td></tr>
+<tr><td>— ต้นทุนรับจ้าง</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>70.17</td><td class="pct">5.30</td><td></td></tr>
+<tr class="hl"><td>กำไรขั้นต้น</td><td>632.85</td><td class="pct">28.09*</td><td>358.30</td><td class="pct">19.17*</td><td>109.43</td><td class="pct">8.26</td><td class="better">TK สูงสุด</td></tr>
+<tr><td>ค่าใช้จ่ายในการขาย</td><td>35.08</td><td class="pct">1.54</td><td>24.20</td><td class="pct">1.27</td><td>24.12</td><td class="pct">1.82</td><td></td></tr>
+<tr><td>ค่าใช้จ่ายบริหาร</td><td>256.59</td><td class="pct">11.24</td><td>162.15</td><td class="pct">8.52</td><td>71.02</td><td class="pct">5.36</td><td class="better">PACO ต่ำสุด</td></tr>
+<tr class="hl"><td>รวมค่าใช้จ่ายขายและบริหาร</td><td>291.67</td><td class="pct">12.78</td><td>186.35</td><td class="pct">9.79</td><td>95.14</td><td class="pct">7.18</td><td class="better">PACO ต่ำสุด</td></tr>
+<tr><td>ต้นทุนหยุดการผลิต</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>4.20</td><td class="pct">0.32</td><td>เฉพาะ PACO</td></tr>
+<tr><td>ต้นทุนทางการเงิน</td><td>5.58</td><td class="pct">0.24</td><td>23.69</td><td class="pct">1.24</td><td>1.45</td><td class="pct">0.11</td><td class="better">PACO ต่ำสุด</td></tr>
+<tr><td>กำไรก่อนภาษี</td><td>365.45</td><td class="pct">16.01</td><td>174.67</td><td class="pct">9.17</td><td>8.64</td><td class="pct">0.65</td><td class="better">TK สูงสุด</td></tr>
+<tr><td>ภาษีเงินได้</td><td>72.83</td><td class="pct">3.19</td><td>36.54</td><td class="pct">1.92</td><td>0</td><td class="pct">0</td><td>PACO ขาดทุนสะสม</td></tr>
+<tr class="hl"><td>กำไรสุทธิ</td><td>292.62</td><td class="pct">12.82</td><td>138.13</td><td class="pct">7.25</td><td>8.64</td><td class="pct">0.65</td><td class="better">TK สูงกว่ามาก</td></tr>
+</tbody>
+</table>
+</div>
+<div class="sdsc">* Gross Margin ของ TK และ ST คำนวณจากรายได้ขายสุทธิ — PACO คำนวณจากรวมรายได้ทั้งหมด (ตาม format งบของ PACO)</div>
+</div>
+
+<!-- ==================== COST STRUCTURE ==================== -->
+<div class="sec" id="cost">
+<div class="stit">โครงสร้างต้นทุน — เปรียบเทียบ</div>
+<div class="sdsc">จากงบการเงิน ปี 2568 — งบเดี่ยว | หน่วย: ล้านบาท</div>
+
+<div class="tw">
+<table>
+<thead><tr><th>รายการ</th><th class="h-tk">TK (ล้าน)</th><th class="h-tk">% รายได้</th><th class="h-st">ST (ล้าน)</th><th class="h-st">% รายได้</th><th class="h-pa">PACO (ล้าน)</th><th class="h-pa">% รายได้</th></tr></thead>
+<tbody>
+<tr><td colspan="7" style="background:var(--s2);font-weight:700;color:var(--t2)">ต้นทุนขาย</td></tr>
+<tr><td>ต้นทุนขายสินค้า (เสา/ผลิตภัณฑ์)</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>832.94</td><td class="pct">62.86</td></tr>
+<tr><td>ต้นทุนขายวัตถุดิบ/วัสดุ</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>20.75</td><td class="pct">1.57</td></tr>
+<tr><td>ค่าใช้จ่ายในการตอกเสา</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>291.71</td><td class="pct">22.02</td></tr>
+<tr><td>ต้นทุนรับจ้าง (Soil Cement Column, อื่นๆ)</td><td>—</td><td class="pct">—</td><td>—</td><td class="pct">—</td><td>70.17</td><td class="pct">5.30</td></tr>
+<tr class="hl"><td>รวมต้นทุนขาย</td><td>1,620.20</td><td class="pct">70.97</td><td>1,519.62</td><td class="pct">79.79</td><td>1,215.57</td><td class="pct">91.74</td></tr>
+
+<tr><td colspan="7" style="background:var(--s2);font-weight:700;color:var(--t2)">ค่าใช้จ่ายขายและบริหาร</td></tr>
+<tr><td>ค่าใช้จ่ายในการขาย</td><td>35.08</td><td class="pct">1.54</td><td>24.20</td><td class="pct">1.27</td><td>24.12</td><td class="pct">1.82</td></tr>
+<tr><td>ค่าใช้จ่ายบริหาร</td><td>256.59</td><td class="pct">11.24</td><td>162.15</td><td class="pct">8.52</td><td>71.02</td><td class="pct">5.36</td></tr>
+<tr><td>— หนี้สงสัยจะสูญ / ECL</td><td>(8.21)</td><td class="pct">โอนกลับ</td><td>25.87</td><td class="pct">1.36</td><td>0.10</td><td class="pct">0.01</td></tr>
+<tr class="hl"><td>รวมค่าใช้จ่ายขายและบริหาร</td><td>291.67</td><td class="pct">12.78</td><td>186.35</td><td class="pct">9.79</td><td>95.14</td><td class="pct">7.18</td></tr>
+
+<tr><td colspan="7" style="background:var(--s2);font-weight:700;color:var(--t2)">ต้นทุนทางการเงิน</td></tr>
+<tr><td>ต้นทุนทางการเงิน</td><td>5.58</td><td class="pct">0.24</td><td>23.69</td><td class="pct">1.24</td><td>1.45</td><td class="pct">0.11</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="ig">
+  <div class="ins tk-win"><div class="ins-t">✦ TK: Gross Margin สูงสุดในกลุ่ม (+9 จุดเหนือ ST, +20 จุดเหนือ PACO)</div><div class="ins-b">TK ต้นทุนขาย/รายได้ 71% vs ST 80% vs PACO 92% — PACO มีต้นทุนขายเมื่อเทียบรายได้สูงที่สุดอย่างมาก สะท้อนว่ากำลังการผลิตและ pricing power ยังต้องปรับปรุง</div></div>
+  <div class="ins pa-win"><div class="ins-t">✦ PACO: SG&A ต่ำสุดในกลุ่ม (7.18% vs ST 9.79% vs TK 12.78%)</div><div class="ins-b">แม้ PACO จะมี Gross Margin ต่ำสุด แต่สามารถควบคุมค่าใช้จ่ายบริหารได้ดีที่สุด โดยเฉพาะค่าใช้จ่ายบริหารที่ 5.36% เทียบกับ TK 11.24% — ประหยัดมาก</div></div>
+  <div class="ins pa-win"><div class="ins-t">✦ PACO: ต้นทุนการเงินต่ำสุด (0.11%)</div><div class="ins-b">PACO ดอกเบี้ยจ่าย 1.45 ล้าน vs TK 5.58 ล้าน vs ST 23.69 ล้าน — PACO มีภาระหนี้ต่ำที่สุด แม้มีเงินกู้PN จาก ACI 39 ล้าน+ธ.กรุงศรี 20 ล้าน+เงินกู้ Solar Roof</div></div>
+</div>
+</div>
+
+<!-- ==================== BALANCE SHEET ==================== -->
+<div class="sec" id="bs">
+<div class="stit">งบฐานะการเงิน ณ 31 ธ.ค. 2568</div>
+<div class="sdsc">หน่วย: ล้านบาท (งบเดี่ยว)</div>
+<div class="tw">
+<table>
+<thead><tr><th>รายการ</th><th class="h-tk">TK</th><th class="h-st">ST</th><th class="h-pa">PACO</th><th class="h-diff">สังเกต</th></tr></thead>
+<tbody>
+<tr><td colspan="5" style="background:var(--s2);font-weight:700;color:var(--t2)">สินทรัพย์</td></tr>
+<tr><td>เงินสดและเงินฝากสถาบันการเงิน</td><td>962.36</td><td>61.09</td><td>31.12</td><td>TK เงินสดมากสุด</td></tr>
+<tr><td>เงินลงทุนชั่วคราว</td><td>449.76</td><td>—</td><td>0.001</td><td>TK ลงทุนกองทุนเปิด</td></tr>
+<tr><td>ลูกหนี้การค้าสุทธิ</td><td>309.75</td><td>215.12</td><td>266.16</td><td></td></tr>
+<tr><td>สินค้าคงเหลือ</td><td>234.91</td><td>315.57</td><td>256.50</td><td>ST สต็อกสูงสุด</td></tr>
+<tr class="hl"><td>รวมสินทรัพย์หมุนเวียน</td><td>1,993.44</td><td>769.22</td><td>614.47</td><td>TK สูงสุด</td></tr>
+<tr><td>เงินฝากธนาคารที่มีภาระค้ำประกัน</td><td>—</td><td>—</td><td>221.87</td><td>PACO เงินฝากค้ำประกัน</td></tr>
+<tr><td>เงินลงทุนในบริษัทย่อย</td><td>—</td><td>474.00</td><td>66.44</td><td>ST ลงทุนบ.ย่อยมากสุด</td></tr>
+<tr><td>เงินลงทุนระยะยาว/อื่น</td><td>—</td><td>—</td><td>8.45</td><td></td></tr>
+<tr><td>ที่ดิน อาคาร อุปกรณ์ สุทธิ</td><td>599.58</td><td>1,231.97</td><td>372.79</td><td>ST ลงทุน PP&E มากสุด</td></tr>
+<tr><td>อสังหาริมทรัพย์เพื่อการลงทุน สุทธิ</td><td>—</td><td>—</td><td>24.41</td><td>เฉพาะ PACO</td></tr>
+<tr class="hl"><td>รวมสินทรัพย์</td><td>2,681.93</td><td>2,634.40</td><td>1,342.22</td><td>PACO เล็กสุด</td></tr>
+
+<tr><td colspan="5" style="background:var(--s2);font-weight:700;color:var(--t2)">หนี้สิน</td></tr>
+<tr><td>เงินเบิกเกินบัญชี+กู้ยืมระยะสั้น</td><td>—</td><td>382.41</td><td>1.28</td><td class="worse">ST พึ่งพาหนี้สั้นสูง</td></tr>
+<tr><td>เจ้าหนี้การค้าและค้างจ่าย</td><td>347.30</td><td>161.08</td><td>230.03</td><td></td></tr>
+<tr><td>เงินกู้ระยะสั้น (PN + อื่นๆ)</td><td>—</td><td>—</td><td>68.45</td><td>เงินกู้ ACI+PN+Solar</td></tr>
+<tr><td>เงินกู้ยืมระยะยาว</td><td>—</td><td>188.36</td><td>—</td><td>ST มีเงินกู้ยาว TK,PACO ไม่มี</td></tr>
+<tr><td>สัญญาเช่า (รวมสั้น+ยาว)</td><td>53</td><td>—</td><td>6.04</td><td></td></tr>
+<tr><td>ภาระผูกพันผลประโยชน์พนักงาน</td><td>—</td><td>—</td><td>55.60</td><td></td></tr>
+<tr class="hl"><td>รวมหนี้สิน</td><td>482.71</td><td>995.48</td><td>393.32</td><td class="better">PACO หนี้น้อยสุด</td></tr>
+
+<tr><td colspan="5" style="background:var(--s2);font-weight:700;color:var(--t2)">ส่วนของผู้ถือหุ้น</td></tr>
+<tr><td>ทุนจดทะเบียน/ชำระแล้ว</td><td>282.30</td><td>725.00</td><td>205.00</td><td></td></tr>
+<tr><td>กำไรสะสมยังไม่จัดสรร</td><td>1,912.67</td><td>492.35</td><td>743.90</td><td>TK สะสมมากสุด</td></tr>
+<tr class="hl"><td>รวมส่วนของผู้ถือหุ้น</td><td>2,199.23</td><td>1,638.92</td><td>948.90</td><td></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="ig">
+  <div class="ins tk-win"><div class="ins-t">✦ TK: เงินสดล้นเหลือ — 962 ล้าน + กองทุน 450 ล้าน</div><div class="ins-b">PACO เงินสด 31 ล้านเท่านั้น แต่มีเงินฝากค้ำประกัน 222 ล้าน ถ้าดูสภาพคล่องรวมจริงๆ PACO ไม่ได้ขาดสภาพคล่องมาก เพียงแต่เงินถูก lock ค้ำประกัน</div></div>
+  <div class="ins pa-win"><div class="ins-t">✦ PACO: หนี้สินรวมต่ำสุด — 393 ล้าน</div><div class="ins-b">แม้ PACO มีเงินกู้ PN จาก ACI 39 ล้าน+ตั๋ว PN ธ.กรุงศรี 20 ล้าน+เงินกู้ Solar Roof 9.45 ล้าน แต่รวมหนี้สินทั้งหมดยังต่ำกว่า TK และ ST</div></div>
+  <div class="ins warn"><div class="ins-t">⚠ PACO: กำไรสะสม 744 ล้าน แต่กำไรปีนี้แค่ 8.6 ล้าน</div><div class="ins-b">กำไรสะสมสูง (จากอดีต) แต่ปีนี้กำไรน้อยมาก สะท้อนว่าธุรกิจกำลังเผชิญความท้าทายด้านรายได้และต้นทุนที่สูงขึ้น</div></div>
+</div>
+</div>
+
+<!-- ==================== RATIOS ==================== -->
+<div class="sec" id="ratio">
+<div class="stit">อัตราส่วนทางการเงินเปรียบเทียบ</div>
+<div class="sdsc">คำนวณจากงบเดี่ยว ปี 2568</div>
+<div class="tw">
+<table>
+<thead><tr><th>อัตราส่วน</th><th class="h-tk">TK</th><th class="h-st">ST</th><th class="h-pa">PACO</th><th class="h-diff">ใครดีกว่า</th></tr></thead>
+<tbody>
+<tr><td colspan="5" style="background:var(--s2);font-weight:700;color:var(--t2)">ความสามารถในการทำกำไร</td></tr>
+<tr><td>Gross Profit Margin (%)</td><td>28.09</td><td>19.17</td><td>8.26</td><td class="better">TK ≫ ST > PACO</td></tr>
+<tr><td>Net Profit Margin (%)</td><td>12.82</td><td>7.25</td><td>0.65</td><td class="better">TK ≫ ST ≫ PACO</td></tr>
+<tr><td>ROE (%)</td><td>13.31</td><td>8.74</td><td>0.91</td><td class="better">TK</td></tr>
+<tr><td>ROA (%)</td><td>10.91</td><td>5.24</td><td>0.64</td><td class="better">TK</td></tr>
+
+<tr><td colspan="5" style="background:var(--s2);font-weight:700;color:var(--t2)">สภาพคล่อง</td></tr>
+<tr><td>Current Ratio (เท่า)</td><td>5.11</td><td>0.95</td><td>1.99</td><td class="better">TK ≫ PACO > ST</td></tr>
+<tr><td>เงินสด / สินทรัพย์รวม (%)</td><td>35.88</td><td>2.32</td><td>2.32</td><td class="better">TK</td></tr>
+
+<tr><td colspan="5" style="background:var(--s2);font-weight:700;color:var(--t2)">ความมั่นคง / Leverage</td></tr>
+<tr><td>D/E Ratio (เท่า)</td><td>0.22</td><td>0.61</td><td>0.41</td><td class="better">TK ต่ำสุด</td></tr>
+<tr><td>Interest-Bearing Debt (ล้าน)</td><td>53 <span class="pct">(สัญญาเช่า)</span></td><td>571 <span class="pct">(กู้ธนาคาร)</span></td><td>68.5 <span class="pct">(PN+Solar)</span></td><td class="better">TK น้อยสุด</td></tr>
+<tr><td>Interest Coverage Ratio (เท่า)</td><td>65.51</td><td>8.37</td><td>6.96</td><td class="better">TK ครอบคลุมดีมาก</td></tr>
+
+<tr><td colspan="5" style="background:var(--s2);font-weight:700;color:var(--t2)">ประสิทธิภาพ</td></tr>
+<tr><td>Asset Turnover (เท่า)</td><td>0.85</td><td>0.72</td><td>0.99</td><td class="better">PACO สูงสุด</td></tr>
+<tr><td>PP&E / สินทรัพย์รวม (%)</td><td>22.36</td><td>46.76</td><td>27.78</td><td>ST = asset-heavy</td></tr>
+<tr><td>SG&A / รายได้ (%)</td><td>12.78</td><td>9.79</td><td>7.18</td><td class="better">PACO ประหยัดสุด</td></tr>
+
+<tr><td colspan="5" style="background:var(--s2);font-weight:700;color:var(--t2)">ขนาดรายได้เปรียบเทียบ</td></tr>
+<tr><td>รายได้รวม (ล้านบาท)</td><td>2,282.90</td><td>1,904.33</td><td>1,325.00</td><td>TK > ST > PACO</td></tr>
+<tr><td>กำไรสุทธิ (ล้านบาท)</td><td>292.62</td><td>138.13</td><td>8.64</td><td>TK ≫ ST ≫ PACO</td></tr>
+<tr><td>สินทรัพย์รวม (ล้านบาท)</td><td>2,681.93</td><td>2,634.40</td><td>1,342.22</td><td>TK ≈ ST ≫ PACO</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="bars">
+  <div class="bar-title">Current Ratio (เท่า) — ยิ่งสูงยิ่งสภาพคล่องดี</div>
+  <div class="br"><div class="br-label" style="color:var(--blue)">TK</div><div class="br-track"><div class="br-fill tk" style="width:85%">5.11</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--orange)">ST</div><div class="br-track"><div class="br-fill st" style="width:16%">0.95</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--green)">PACO</div><div class="br-track"><div class="br-fill pa" style="width:33%">1.99</div></div></div>
+</div>
+
+<div class="bars">
+  <div class="bar-title">Asset Turnover (เท่า) — ยิ่งสูงยิ่งใช้สินทรัพย์ได้คุ้ม</div>
+  <div class="br"><div class="br-label" style="color:var(--blue)">TK</div><div class="br-track"><div class="br-fill tk" style="width:57%">0.85</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--orange)">ST</div><div class="br-track"><div class="br-fill st" style="width:48%">0.72</div></div></div>
+  <div class="br"><div class="br-label" style="color:var(--green)">PACO</div><div class="br-track"><div class="br-fill pa" style="width:66%">0.99</div></div></div>
+</div>
+</div>
+
+<!-- ==================== VERDICT ==================== -->
+<div class="sec" id="verdict">
+<div class="stit">สรุปจุดแข็ง-จุดอ่อน 3 บริษัท</div>
+<div class="sdsc">ภาพรวมเปรียบเทียบ — งบเฉพาะกิจการ ปี 2568</div>
+
+<div class="ig">
+  <div class="ins tk-win">
+    <div class="ins-t">✦ จุดแข็งของ ทักษิณคอนกรีต (TK)</div>
+    <div class="ins-b">
+      • <strong>Gross Margin สูงสุด</strong> (28%) — ควบคุมต้นทุนวัตถุดิบได้ดีมาก<br>
+      • <strong>แทบไม่มีหนี้</strong> — D/E 0.22, ไม่มีเงินกู้ธนาคาร<br>
+      • <strong>เงินสดล้นเหลือ</strong> — 962 ล้าน + กองทุน 450 ล้าน<br>
+      • <strong>กำไรสะสมหนา</strong> — 1,913 ล้าน แข็งแกร่งมาก<br>
+      • <strong>ROE & ROA สูงสุด</strong> — ใช้ทุนมีประสิทธิภาพ
+    </div>
+  </div>
+
+  <div class="ins neg" style="border-left-color:var(--blue)">
+    <div class="ins-t">▼ จุดอ่อนของ ทักษิณคอนกรีต (TK)</div>
+    <div class="ins-b">
+      • <strong>SG&A สูงสุด</strong> (12.78%) — โบนัสและค่าตอบแทนสูง<br>
+      • <strong>PP&E น้อยกว่า ST</strong> — อาจมีกำลังผลิตจำกัด<br>
+      • <strong>Payout สูงเกินไป</strong> — จ่ายปันผลมากกว่ากำไร
+    </div>
+  </div>
+
+  <div class="ins st-win">
+    <div class="ins-t">✦ จุดแข็งของ สยามเทคนิคคอนกรีต (ST)</div>
+    <div class="ins-b">
+      • <strong>ลงทุน PP&E หนัก</strong> (1,232 ล้าน) — กำลังผลิตสูงสุด<br>
+      • <strong>มีบริษัทย่อย</strong> — กระจายธุรกิจ<br>
+      • <strong>ลดหนี้ได้ดี</strong> — ชำระคืนเงินกู้สุทธิ 209 ล้าน<br>
+      • <strong>SG&A ปานกลาง</strong> (9.79%)
+    </div>
+  </div>
+
+  <div class="ins neg" style="border-left-color:var(--orange)">
+    <div class="ins-t">▼ จุดอ่อนของ สยามเทคนิคคอนกรีต (ST)</div>
+    <div class="ins-b">
+      • <strong>หนี้สินสูงสุด</strong> — เงินกู้ 571 ล้าน, D/E 0.61<br>
+      • <strong>Current Ratio < 1</strong> (0.95) — สภาพคล่องตึง<br>
+      • <strong>เงินสดน้อย</strong> (61 ล้าน) — กันชนบาง<br>
+      • <strong>ECL สูง 26 ล้าน</strong> — กดดันกำไร
+    </div>
+  </div>
+
+  <div class="ins pa-win">
+    <div class="ins-t">✦ จุดแข็งของ ปทุมธานีคอนกรีต (PACO)</div>
+    <div class="ins-b">
+      • <strong>SG&A ต่ำสุดในกลุ่ม</strong> (7.18%) — ควบคุมค่าใช้จ่ายบริหารได้ดีเยี่ยม<br>
+      • <strong>Asset Turnover สูงสุด</strong> (0.99) — ใช้สินทรัพย์คุ้มค่าที่สุด<br>
+      • <strong>ต้นทุนการเงินต่ำมาก</strong> (1.45 ล้าน / 0.11%) — แม้มีเงินกู้แต่ต้นทุนต่ำ<br>
+      • <strong>D/E ไม่สูง</strong> (0.41) — อยู่ระดับปานกลาง<br>
+      • <strong>Current Ratio > 1</strong> (1.99) — สภาพคล่องดีกว่า ST<br>
+      • <strong>กำไรสะสมหนา</strong> 744 ล้าน (จากอดีต) — กันชนทางการเงินยังมี<br>
+      • <strong>มีบริษัทย่อย 3 บริษัท</strong> — พาโก้ เอ็นเทค, ซัน เซอร์วิสเซส, สยามจีโอเทคซินเนอยี่<br>
+      • <strong>มีอสังหาริมทรัพย์เพื่อการลงทุน</strong> — สร้างรายได้เสริมจากค่าเช่า
+    </div>
+  </div>
+
+  <div class="ins neg" style="border-left-color:var(--green)">
+    <div class="ins-t">▼ จุดอ่อนของ ปทุมธานีคอนกรีต (PACO)</div>
+    <div class="ins-b">
+      • <strong>Gross Margin ต่ำมาก (8.26%)</strong> — ต้นทุนขาย 91.74% ของรายได้ เป็นปัญหาหลักที่ต้องแก้ไขเร่งด่วน<br>
+      • <strong>กำไรสุทธิต่ำมาก</strong> — เพียง 8.6 ล้าน จากรายได้ 1,325 ล้าน (Net Margin 0.65%)<br>
+      • <strong>รายได้ลดลงจากปีก่อน</strong> — ปี 67 รายได้ 1,542 ล้าน → ปี 68 เหลือ 1,325 ล้าน (ลด 14%)<br>
+      • <strong>ขายเสาซื้อมาขายไปลดลงมาก</strong> — 236 ล้านปี 67 → 126 ล้านปี 68 (ลด 47%)<br>
+      • <strong>เงินสดน้อย</strong> (31 ล้าน) — แม้มีเงินฝากค้ำประกัน 222 ล้าน แต่ถูก lock ไว้<br>
+      • <strong>ไม่มีกำไรเสียภาษี</strong> — กำไรทางภาษีต่ำกว่ากำไรทางบัญชี (หักค่าใช้จ่ายสิทธิ์ต่างๆ ได้)<br>
+      • <strong>ต้นทุนหยุดการผลิต 4.2 ล้าน</strong> — มี downtime ในการผลิต<br>
+      • <strong>ส่วนลดจ่ายเพิ่มขึ้น</strong> — 7.08 ล้าน (ปีก่อน 2.18 ล้าน) อาจสะท้อน pricing pressure
+    </div>
+  </div>
+</div>
+
+<div class="ins warn" style="margin-top:16px">
+  <div class="ins-t">💡 ข้อควรระวังในการเปรียบเทียบ 3 บริษัท</div>
+  <div class="ins-b">
+    • <strong>ขนาดรายได้</strong>: TK 2,283 ล้าน > ST 1,904 ล้าน > PACO 1,325 ล้าน — ต่างกันมาก<br>
+    • <strong>โครงสร้างธุรกิจ</strong>: TK ไม่มีบริษัทย่อย / ST มี 1 บริษัทย่อย / PACO มี 3 บริษัทย่อย (พาโก้ เอ็นเทค, ซัน เซอร์วิสเซส, สยามจีโอเทคซินเนอยี่) — งบเดี่ยว PACO ไม่รวมรายได้ย่อย<br>
+    • <strong>ผู้สอบบัญชี</strong>: TK+ST ใช้ DIA International | PACO ใช้สำนักอื่น — อาจมีนโยบายบัญชีต่างกันเล็กน้อย<br>
+    • <strong>PACO มีเงินลงทุนในบริษัทย่อย 66.4 ล้าน</strong> + เงินลงทุนบริษัทอื่น 8.45 ล้าน — สินทรัพย์เหล่านี้ไม่สร้างรายได้ในงบเดี่ยว<br>
+    • <strong>PACO มีเงินฝากค้ำประกัน 222 ล้าน</strong> — ถูกจัดเป็นสินทรัพย์ไม่หมุนเวียน ไม่นับรวมใน Current Ratio แต่เป็นสภาพคล่องจริง<br>
+    • <strong>PACO มี "ต้นทุนหยุดการผลิต"</strong> ที่ TK และ ST ไม่มี — อาจเป็นเพราะ PACO เปิดเผยแยก ส่วน TK/ST อาจรวมอยู่ในต้นทุนอื่น<br>
+    • <strong>งบของ PACO เป็น DRAFT ก่อนตรวจสอบ</strong> — ตัวเลขอาจเปลี่ยนแปลงเล็กน้อยหลังผู้สอบบัญชีตรวจ
+  </div>
+</div>
+
+<div class="ins" style="margin-top:16px;border-left-color:var(--r)">
+  <div class="ins-t">🎯 คำแนะนำสำหรับ PACO — จุดที่ต้องปรับปรุงเร่งด่วน</div>
+  <div class="ins-b">
+    <strong>1. แก้ปัญหา Gross Margin ต่ำ (8.26% vs คู่แข่ง 19-28%)</strong><br>
+    &nbsp;&nbsp;&nbsp;— ต้นทุนขายสินค้า 833 ล้าน (62.86% ของรายได้) + ต้นทุนตอก 292 ล้าน (22%) ต้องวิเคราะห์ว่าค่าแรง ค่าวัตถุดิบ หรือค่าเช่าเครื่องจักรส่วนไหนสูงกว่าคู่แข่ง<br>
+    &nbsp;&nbsp;&nbsp;— ค่าน้ำมัน+วัสดุสิ้นเปลืองหน้างาน 9.16 ล้าน และค่าขนส่ง 67.42 ล้าน ควรตรวจสอบว่า competitive หรือไม่<br><br>
+    <strong>2. รายได้ลดลง 14% ต้องกลับมาเติบโต</strong><br>
+    &nbsp;&nbsp;&nbsp;— ขายเสาผลิตเอง ลด 10% (1,110 ล้าน → 1,003 ล้าน)<br>
+    &nbsp;&nbsp;&nbsp;— ขายเสาซื้อมาขายไป ลด 47% — ต้องหาลูกค้าใหม่หรือปรับ product mix<br><br>
+    <strong>3. ใช้จุดแข็ง SG&A ต่ำให้เป็นประโยชน์</strong><br>
+    &nbsp;&nbsp;&nbsp;— PACO มี cost discipline ดีในฝั่งบริหาร ถ้าแก้ฝั่ง production cost ได้ กำไรจะปรับตัวดีขึ้นอย่างมาก
+  </div>
+</div>
+</div>
+
+</div>
+
+<div style="text-align:center;padding:36px 0;color:var(--t4);font-size:11px">
+  สร้างจากข้อมูล: งบการเงิน ปี 2568 ของ 3 บริษัท — งบเฉพาะกิจการ | PACO = ข้อมูลก่อนผู้สอบบัญชีตรวจสอบ (DRAFT)
+</div>
+
+<script>
+document.querySelectorAll('.tb').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.tb').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.sec').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.getElementById(b.dataset.t).classList.add('on');
+  });
+});
+</script>
+</body>
+</html>
