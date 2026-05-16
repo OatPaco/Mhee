@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Stock Clearance — Sankey Visualization</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", "Noto Sans Thai", sans-serif;
+    background: #f7f8fa;
+    color: #1a1a1a;
+    padding: 24px;
+  }
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  h1 {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .subtitle {
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 16px;
+    padding: 14px 18px;
+    background: #f0f3f7;
+    border-radius: 8px;
+  }
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .control-group label {
+    font-size: 13px;
+    color: #555;
+    font-weight: 500;
+  }
+  .control-group select {
+    padding: 7px 32px 7px 12px;
+    border: 1px solid #d8dde4;
+    border-radius: 6px;
+    background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%232563eb' d='M2 4l4 4 4-4z'/></svg>") no-repeat right 10px center;
+    font-size: 13px;
+    font-family: inherit;
+    color: #1a1a1a;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    min-width: 130px;
+  }
+  .control-group select:hover {
+    border-color: #2563eb;
+  }
+  .control-group select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .control-group select#minLenSelect {
+    min-width: 90px;
+  }
+  .chart-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: #f7f8fa;
+    border-radius: 6px;
+    border: 1px solid #e5e8ed;
+  }
+  .chart-toolbar select {
+    padding: 6px 30px 6px 10px;
+    border: 1px solid #d8dde4;
+    border-radius: 5px;
+    background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%232563eb' d='M2 4l4 4 4-4z'/></svg>") no-repeat right 8px center;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 80px;
+  }
+  .chart-toolbar select:hover { border-color: #2563eb; }
+  .chart-toolbar select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .control-group select option:disabled {
+    color: #bbb;
+  }
+  .stats {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #555;
+  }
+  .stat strong {
+    color: #111;
+    font-size: 15px;
+    margin-right: 4px;
+  }
+  #chart {
+    width: 100%;
+    overflow: visible;
+  }
+  .node rect {
+    cursor: pointer;
+    stroke-width: 0;
+    transition: opacity 0.2s;
+  }
+  .node text {
+    font-size: 12px;
+    pointer-events: none;
+    fill: #1a1a1a;
+  }
+  .link {
+    fill: none;
+    stroke-opacity: 0.4;
+    transition: stroke-opacity 0.2s;
+  }
+  .link:hover {
+    stroke-opacity: 0.7;
+  }
+  .tooltip {
+    position: absolute;
+    background: rgba(20, 20, 25, 0.95);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 100;
+  }
+  .tooltip strong { color: #ffd866; }
+  .axis-label {
+    font-size: 12px;
+    font-weight: 600;
+    fill: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .back-btn {
+    padding: 7px 14px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .back-btn:hover { background: #1d4fd7; }
+  .node rect.drillable { cursor: pointer; }
+  .link.drillable { cursor: pointer; }
+  #detailTableWrap {
+    margin-top: 20px;
+  }
+  .detail-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  .detail-table-scroll {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid #e5e8ed;
+    border-radius: 6px;
+    background: #fff;
+  }
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .detail-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f0f3f7;
+    color: #444;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #d8dde4;
+    z-index: 1;
+  }
+  .detail-table th.num,
+  .detail-table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .detail-table tbody td {
+    padding: 8px 14px;
+    border-bottom: 1px solid #eef0f3;
+  }
+  .detail-table tbody tr:hover {
+    background: #f7faff;
+  }
+  .detail-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .detail-table tfoot td {
+    padding: 10px 14px;
+    border-top: 2px solid #d8dde4;
+    background: #fafbfc;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Stock Clearance</h1>
+
+  <div class="controls">
+    <div class="control-group">
+      <select id="leftToggle">
+        <option value="diameter" selected>ขนาดเสา (Ø)</option>
+        <option value="category">หมวด</option>
+        <option value="length">ความยาว</option>
+        <option value="order">Order</option>
+        <option value="site">Site</option>
+        <option value="factory">โรงงาน</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <select id="rightToggle">
+        <option value="diameter">ขนาดเสา (Ø)</option>
+        <option value="category">หมวด</option>
+        <option value="length">ความยาว</option>
+        <option value="order">Order</option>
+        <option value="site">Site</option>
+        <option value="factory" selected>โรงงาน</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+  <div class="chart-toolbar">
+    <label for="minLenSelect" style="font-size:13px; color:#555;">ความยาวขั้นต่ำ:</label>
+    <select id="minLenSelect"></select>
+  </div>
+  <div id="backBar" style="display:none; margin-bottom:8px;">
+    <button id="backBtn" class="back-btn">← กลับสู่มุมมองปกติ</button>
+    <span id="drillLabel" style="margin-left:12px; font-size:13px; color:#555;"></span>
+  </div>
+  <svg id="chart"></svg>
+  <div id="detailTableWrap" style="display:none;">
+    <div class="detail-title" id="detailTitle"></div>
+    <div class="detail-table-scroll">
+      <table class="detail-table">
+        <thead>
+          <tr>
+            <th>ITEM CODE</th>
+            <th class="num">m³/ท่อน</th>
+            <th class="num">ท่อน</th>
+            <th class="num">รวม m³</th>
+          </tr>
+        </thead>
+        <tbody id="detailTableBody"></tbody>
+        <tfoot id="detailTableFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const RAW = [{"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A1200T02", "Ø (cm)": 25, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 18, "BOM (m³/ท่อน)": 0.4044, "Stock (m³)": 7.2792, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C50A1400T25", "Ø (cm)": 50, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 16, "BOM (m³/ท่อน)": 1.6226, "Stock (m³)": 25.9616, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C35B1100T02", "Ø (cm)": 35, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 9, "BOM (m³/ท่อน)": 0.6402, "Stock (m³)": 5.7618, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A0600T00", "Ø (cm)": 60, "ความยาว (m)": 6.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 9, "BOM (m³/ท่อน)": 0.9426, "Stock (m³)": 8.4834, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A0800T02", "Ø (cm)": 25, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 8, "BOM (m³/ท่อน)": 0.2696, "Stock (m³)": 2.1568, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B1500T02", "Ø (cm)": 30, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 8, "BOM (m³/ท่อน)": 0.678, "Stock (m³)": 5.424, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C45A0800T22", "Ø (cm)": 45, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 8, "BOM (m³/ท่อน)": 0.744, "Stock (m³)": 5.952, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A1300T02", "Ø (cm)": 25, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 7, "BOM (m³/ท่อน)": 0.4381, "Stock (m³)": 3.0667, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B1100T02", "Ø (cm)": 30, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 7, "BOM (m³/ท่อน)": 0.4972, "Stock (m³)": 3.4804, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B1600T02", "Ø (cm)": 30, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 0.7232, "Stock (m³)": 4.3392, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A1100T00", "Ø (cm)": 60, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 1.7281, "Stock (m³)": 10.3686, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C70A1900T02", "Ø (cm)": 70, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 3.8741, "Stock (m³)": 23.2446, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C70A1500T02", "Ø (cm)": 70, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 5, "BOM (m³/ท่อน)": 3.0585, "Stock (m³)": 15.2925, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A1100T02", "Ø (cm)": 25, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 5, "BOM (m³/ท่อน)": 0.3707, "Stock (m³)": 1.8535, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B0900T02", "Ø (cm)": 30, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 5, "BOM (m³/ท่อน)": 0.4068, "Stock (m³)": 2.034, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C40A0900T02", "Ø (cm)": 40, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 5, "BOM (m³/ท่อน)": 0.6894, "Stock (m³)": 3.447, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B1100T00", "Ø (cm)": 30, "ความยาว (m)": 11.0, "Order": "CENTRAL-2020", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 0.4972, "Stock (m³)": 1.9888, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C70A0950T02", "Ø (cm)": 70, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 1.93705, "Stock (m³)": 7.7482, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C70A0950T02", "Ø (cm)": 70, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 1.93705, "Stock (m³)": 7.7482, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C45A0700T02", "Ø (cm)": 45, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 0.651, "Stock (m³)": 1.953, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B0800T00(T02)", "Ø (cm)": 30, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 0.3616, "Stock (m³)": 1.0848, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B1400T02", "Ø (cm)": 30, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 0.6328, "Stock (m³)": 1.8984, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C35B1700T00(T02)", "Ø (cm)": 35, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 0.9894, "Stock (m³)": 2.9682, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C45A1600T02", "Ø (cm)": 45, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 1.488, "Stock (m³)": 4.464, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C70A1600T02", "Ø (cm)": 70, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 3.2624, "Stock (m³)": 9.7872, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B0800E22", "Ø (cm)": 30, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.3616, "Stock (m³)": 0.7232, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A0700T02", "Ø (cm)": 60, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.0997, "Stock (m³)": 2.1994, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "O40B0800T02", "Ø (cm)": 40, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.8552, "Stock (m³)": 1.7104, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "O40B1100T02", "Ø (cm)": 40, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.1759, "Stock (m³)": 2.3518, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C40F1800E22", "Ø (cm)": 40, "ความยาว (m)": 18.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.638, "Stock (m³)": 3.276, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C45A1100T02", "Ø (cm)": 45, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.023, "Stock (m³)": 2.046, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A0900T02", "Ø (cm)": 25, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.3033, "Stock (m³)": 0.6066, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B0700T02", "Ø (cm)": 30, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.3164, "Stock (m³)": 0.6328, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C40A1300T02", "Ø (cm)": 40, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.09958, "Stock (m³)": 0.19916, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C50A1500T02", "Ø (cm)": 50, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.7385, "Stock (m³)": 3.477, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A0900T22", "Ø (cm)": 25, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.3033, "Stock (m³)": 0.6066, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C35B0850T00", "Ø (cm)": 35, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.4947, "Stock (m³)": 0.9894, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C40A1300T00", "Ø (cm)": 40, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.9958, "Stock (m³)": 1.9916, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C50A1200T05", "Ø (cm)": 50, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.3908, "Stock (m³)": 2.7816, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C70A1500T02(T25)", "Ø (cm)": 70, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 3.0585, "Stock (m³)": 6.117, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C70A1700T25", "Ø (cm)": 70, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 3.4663, "Stock (m³)": 6.9326, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A1200T00", "Ø (cm)": 25, "ความยาว (m)": 12.0, "Order": "CENTRAL-2019", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.4044, "Stock (m³)": 0.4044, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A1400T02", "Ø (cm)": 25, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.4718, "Stock (m³)": 0.4718, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C35B1700T02", "Ø (cm)": 35, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.9894, "Stock (m³)": 0.9894, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C40A1000T00", "Ø (cm)": 40, "ความยาว (m)": 10.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.766, "Stock (m³)": 0.766, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "O45A0800T02", "Ø (cm)": 45, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.1624, "Stock (m³)": 1.1624, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B1600T00", "Ø (cm)": 30, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.7232, "Stock (m³)": 0.7232, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C45A0800T02", "Ø (cm)": 45, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.744, "Stock (m³)": 0.744, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C45A0900T02", "Ø (cm)": 45, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.837, "Stock (m³)": 0.837, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C80A0600T02", "Ø (cm)": 80, "ความยาว (m)": 6.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.5384, "Stock (m³)": 1.5384, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A0500T00", "Ø (cm)": 25, "ความยาว (m)": 5.0, "Order": "CENTRAL-2021", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.1685, "Stock (m³)": 0.1685, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B0800T02", "Ø (cm)": 30, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.3616, "Stock (m³)": 0.3616, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B1400T00", "Ø (cm)": 30, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.6328, "Stock (m³)": 0.6328, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B1700T00", "Ø (cm)": 30, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.7684, "Stock (m³)": 0.7684, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C50A1300T02(T25)", "Ø (cm)": 50, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.5067, "Stock (m³)": 1.5067, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A0800T02", "Ø (cm)": 60, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.2568, "Stock (m³)": 1.2568, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A1100T25", "Ø (cm)": 60, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2537", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.7281, "Stock (m³)": 1.7281, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A0800T00", "Ø (cm)": 25, "ความยาว (m)": 8.0, "Order": "CENTRAL6-73291", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.2696, "Stock (m³)": 0.2696, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C25A1000T02", "Ø (cm)": 25, "ความยาว (m)": 10.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.337, "Stock (m³)": 0.337, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B0850T02", "Ø (cm)": 30, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.3842, "Stock (m³)": 0.3842, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C30B1400E02(E25)", "Ø (cm)": 30, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.6328, "Stock (m³)": 0.6328, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C35B0850T02", "Ø (cm)": 35, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.4947, "Stock (m³)": 0.4947, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C40A0950T02", "Ø (cm)": 40, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.7277, "Stock (m³)": 0.7277, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C40A1800T02", "Ø (cm)": 40, "ความยาว (m)": 18.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.3788, "Stock (m³)": 1.3788, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C40E1100E22", "Ø (cm)": 40, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.0703, "Stock (m³)": 1.0703, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C45A0700T00", "Ø (cm)": 45, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.651, "Stock (m³)": 0.651, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C45A1600T00", "Ø (cm)": 45, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.488, "Stock (m³)": 1.488, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C45A1900T02", "Ø (cm)": 45, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.767, "Stock (m³)": 1.767, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C50B1500E52020901", "Ø (cm)": 50, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.8855, "Stock (m³)": 1.8855, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A0900T50015001", "Ø (cm)": 60, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.4139, "Stock (m³)": 1.4139, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A1200T52", "Ø (cm)": 60, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.8852, "Stock (m³)": 1.8852, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A1300T22", "Ø (cm)": 60, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.0423, "Stock (m³)": 2.0423, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A1400H55", "Ø (cm)": 60, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.1994, "Stock (m³)": 2.1994, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A1400T52", "Ø (cm)": 60, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.1994, "Stock (m³)": 2.1994, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A1700T00", "Ø (cm)": 60, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.6707, "Stock (m³)": 2.6707, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C60A1900T02", "Ø (cm)": 60, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.9849, "Stock (m³)": 2.9849, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C70A1900T22", "Ø (cm)": 70, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 3.8741, "Stock (m³)": 3.8741, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2537", "ITEM CODE": "C80C1600E22", "Ø (cm)": 80, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "STOCK มอก. 2537 เกิน 6 ปี/73291", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 4.2432, "Stock (m³)": 4.2432, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B11000T02", "Ø (cm)": 3, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 411, "BOM (m³/ท่อน)": 0.4972, "Stock (m³)": 204.3492, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B15000T02", "Ø (cm)": 3, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 231, "BOM (m³/ท่อน)": 0.678, "Stock (m³)": 156.61800000000002, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A12000T02", "Ø (cm)": 2, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 183, "BOM (m³/ท่อน)": 0.4044, "Stock (m³)": 74.0052, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B11000T02", "Ø (cm)": 3, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 148, "BOM (m³/ท่อน)": 0.6402, "Stock (m³)": 94.7496, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A08000T02", "Ø (cm)": 4, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 144, "BOM (m³/ท่อน)": 0.6128, "Stock (m³)": 88.2432, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B13000T02", "Ø (cm)": 3, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 140, "BOM (m³/ท่อน)": 0.5876, "Stock (m³)": 82.264, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B09000T02", "Ø (cm)": 3, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 137, "BOM (m³/ท่อน)": 0.4068, "Stock (m³)": 55.7316, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B08000T02", "Ø (cm)": 3, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 126, "BOM (m³/ท่อน)": 0.3616, "Stock (m³)": 45.5616, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B14000T02", "Ø (cm)": 3, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 123, "BOM (m³/ท่อน)": 0.6328, "Stock (m³)": 77.8344, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B17000T02", "Ø (cm)": 3, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 122, "BOM (m³/ท่อน)": 0.7684, "Stock (m³)": 93.7448, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A07000T02", "Ø (cm)": 2, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 120, "BOM (m³/ท่อน)": 0.2359, "Stock (m³)": 28.308, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A12000T02", "Ø (cm)": 6, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 101, "BOM (m³/ท่อน)": 1.8852, "Stock (m³)": 190.4052, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A11000T02", "Ø (cm)": 6, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 96, "BOM (m³/ท่อน)": 1.7281, "Stock (m³)": 165.8976, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B08000T02", "Ø (cm)": 3, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 94, "BOM (m³/ท่อน)": 0.4656, "Stock (m³)": 43.7664, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B12000T02", "Ø (cm)": 3, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 90, "BOM (m³/ท่อน)": 0.6984, "Stock (m³)": 62.856, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A07000E23", "Ø (cm)": 2, "ความยาว (m)": 7.0, "Order": "CENTRAL2-2024", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 82, "BOM (m³/ท่อน)": 0.2359, "Stock (m³)": 19.3438, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A12000T02", "Ø (cm)": 4, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 76, "BOM (m³/ท่อน)": 1.116, "Stock (m³)": 84.816, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B07000T02", "Ø (cm)": 3, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 74, "BOM (m³/ท่อน)": 0.3164, "Stock (m³)": 23.4136, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A12000T02", "Ø (cm)": 4, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 71, "BOM (m³/ท่อน)": 0.9192, "Stock (m³)": 65.2632, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A15000T02", "Ø (cm)": 4, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 69, "BOM (m³/ท่อน)": 1.149, "Stock (m³)": 79.281, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A11000T02", "Ø (cm)": 2, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 64, "BOM (m³/ท่อน)": 0.3707, "Stock (m³)": 23.7248, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A08000T02", "Ø (cm)": 2, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 62, "BOM (m³/ท่อน)": 0.2696, "Stock (m³)": 16.7152, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B18000T02", "Ø (cm)": 3, "ความยาว (m)": 18.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 60, "BOM (m³/ท่อน)": 1.0476, "Stock (m³)": 62.85600000000001, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A10000T02", "Ø (cm)": 2, "ความยาว (m)": 10.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 59, "BOM (m³/ท่อน)": 0.337, "Stock (m³)": 19.883000000000003, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B16000T02", "Ø (cm)": 3, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 59, "BOM (m³/ท่อน)": 0.7232, "Stock (m³)": 42.6688, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B13000T02", "Ø (cm)": 3, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 59, "BOM (m³/ท่อน)": 0.7566, "Stock (m³)": 44.6394, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A14000T02", "Ø (cm)": 4, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 56, "BOM (m³/ท่อน)": 1.0724, "Stock (m³)": 60.0544, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A09000T02", "Ø (cm)": 2, "ความยาว (m)": 9.0, "Order": "CENTRAL2-2026", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 56, "BOM (m³/ท่อน)": 0.3033, "Stock (m³)": 16.9848, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A17000T02", "Ø (cm)": 4, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 51, "BOM (m³/ท่อน)": 1.3022, "Stock (m³)": 66.4122, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B14000T02", "Ø (cm)": 3, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 50, "BOM (m³/ท่อน)": 0.8148, "Stock (m³)": 40.739999999999995, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A13000T02", "Ø (cm)": 2, "ความยาว (m)": 13.0, "Order": "CENTRAL2-2023", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 49, "BOM (m³/ท่อน)": 0.4381, "Stock (m³)": 21.4669, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A13000T02", "Ø (cm)": 4, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 46, "BOM (m³/ท่อน)": 0.9958, "Stock (m³)": 45.8068, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B16000T02", "Ø (cm)": 3, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 41, "BOM (m³/ท่อน)": 0.9312, "Stock (m³)": 38.1792, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A16000T02", "Ø (cm)": 4, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 36, "BOM (m³/ท่อน)": 1.488, "Stock (m³)": 53.568, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A15000T02", "Ø (cm)": 5, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 35, "BOM (m³/ท่อน)": 1.7385, "Stock (m³)": 60.8475, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A08000T02", "Ø (cm)": 4, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 34, "BOM (m³/ท่อน)": 0.744, "Stock (m³)": 25.296, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B09000T02", "Ø (cm)": 3, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 32, "BOM (m³/ท่อน)": 0.5238, "Stock (m³)": 16.7616, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A09000T02", "Ø (cm)": 2, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 29, "BOM (m³/ท่อน)": 0.3033, "Stock (m³)": 8.7957, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A12000T02", "Ø (cm)": 5, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 28, "BOM (m³/ท่อน)": 1.3908, "Stock (m³)": 38.9424, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A11000T02", "Ø (cm)": 4, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 24, "BOM (m³/ท่อน)": 0.8426, "Stock (m³)": 20.2224, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B17000T02", "Ø (cm)": 3, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 21, "BOM (m³/ท่อน)": 0.9894, "Stock (m³)": 20.7774, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A15000T02", "Ø (cm)": 4, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 20, "BOM (m³/ท่อน)": 1.149, "Stock (m³)": 22.98, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B13000T02", "Ø (cm)": 3, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 19, "BOM (m³/ท่อน)": 0.5876, "Stock (m³)": 11.1644, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B09000T00", "Ø (cm)": 3, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 18, "BOM (m³/ท่อน)": 0.4068, "Stock (m³)": 7.3224, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A08000T02", "Ø (cm)": 6, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 18, "BOM (m³/ท่อน)": 1.2568, "Stock (m³)": 22.6224, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A18000T02", "Ø (cm)": 4, "ความยาว (m)": 18.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 17, "BOM (m³/ท่อน)": 1.3788, "Stock (m³)": 23.4396, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A11000T02", "Ø (cm)": 4, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 17, "BOM (m³/ท่อน)": 1.023, "Stock (m³)": 17.391, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A09000T50BM", "Ø (cm)": 2, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 16, "BOM (m³/ท่อน)": 0.3033, "Stock (m³)": 4.8528, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A12000T25", "Ø (cm)": 5, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 15, "BOM (m³/ท่อน)": 1.3908, "Stock (m³)": 20.862, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A13000T25", "Ø (cm)": 5, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 15, "BOM (m³/ท่อน)": 1.5067, "Stock (m³)": 22.6005, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A14000T02", "Ø (cm)": 4, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 14, "BOM (m³/ท่อน)": 1.0724, "Stock (m³)": 15.0136, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A07000T02", "Ø (cm)": 4, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 14, "BOM (m³/ท่อน)": 0.5362, "Stock (m³)": 7.5068, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A08000T02", "Ø (cm)": 8, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 14, "BOM (m³/ท่อน)": 2.0512, "Stock (m³)": 28.716800000000003, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A12000T02", "Ø (cm)": 2, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 13, "BOM (m³/ท่อน)": 0.4044, "Stock (m³)": 5.2572, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A17000T02", "Ø (cm)": 4, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 12, "BOM (m³/ท่อน)": 1.581, "Stock (m³)": 18.972, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A17000T02", "Ø (cm)": 4, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 12, "BOM (m³/ท่อน)": 1.581, "Stock (m³)": 18.972, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A09000T00", "Ø (cm)": 8, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 12, "BOM (m³/ท่อน)": 2.3076, "Stock (m³)": 27.6912, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B07000T02", "Ø (cm)": 3, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 11, "BOM (m³/ท่อน)": 0.3164, "Stock (m³)": 3.4804000000000004, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A13000T02", "Ø (cm)": 4, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 11, "BOM (m³/ท่อน)": 1.209, "Stock (m³)": 13.299, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A13000T25", "Ø (cm)": 8, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 11, "BOM (m³/ท่อน)": 3.3332, "Stock (m³)": 36.6652, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A12000T02", "Ø (cm)": 7, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 10, "BOM (m³/ท่อน)": 2.4468, "Stock (m³)": 24.468, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600B08000E23", "Ø (cm)": 6, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 10, "BOM (m³/ท่อน)": 1.448, "Stock (m³)": 14.48, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B14000T02", "Ø (cm)": 3, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 9, "BOM (m³/ท่อน)": 0.8148, "Stock (m³)": 7.3332, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A09000T22", "Ø (cm)": 2, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 9, "BOM (m³/ท่อน)": 0.3033, "Stock (m³)": 2.7297, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B11000T22", "Ø (cm)": 3, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 9, "BOM (m³/ท่อน)": 0.4972, "Stock (m³)": 4.4748, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A12000T02", "Ø (cm)": 8, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 9, "BOM (m³/ท่อน)": 3.0768, "Stock (m³)": 27.6912, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A13000T02", "Ø (cm)": 7, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 8, "BOM (m³/ท่อน)": 2.6507, "Stock (m³)": 21.2056, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A13000T02", "Ø (cm)": 5, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 8, "BOM (m³/ท่อน)": 1.5067, "Stock (m³)": 12.0536, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A09000T02", "Ø (cm)": 6, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 8, "BOM (m³/ท่อน)": 1.4139, "Stock (m³)": 11.3112, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A12000T25", "Ø (cm)": 6, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 8, "BOM (m³/ท่อน)": 1.8852, "Stock (m³)": 15.0816, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A14000T02", "Ø (cm)": 5, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 7, "BOM (m³/ท่อน)": 1.6226, "Stock (m³)": 11.3582, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A16000T02", "Ø (cm)": 5, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 7, "BOM (m³/ท่อน)": 1.8544, "Stock (m³)": 12.9808, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B17000T22", "Ø (cm)": 3, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 0.9894, "Stock (m³)": 5.9364, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A09500T02", "Ø (cm)": 4, "ความยาว (m)": 9.5, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 0.7277, "Stock (m³)": 4.3662, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A06000T02", "Ø (cm)": 4, "ความยาว (m)": 6.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 0.4596, "Stock (m³)": 2.7576, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A14000T02", "Ø (cm)": 2, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 0.4718, "Stock (m³)": 2.8308, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A18000T02", "Ø (cm)": 4, "ความยาว (m)": 18.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 1.674, "Stock (m³)": 10.044, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A08000E23", "Ø (cm)": 6, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 1.2568, "Stock (m³)": 7.540799999999999, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A09000T00", "Ø (cm)": 4, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 5, "BOM (m³/ท่อน)": 0.6894, "Stock (m³)": 3.447, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A07000T02", "Ø (cm)": 2, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 5, "BOM (m³/ท่อน)": 0.2359, "Stock (m³)": 1.1795, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B15000T00", "Ø (cm)": 3, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 5, "BOM (m³/ท่อน)": 0.873, "Stock (m³)": 4.365, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A12000T02", "Ø (cm)": 5, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 5, "BOM (m³/ท่อน)": 1.3908, "Stock (m³)": 6.954000000000001, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A14000T25", "Ø (cm)": 6, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 5, "BOM (m³/ท่อน)": 2.1994, "Stock (m³)": 10.997, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A08500T02", "Ø (cm)": 2, "ความยาว (m)": 8.5, "Order": "CENTRAL2-2021", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 0.28645, "Stock (m³)": 1.1458, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B08500T02", "Ø (cm)": 3, "ความยาว (m)": 8.5, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 0.3842, "Stock (m³)": 1.5368, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A09500T02", "Ø (cm)": 4, "ความยาว (m)": 9.5, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 0.8835, "Stock (m³)": 3.534, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A19000T02", "Ø (cm)": 4, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 1.767, "Stock (m³)": 7.068, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A09500T02", "Ø (cm)": 5, "ความยาว (m)": 9.5, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 1.10105, "Stock (m³)": 4.4042, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A09500T02", "Ø (cm)": 6, "ความยาว (m)": 9.5, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 1.49245, "Stock (m³)": 5.9698, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A15000T25", "Ø (cm)": 6, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 2.3565, "Stock (m³)": 9.426, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A13000T02", "Ø (cm)": 7, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 2.6507, "Stock (m³)": 10.6028, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A19000T02", "Ø (cm)": 7, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 3.8741, "Stock (m³)": 15.4964, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B06000T02", "Ø (cm)": 3, "ความยาว (m)": 6.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 0.3492, "Stock (m³)": 1.3968, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A13000T25", "Ø (cm)": 6, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 2.0423, "Stock (m³)": 8.1692, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A07000E23", "Ø (cm)": 4, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 0.5362, "Stock (m³)": 2.1448, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A09000T02", "Ø (cm)": 4, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 0.6894, "Stock (m³)": 2.7576, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A12000T25", "Ø (cm)": 5, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 1.3908, "Stock (m³)": 5.5632, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A06000T02", "Ø (cm)": 8, "ความยาว (m)": 6.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 1.5384, "Stock (m³)": 6.1536, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A13000T02", "Ø (cm)": 8, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 3.3332, "Stock (m³)": 13.3328, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A17000T02", "Ø (cm)": 8, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 4.3588, "Stock (m³)": 17.4352, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP1000A14000T02", "Ø (cm)": 10, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 5.2948, "Stock (m³)": 15.8844, "โรงงาน": "F2", "Ø_mm": 1000}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A17000T02", "Ø (cm)": 2, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 0.5729, "Stock (m³)": 1.7187, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A09000T02", "Ø (cm)": 4, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 0.837, "Stock (m³)": 2.511, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B07000T02", "Ø (cm)": 3, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 0.4074, "Stock (m³)": 1.2222, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A16000T02", "Ø (cm)": 5, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 1.8544, "Stock (m³)": 5.5632, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A12000E02", "Ø (cm)": 7, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 2.4468, "Stock (m³)": 7.340400000000001, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A13000T00", "Ø (cm)": 8, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 3.3332, "Stock (m³)": 9.9996, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A15000T02", "Ø (cm)": 8, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 3, "BOM (m³/ท่อน)": 3.846, "Stock (m³)": 11.538, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B17000T00", "Ø (cm)": 3, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.7684, "Stock (m³)": 1.5368, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B18000T00", "Ø (cm)": 3, "ความยาว (m)": 18.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.0476, "Stock (m³)": 2.0952, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A19000T02", "Ø (cm)": 6, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 2.9849, "Stock (m³)": 5.9698, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A09500T02", "Ø (cm)": 7, "ความยาว (m)": 9.5, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.93705, "Stock (m³)": 3.8741, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A19000T00", "Ø (cm)": 7, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 3.8741, "Stock (m³)": 7.7482, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A08000E23", "Ø (cm)": 2, "ความยาว (m)": 8.0, "Order": "CENTRAL2-2022", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.2696, "Stock (m³)": 0.5392, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A14000T00", "Ø (cm)": 5, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.6226, "Stock (m³)": 3.2452, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A07000T02", "Ø (cm)": 6, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.0997, "Stock (m³)": 2.1994, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A07000T02", "Ø (cm)": 4, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.651, "Stock (m³)": 1.302, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A12000E02", "Ø (cm)": 7, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 2.4468, "Stock (m³)": 4.8936, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A08000T52BM", "Ø (cm)": 2, "ความยาว (m)": 8.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.2696, "Stock (m³)": 0.5392, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A07000E23", "Ø (cm)": 4, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.651, "Stock (m³)": 1.302, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A07000T02", "Ø (cm)": 4, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.651, "Stock (m³)": 1.302, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "C30B1200T02", "Ø (cm)": 30, "ความยาว (m)": 12.0, "Order": "CENTRAL2-2025", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.5424, "Stock (m³)": 1.0848, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A18000T02", "Ø (cm)": 4, "ความยาว (m)": 18.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.674, "Stock (m³)": 3.348, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A12000E52BH", "Ø (cm)": 7, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 2.4468, "Stock (m³)": 4.8936, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A13000T02", "Ø (cm)": 7, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 2.6507, "Stock (m³)": 5.3014, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "PHC0600E15000T00AB", "Ø (cm)": 60, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 2.5395, "Stock (m³)": 5.079, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "PHC0600E17000T05AB", "Ø (cm)": 60, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 2.8781, "Stock (m³)": 5.7562, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A12000T02", "Ø (cm)": 8, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 3.0768, "Stock (m³)": 6.1536, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0250A17000T22", "Ø (cm)": 2, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.5729, "Stock (m³)": 0.5729, "โรงงาน": "F2", "Ø_mm": 250}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B17000T22", "Ø (cm)": 3, "ความยาว (m)": 17.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.7684, "Stock (m³)": 0.7684, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0350B18000T22", "Ø (cm)": 3, "ความยาว (m)": 18.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.0476, "Stock (m³)": 1.0476, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A19000T22", "Ø (cm)": 4, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.4554, "Stock (m³)": 1.4554, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A19000T00", "Ø (cm)": 4, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.767, "Stock (m³)": 1.767, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A19000T00", "Ø (cm)": 6, "ความยาว (m)": 19.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.9849, "Stock (m³)": 2.9849, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP1000A11000T02", "Ø (cm)": 10, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 4.1602, "Stock (m³)": 4.1602, "โรงงาน": "F2", "Ø_mm": 1000}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A09000E22", "Ø (cm)": 4, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.6894, "Stock (m³)": 0.6894, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A14000T02", "Ø (cm)": 4, "ความยาว (m)": 14.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.302, "Stock (m³)": 1.302, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP1000A07000T02", "Ø (cm)": 10, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.6474, "Stock (m³)": 2.6474, "โรงงาน": "F2", "Ø_mm": 1000}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP1000A07000T22", "Ø (cm)": 10, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.6474, "Stock (m³)": 2.6474, "โรงงาน": "F2", "Ø_mm": 1000}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B05000T00", "Ø (cm)": 3, "ความยาว (m)": 5.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.226, "Stock (m³)": 0.226, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B07000T00", "Ø (cm)": 3, "ความยาว (m)": 7.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.3164, "Stock (m³)": 0.3164, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0300B15000T02", "Ø (cm)": 3, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.678, "Stock (m³)": 0.678, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0450A15000T02", "Ø (cm)": 4, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.395, "Stock (m³)": 1.395, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A13000E25", "Ø (cm)": 8, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 3.3332, "Stock (m³)": 3.3332, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0400A12000E03", "Ø (cm)": 4, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.9192, "Stock (m³)": 0.9192, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500A13000T02", "Ø (cm)": 5, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.5067, "Stock (m³)": 1.5067, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0500B05500E33", "Ø (cm)": 5, "ความยาว (m)": 5.5, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 0.69135, "Stock (m³)": 0.69135, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A15000T25", "Ø (cm)": 6, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.3565, "Stock (m³)": 2.3565, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0700A12000E00", "Ø (cm)": 7, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.4468, "Stock (m³)": 2.4468, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A09000T02", "Ø (cm)": 8, "ความยาว (m)": 9.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.3076, "Stock (m³)": 2.3076, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A11000T00", "Ø (cm)": 8, "ความยาว (m)": 11.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.8204, "Stock (m³)": 2.8204, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A12000T25", "Ø (cm)": 8, "ความยาว (m)": 12.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 3.0768, "Stock (m³)": 3.0768, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0600A15000T02", "Ø (cm)": 6, "ความยาว (m)": 15.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.3565, "Stock (m³)": 2.3565, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A13000T02", "Ø (cm)": 8, "ความยาว (m)": 13.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 3.3332, "Stock (m³)": 3.3332, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "DEAD มอก. 2563", "ITEM CODE": "CP0800A16000T02", "Ø (cm)": 8, "ความยาว (m)": 16.0, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK มอก. 2563", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 4.1024, "Stock (m³)": 4.1024, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0700A09500T25A", "Ø (cm)": 70, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH A", "Stock (ท่อน)": 10, "BOM (m³/ท่อน)": 1.93705, "Stock (m³)": 19.3705, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0700A09500T25AB", "Ø (cm)": 70, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 10, "BOM (m³/ท่อน)": 1.93705, "Stock (m³)": 19.3705, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0400F09500T02AB", "Ø (cm)": 40, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 6, "BOM (m³/ท่อน)": 0.8645, "Stock (m³)": 5.187, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0350D09500T02AB", "Ø (cm)": 35, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 4, "BOM (m³/ท่อน)": 0.64505, "Stock (m³)": 2.5802, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0300C09500T02A", "Ø (cm)": 30, "ความยาว (m)": NaN, "Order": "CENTRALPHCA", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH A", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.4807, "Stock (m³)": 0.9614, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0350D09500T02A", "Ø (cm)": 35, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH A", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.64505, "Stock (m³)": 1.2901, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0400F09500T02A", "Ø (cm)": 40, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH A", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.8645, "Stock (m³)": 1.729, "โรงงาน": "F2", "Ø_mm": 400}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0450D09500T02A", "Ø (cm)": 45, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH A", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.007, "Stock (m³)": 2.014, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0300C09500T02AB", "Ø (cm)": 30, "ความยาว (m)": NaN, "Order": "CENTRALPHCAB", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.4807, "Stock (m³)": 0.9614, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0300C11000T22AB", "Ø (cm)": 30, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 0.5566, "Stock (m³)": 1.1132, "โรงงาน": "F2", "Ø_mm": 300}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0450D09500T02AB", "Ø (cm)": 45, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.007, "Stock (m³)": 2.014, "โรงงาน": "F2", "Ø_mm": 450}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0500B09500T02AB", "Ø (cm)": 50, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 1.19415, "Stock (m³)": 2.3883, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0800F08750T02AB", "Ø (cm)": 80, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 2, "BOM (m³/ท่อน)": 2.394, "Stock (m³)": 4.788, "โรงงาน": "F2", "Ø_mm": 800}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0350D19000T02A", "Ø (cm)": 35, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH A", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.2901, "Stock (m³)": 1.2901, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0500B19000T02A", "Ø (cm)": 50, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH A", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.3883, "Stock (m³)": 2.3883, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0700A19000T02A", "Ø (cm)": 70, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH A", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 3.8741, "Stock (m³)": 3.8741, "โรงงาน": "F2", "Ø_mm": 700}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0350D19000T02AB", "Ø (cm)": 35, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.2901, "Stock (m³)": 1.2901, "โรงงาน": "F2", "Ø_mm": 350}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0500B19000T02AB", "Ø (cm)": 50, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 2.3883, "Stock (m³)": 2.3883, "โรงงาน": "F2", "Ø_mm": 500}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0600E09500T02AB", "Ø (cm)": 60, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 1.60835, "Stock (m³)": 1.60835, "โรงงาน": "F2", "Ø_mm": 600}, {"หมวด": "HIGH STRENGTH A/AB", "ITEM CODE": "PHC0700A19000T02AB", "Ø (cm)": 70, "ความยาว (m)": NaN, "Order": "(ว่าง)", "Site (หน่วยงาน)": "DEAD - STOCK  HIGH STRENGTH AB", "Stock (ท่อน)": 1, "BOM (m³/ท่อน)": 3.8741, "Stock (m³)": 3.8741, "โรงงาน": "F2", "Ø_mm": 700}];
+
+const FIELD_CONFIG = {
+  diameter: {
+    key: 'Ø_mm',
+    label: 'ขนาดเสา',
+    format: v => `Ø${v}mm`,
+    sort: (a, b) => parseFloat(a.replace(/[^\d.]/g, '')) - parseFloat(b.replace(/[^\d.]/g, ''))
+  },
+  category: {
+    key: 'หมวด',
+    label: 'หมวด',
+    format: v => v,
+    sort: (a, b) => a.localeCompare(b, 'th')
+  },
+  length: {
+    key: 'ความยาว (m)',
+    label: 'ความยาว',
+    format: v => `${v} m`,
+    sort: (a, b) => parseFloat(a) - parseFloat(b)
+  },
+  order: {
+    key: 'Order',
+    label: 'Order',
+    format: v => v == null || v === '' ? '(ว่าง)' : String(v),
+    sort: (a, b) => {
+      if (a === '(ว่าง)') return 1;
+      if (b === '(ว่าง)') return -1;
+      return a.localeCompare(b, 'th');
+    }
+  },
+  site: {
+    key: 'Site (หน่วยงาน)',
+    label: 'Site',
+    format: v => v == null || v === '' ? '(ว่าง)' : String(v),
+    sort: (a, b) => a.localeCompare(b, 'th')
+  },
+  factory: {
+    key: 'โรงงาน',
+    label: 'โรงงาน',
+    format: v => v == null || v === '' ? '(ว่าง)' : String(v),
+    sort: (a, b) => {
+      if (a === '(ว่าง)') return 1;
+      if (b === '(ว่าง)') return -1;
+      return a.localeCompare(b, 'th');
+    }
+  }
+};
+
+let leftField = 'diameter';
+let rightField = 'factory';
+let minLen = 9; // minimum length (m) — default 9
+// drill state:
+//   level 0: normal view
+//   level 1: drillMm set, breakdown by length
+//   level 2: drillMm + drillLen set, breakdown by ITEM CODE
+let drillMm = null;
+let drillLen = null;
+
+const fmt = d3.format(',.2f');
+const fmtInt = d3.format(',');
+
+const COLORS = {
+  left: d3.scaleOrdinal(d3.schemeTableau10),
+  right: d3.scaleOrdinal(d3.schemeSet2)
+};
+
+const tooltip = d3.select('#tooltip');
+
+function buildSankeyData() {
+  const lc = FIELD_CONFIG[leftField];
+  const rc = FIELD_CONFIG[rightField];
+
+  const diaSide = (leftField === 'diameter') ? 'left' : (rightField === 'diameter') ? 'right' : null;
+  const drillLevel = (drillMm == null) ? 0 : (drillLen == null ? 1 : 2);
+  const drilling = drillLevel > 0 && diaSide != null;
+
+  // Helper to compute the drill-side display name for a row at the current level
+  function drillName(row) {
+    if (drillLevel === 1) {
+      const len = row['ความยาว (m)'];
+      return `${drillMm} x ${len != null ? len.toFixed(2) : '—'} m`;
+    } else { // level 2
+      return row['ITEM CODE'] || '(ไม่มี code)';
+    }
+  }
+
+  const aggMap = new Map();
+  for (const row of RAW) {
+    // Apply minimum length filter (rows missing length are excluded when filtering)
+    const rowLen = row['ความยาว (m)'];
+    if (rowLen == null || rowLen < minLen) continue;
+
+    if (drilling) {
+      if (row['Ø_mm'] !== drillMm) continue;
+      if (drillLevel === 2) {
+        const len = row['ความยาว (m)'];
+        if (len !== drillLen) continue;
+      }
+    }
+
+    let lv, rv;
+    if (drilling && diaSide === 'left') {
+      lv = drillName(row);
+      rv = rc.format(row[rc.key]);
+    } else if (drilling && diaSide === 'right') {
+      lv = lc.format(row[lc.key]);
+      rv = drillName(row);
+    } else {
+      lv = lc.format(row[lc.key]);
+      rv = rc.format(row[rc.key]);
+    }
+
+    const vol = row['Stock (m³)'] || 0;
+    const tubes = row['Stock (ท่อน)'] || 0;
+    const k = lv + '\u0001' + rv;
+    if (!aggMap.has(k)) aggMap.set(k, { left: lv, right: rv, volume: 0, tubes: 0 });
+    const e = aggMap.get(k);
+    e.volume += vol;
+    e.tubes += tubes;
+  }
+
+  const leftSet = new Set();
+  const rightSet = new Set();
+  for (const e of aggMap.values()) {
+    leftSet.add(e.left);
+    rightSet.add(e.right);
+  }
+
+  // Sort the drill side appropriately for each level
+  const drillSort = (a, b) => {
+    if (drillLevel === 1) {
+      // names look like "300 x 16.00 m"
+      const ea = parseFloat(a.split('x')[1]);
+      const eb = parseFloat(b.split('x')[1]);
+      return ea - eb;
+    }
+    // level 2: ITEM CODE alphabetically
+    return a.localeCompare(b);
+  };
+  const leftSortFn = (drilling && diaSide === 'left') ? drillSort : lc.sort;
+  const rightSortFn = (drilling && diaSide === 'right') ? drillSort : rc.sort;
+
+  const leftSorted = [...leftSet].sort(leftSortFn);
+  const rightSorted = [...rightSet].sort(rightSortFn);
+
+  const nodes = [];
+  const leftIdx = new Map();
+  const rightIdx = new Map();
+  leftSorted.forEach(n => { leftIdx.set(n, nodes.length); nodes.push({ name: n, side: 'left' }); });
+  rightSorted.forEach(n => { rightIdx.set(n, nodes.length); nodes.push({ name: n, side: 'right' }); });
+
+  const links = [];
+  for (const e of aggMap.values()) {
+    if (e.volume <= 0) continue;
+    links.push({
+      source: leftIdx.get(e.left),
+      target: rightIdx.get(e.right),
+      value: e.volume,
+      tubes: e.tubes
+    });
+  }
+
+  return { nodes, links, drilling, drillLevel, diaSide };
+}
+
+function render() {
+  const { nodes, links, drilling, drillLevel, diaSide } = buildSankeyData();
+
+  // Back-bar visibility + label
+  const backBar = document.getElementById('backBar');
+  const drillLabel = document.getElementById('drillLabel');
+  const backBtn = document.getElementById('backBtn');
+  if (drilling) {
+    backBar.style.display = 'block';
+    if (drillLevel === 1) {
+      drillLabel.textContent = `กำลังแสดงเฉพาะ Ø${drillMm}mm — แยกตามความยาว`;
+      backBtn.textContent = '← กลับสู่มุมมองปกติ';
+    } else {
+      drillLabel.textContent = `กำลังแสดงเฉพาะ Ø${drillMm}mm × ${drillLen.toFixed(2)} m — แยกตาม ITEM CODE`;
+      backBtn.textContent = `← กลับไปดู Ø${drillMm}mm ทั้งหมด`;
+    }
+  } else {
+    backBar.style.display = 'none';
+  }
+
+  const container = document.querySelector('.container');
+  const width = container.clientWidth - 56;
+  const leftCount = nodes.filter(n => n.side === 'left').length;
+  const rightCount = nodes.filter(n => n.side === 'right').length;
+  const maxCount = Math.max(leftCount, rightCount);
+  const height = drilling
+    ? Math.max(500, maxCount * 60 + 100)
+    : Math.max(500, maxCount * 32 + 100);
+
+  const svg = d3.select('#chart')
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('width', width)
+    .attr('height', height);
+  svg.selectAll('*').remove();
+
+  const lc = FIELD_CONFIG[leftField];
+  const rc = FIELD_CONFIG[rightField];
+
+  // headers
+  let drillLabelText;
+  if (drillLevel === 1) drillLabelText = `Ø${drillMm}mm × ความยาว`;
+  else if (drillLevel === 2) drillLabelText = `Ø${drillMm}mm × ${drillLen.toFixed(2)}m × ITEM CODE`;
+  const leftLabel = (drilling && diaSide === 'left') ? `${lc.label} (${drillLabelText})` : lc.label;
+  const rightLabel = (drilling && diaSide === 'right') ? `${rc.label} (${drillLabelText})` : rc.label;
+  svg.append('text')
+    .attr('class', 'axis-label')
+    .attr('x', 0).attr('y', 16)
+    .text(leftLabel);
+  svg.append('text')
+    .attr('class', 'axis-label')
+    .attr('x', width).attr('y', 16)
+    .attr('text-anchor', 'end')
+    .text(rightLabel);
+
+  const sankey = d3.sankey()
+    .nodeWidth(18)
+    .nodePadding(12)
+    .extent([[1, 28], [width - 1, height - 8]])
+    .nodeSort(null);
+
+  const graph = sankey({
+    nodes: nodes.map(d => ({ ...d })),
+    links: links.map(d => ({ ...d }))
+  });
+
+  // helper: parse Ø_mm from a normal-view node name like "Ø300mm"
+  function diameterFromNodeName(name) {
+    const m = name.match(/Ø(\d+)mm$/);
+    return m ? parseInt(m[1], 10) : null;
+  }
+  // helper: parse length from a level-1 drill name like "300 x 16.00 m"
+  function lengthFromNodeName(name) {
+    const m = name.match(/^\d+\s*x\s*([\d.]+)\s*m$/);
+    return m ? parseFloat(m[1]) : null;
+  }
+
+  // links
+  svg.append('g')
+    .selectAll('path')
+    .data(graph.links)
+    .join('path')
+    .attr('class', d => {
+      if (drillLevel === 2) return 'link';
+      // level 0: drillable if diameter is on either side
+      if (drillLevel === 0 && (leftField === 'diameter' || rightField === 'diameter')) return 'link drillable';
+      // level 1: drillable if the drill side endpoint is a length-breakdown node
+      if (drillLevel === 1) {
+        const drillName = diaSide === 'left' ? d.source.name : d.target.name;
+        if (lengthFromNodeName(drillName) != null) return 'link drillable';
+      }
+      return 'link';
+    })
+    .attr('d', d3.sankeyLinkHorizontal())
+    .attr('stroke', d => COLORS.left(d.source.name))
+    .attr('stroke-width', d => Math.max(1, d.width))
+    .on('mousemove', (event, d) => {
+      tooltip
+        .style('opacity', 1)
+        .style('left', (event.pageX + 14) + 'px')
+        .style('top', (event.pageY - 10) + 'px')
+        .html(
+          `<strong>${d.source.name} → ${d.target.name}</strong><br>` +
+          `ปริมาตร: ${fmt(d.value)} m³<br>` +
+          `จำนวน: ${fmtInt(d.tubes)} ท่อน`
+        );
+    })
+    .on('mouseleave', () => tooltip.style('opacity', 0))
+    .on('click', (event, d) => {
+      if (drillLevel === 0) {
+        const lDia = diameterFromNodeName(d.source.name);
+        const rDia = diameterFromNodeName(d.target.name);
+        const target = lDia != null ? lDia : rDia;
+        if (target != null) {
+          drillMm = target;
+          drillLen = null;
+          tooltip.style('opacity', 0);
+          render();
+        }
+      } else if (drillLevel === 1) {
+        const drillName = diaSide === 'left' ? d.source.name : d.target.name;
+        const len = lengthFromNodeName(drillName);
+        if (len != null) {
+          drillLen = len;
+          tooltip.style('opacity', 0);
+          render();
+        }
+      }
+    });
+
+  // Compute per-node total tubes (d3-sankey only aggregates `value` per node, not tubes)
+  const nodeTubes = new Map();
+  graph.links.forEach(l => {
+    nodeTubes.set(l.source.index, (nodeTubes.get(l.source.index) || 0) + l.tubes);
+    nodeTubes.set(l.target.index, (nodeTubes.get(l.target.index) || 0) + l.tubes);
+  });
+
+  // nodes
+  const node = svg.append('g')
+    .selectAll('g')
+    .data(graph.nodes)
+    .join('g')
+    .attr('class', 'node');
+
+  node.append('rect')
+    .attr('x', d => d.x0)
+    .attr('y', d => d.y0)
+    .attr('height', d => Math.max(1, d.y1 - d.y0))
+    .attr('width', d => d.x1 - d.x0)
+    .attr('class', d => {
+      if (drillLevel === 2) return '';
+      if (drillLevel === 0) {
+        return diameterFromNodeName(d.name) != null ? 'drillable' : '';
+      }
+      if (drillLevel === 1 && d.side === diaSide && lengthFromNodeName(d.name) != null) return 'drillable';
+      return '';
+    })
+    .attr('fill', d => d.side === 'left' ? COLORS.left(d.name) : COLORS.right(d.name))
+    .on('mousemove', (event, d) => {
+      tooltip
+        .style('opacity', 1)
+        .style('left', (event.pageX + 14) + 'px')
+        .style('top', (event.pageY - 10) + 'px')
+        .html(
+          `<strong>${d.name}</strong><br>` +
+          `ปริมาตรรวม: ${fmt(d.value)} m³<br>` +
+          `จำนวน: ${fmtInt(nodeTubes.get(d.index) || 0)} ท่อน`
+        );
+    })
+    .on('mouseleave', () => tooltip.style('opacity', 0))
+    .on('click', (event, d) => {
+      if (drillLevel === 0) {
+        const dia = diameterFromNodeName(d.name);
+        if (dia != null) {
+          drillMm = dia;
+          drillLen = null;
+          tooltip.style('opacity', 0);
+          render();
+        }
+      } else if (drillLevel === 1 && d.side === diaSide) {
+        const len = lengthFromNodeName(d.name);
+        if (len != null) {
+          drillLen = len;
+          tooltip.style('opacity', 0);
+          render();
+        }
+      }
+    });
+
+  node.append('text')
+    .attr('x', d => d.side === 'left' ? d.x1 + 6 : d.x0 - 6)
+    .attr('y', d => (d.y1 + d.y0) / 2)
+    .attr('dy', '0.35em')
+    .attr('text-anchor', d => d.side === 'left' ? 'start' : 'end')
+    .text(d => `${d.name}  (${fmt(d.value)} m³)`);
+
+  // stats
+  const totalVol = d3.sum(links, d => d.value);
+  const totalTubes = d3.sum(links, d => d.tubes);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><strong>${fmt(totalVol)}</strong> m³</div>
+    <div class="stat"><strong>${fmtInt(totalTubes)}</strong> ท่อน</div>
+    <div class="stat">${lc.label} <strong>${nodes.filter(n => n.side==='left').length}</strong> กลุ่ม</div>
+    <div class="stat">${rc.label} <strong>${nodes.filter(n => n.side==='right').length}</strong> กลุ่ม</div>
+  `;
+
+  renderDetailTable(drillLevel);
+}
+
+function renderDetailTable(drillLevel) {
+  const wrap = document.getElementById('detailTableWrap');
+  if (drillLevel < 1) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  // Aggregate by ITEM CODE for rows matching current drill filters + minLen
+  const itemAgg = new Map();
+  for (const row of RAW) {
+    const rowLen = row['ความยาว (m)'];
+    if (rowLen == null || rowLen < minLen) continue;
+    if (row['Ø_mm'] !== drillMm) continue;
+    if (drillLevel === 2 && rowLen !== drillLen) continue;
+
+    const code = row['ITEM CODE'] || '(ไม่มี code)';
+    const vol = row['Stock (m³)'] || 0;
+    const tubes = row['Stock (ท่อน)'] || 0;
+    const bom = row['BOM (m³/ท่อน)'];
+    if (!itemAgg.has(code)) itemAgg.set(code, { code, vol: 0, tubes: 0, bom: bom });
+    const e = itemAgg.get(code);
+    e.vol += vol;
+    e.tubes += tubes;
+    if (e.bom == null && bom != null) e.bom = bom; // keep first non-null
+  }
+
+  const rows = [...itemAgg.values()].sort((a, b) => b.vol - a.vol);
+  const totalVol = rows.reduce((s, r) => s + r.vol, 0);
+  const totalTubes = rows.reduce((s, r) => s + r.tubes, 0);
+
+  const title = drillLevel === 1
+    ? `รายละเอียดรายการ — Ø${drillMm}mm (ทุกความยาว)`
+    : `รายละเอียดรายการ — Ø${drillMm}mm × ${drillLen.toFixed(2)} m`;
+  document.getElementById('detailTitle').textContent = title;
+
+  const fmt4 = d3.format(',.4f');
+  const tbody = document.getElementById('detailTableBody');
+  tbody.innerHTML = rows.map(r => {
+    // Prefer explicit BOM; fallback to vol/tubes
+    const perTube = (r.bom != null) ? r.bom : (r.tubes > 0 ? r.vol / r.tubes : 0);
+    return `<tr>` +
+      `<td>${r.code}</td>` +
+      `<td class="num">${fmt4(perTube)}</td>` +
+      `<td class="num">${fmtInt(r.tubes)}</td>` +
+      `<td class="num">${fmt(r.vol)}</td>` +
+      `</tr>`;
+  }).join('');
+
+  const tfoot = document.getElementById('detailTableFoot');
+  tfoot.innerHTML =
+    `<tr>` +
+    `<td>รวม (${rows.length} รายการ)</td>` +
+    `<td class="num">—</td>` +
+    `<td class="num">${fmtInt(totalTubes)}</td>` +
+    `<td class="num">${fmt(totalVol)}</td>` +
+    `</tr>`;
+
+  wrap.style.display = 'block';
+}
+
+// toggle handlers (dropdowns)
+const leftSel = document.getElementById('leftToggle');
+const rightSel = document.getElementById('rightToggle');
+const minLenSel = document.getElementById('minLenSelect');
+
+// Populate min-length dropdown: 1.0 → 19.0 step 0.5
+(function populateMinLen() {
+  for (let v = 1; v <= 19; v += 0.5) {
+    const opt = document.createElement('option');
+    opt.value = v.toFixed(1);
+    opt.textContent = `${v.toFixed(1)} m`;
+    if (v === minLen) opt.selected = true;
+    minLenSel.appendChild(opt);
+  }
+})();
+
+minLenSel.addEventListener('change', () => {
+  minLen = parseFloat(minLenSel.value);
+  // If the currently drilled length is now below the new minimum, exit level-2 drill
+  if (drillLen != null && drillLen < minLen) drillLen = null;
+  render();
+});
+
+function updateToggleStates() {
+  // disable matching field on the opposite dropdown
+  [...leftSel.options].forEach(o => o.disabled = (o.value === rightField));
+  [...rightSel.options].forEach(o => o.disabled = (o.value === leftField));
+  leftSel.value = leftField;
+  rightSel.value = rightField;
+}
+
+leftSel.addEventListener('change', () => {
+  const newField = leftSel.value;
+  if (newField === rightField) rightField = leftField;
+  leftField = newField;
+  drillMm = null;
+  drillLen = null;
+  updateToggleStates();
+  render();
+});
+rightSel.addEventListener('change', () => {
+  const newField = rightSel.value;
+  if (newField === leftField) leftField = rightField;
+  rightField = newField;
+  drillMm = null;
+  drillLen = null;
+  updateToggleStates();
+  render();
+});
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  // step back one level
+  if (drillLen != null) {
+    drillLen = null;
+  } else {
+    drillMm = null;
+  }
+  render();
+});
+
+updateToggleStates();
+window.addEventListener('resize', render);
+render();
+</script>
+</body>
+</html>
