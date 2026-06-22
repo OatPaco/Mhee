@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PACO Trend Monitor</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f5f0;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --text2: #555;
+    --text3: #888;
+    --border: #e0ddd5;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --green: #059669;
+    --orange: #d97706;
+    --red: #dc2626;
+    --pink: #db2777;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* Header */
+  .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 20px 24px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header p { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+  /* Config bar */
+  .config-bar { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .config-bar label { font-size: 13px; color: var(--text2); white-space: nowrap; }
+  .config-bar input[type="text"] {
+    flex: 1; min-width: 280px; padding: 6px 10px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 13px; font-family: monospace;
+  }
+  .config-bar button {
+    padding: 6px 16px; background: var(--accent); color: white; border: none;
+    border-radius: 6px; font-size: 13px; cursor: pointer;
+  }
+  .config-bar button:hover { opacity: 0.9; }
+
+  /* Status */
+  .status { padding: 8px 24px; font-size: 12px; color: var(--text3); background: #fafaf7; border-bottom: 1px solid var(--border); }
+  .status .ok { color: var(--green); }
+  .status .err { color: var(--red); }
+
+  /* Main layout */
+  .main { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab {
+    padding: 8px 16px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 6px; font-size: 13px; cursor: pointer; color: var(--text2);
+  }
+  .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* Chart card */
+  .chart-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  .chart-card h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .chart-card .subtitle { font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+  .chart-container { position: relative; height: 320px; }
+
+  /* Related queries */
+  .queries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin-top: 20px; }
+  .query-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px;
+  }
+  .query-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .query-card .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500; margin-left: 6px;
+  }
+  .badge-rising { background: #fef3c7; color: #92400e; }
+  .badge-top { background: #e0e7ff; color: #3730a3; }
+  .query-list { list-style: none; }
+  .query-list li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid #f0ede5; font-size: 13px;
+  }
+  .query-list li:last-child { border-bottom: none; }
+  .query-val { font-size: 12px; color: var(--text3); font-family: monospace; }
+  .query-val.rising { color: var(--green); font-weight: 500; }
+
+  /* Latest values summary */
+  .summary-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .summary-chip {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; font-size: 13px;
+  }
+  .summary-chip .kw { font-weight: 600; }
+  .summary-chip .val { color: var(--accent); font-weight: 600; margin-left: 6px; }
+  .summary-chip .dir { font-size: 12px; margin-left: 4px; }
+  .dir.up { color: var(--green); }
+  .dir.down { color: var(--red); }
+  .dir.flat { color: var(--text3); }
+
+  /* Loading / empty */
+  .loading { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .config-bar { flex-direction: column; }
+    .config-bar input[type="text"] { min-width: 100%; }
+    .chart-container { height: 240px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 PACO Keyword Trend Monitor</h1>
+  <p>ติดตาม Google Trends สำหรับ keyword ที่เกี่ยวข้องกับธุรกิจเสาเข็ม</p>
+</div>
+
+<div class="config-bar">
+  <label>Spreadsheet ID:</label>
+  <input type="text" id="sheetId" placeholder="วาง Google Sheets ID ที่นี่ (จาก URL ระหว่าง /d/ กับ /edit)" />
+  <button onclick="loadData()">โหลดข้อมูล</button>
+</div>
+
+<div class="status" id="statusBar">กรุณาใส่ Spreadsheet ID แล้วกด "โหลดข้อมูล"</div>
+
+<div class="main" id="mainContent">
+  <div class="loading" id="emptyState">
+    <p>⬆️ ใส่ Spreadsheet ID ด้านบนเพื่อเริ่มต้น</p>
+    <p style="margin-top:8px; font-size:12px; color:#aaa;">
+      (Sheets ต้อง Publish to web ก่อน: File → Share → Publish to web → Publish)
+    </p>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// Chart.js color palette
+// ============================================================
+const COLORS = [
+  '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
+  '#db2777', '#0891b2', '#65a30d', '#c2410c', '#6366f1'
+];
+const COLORS_BG = COLORS.map(c => c + '18');
+
+// ============================================================
+// State
+// ============================================================
+let trendData = [];
+let relatedData = [];
+let charts = {};
+
+// ============================================================
+// Load & save config
+// ============================================================
+function loadConfig() {
+  const saved = localStorage.getItem('paco_trend_sheetId');
+  if (saved) {
+    document.getElementById('sheetId').value = saved;
+    loadData();
+  }
+}
+
+function saveConfig(id) {
+  localStorage.setItem('paco_trend_sheetId', id);
+}
+
+// ============================================================
+// Fetch CSV from published Google Sheets
+// ============================================================
+function fetchSheetCSV(sheetId, sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  return new Promise((resolve, reject) => {
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: r => resolve(r.data),
+      error: e => reject(e)
+    });
+  });
+}
+
+// ============================================================
+// Main load function
+// ============================================================
+async function loadData() {
+  const sheetId = document.getElementById('sheetId').value.trim();
+  if (!sheetId) {
+    setStatus('กรุณาใส่ Spreadsheet ID', 'err');
+    return;
+  }
+
+  saveConfig(sheetId);
+  setStatus('กำลังโหลดข้อมูล...', '');
+
+  try {
+    // Fetch both sheets
+    const [trend, related] = await Promise.all([
+      fetchSheetCSV(sheetId, 'TrendData'),
+      fetchSheetCSV(sheetId, 'RelatedQueries').catch(() => [])
+    ]);
+
+    if (!trend || trend.length === 0) {
+      setStatus('ไม่พบข้อมูลใน TrendData — ลอง Fetch Trends จาก Apps Script ก่อน', 'err');
+      return;
+    }
+
+    trendData = trend;
+    relatedData = related;
+
+    const latestFetch = trend[trend.length - 1]?.fetch_date || 'N/A';
+    setStatus(`โหลดสำเร็จ — ${trend.length} data points, อัพเดทล่าสุด: ${latestFetch}`, 'ok');
+
+    render();
+
+  } catch (e) {
+    console.error(e);
+    setStatus('โหลดไม่สำเร็จ — ตรวจสอบว่า Sheets ถูก Publish to web แล้ว', 'err');
+  }
+}
+
+function setStatus(msg, type) {
+  const el = document.getElementById('statusBar');
+  el.innerHTML = type === 'ok' ? `<span class="ok">✅ ${msg}</span>`
+    : type === 'err' ? `<span class="err">❌ ${msg}</span>`
+    : msg;
+}
+
+// ============================================================
+// Render
+// ============================================================
+function render() {
+  const main = document.getElementById('mainContent');
+
+  // Get unique groups
+  const groups = [...new Set(trendData.map(d => d.group))].sort();
+
+  // Get latest fetch date
+  const latestFetchDate = getLatestFetchDate();
+
+  // Filter data for latest fetch only (for the main chart)
+  const latestData = trendData.filter(d => d.fetch_date === latestFetchDate);
+
+  let html = '';
+
+  // --- Summary chips (latest values) ---
+  html += renderSummary(latestData);
+
+  // --- Tabs ---
+  html += '<div class="tabs" id="groupTabs">';
+  html += `<div class="tab active" onclick="switchTab('all', this)">ทั้งหมด</div>`;
+  groups.forEach(g => {
+    html += `<div class="tab" onclick="switchTab('${g}', this)">${g}</div>`;
+  });
+  html += '</div>';
+
+  // --- Chart: All groups combined ---
+  html += '<div id="chartArea">';
+  html += renderChartCard('all', 'Interest Over Time — ทุก Keyword', 'ข้อมูลจาก Google Trends (0-100) จากการ fetch ล่าสุด', latestData);
+  html += '</div>';
+
+  // --- Related Queries ---
+  html += renderRelatedQueries();
+
+  main.innerHTML = html;
+
+  // Draw charts
+  drawChart('all', latestData);
+}
+
+// ============================================================
+// Summary chips
+// ============================================================
+function renderSummary(data) {
+  // Get latest value per keyword
+  const kwMap = {};
+  data.forEach(d => {
+    const kw = d.keyword;
+    if (!kwMap[kw]) kwMap[kw] = [];
+    kwMap[kw].push({ date: d.trend_date, value: parseInt(d.value) || 0 });
+  });
+
+  let html = '<div class="summary-row">';
+  Object.keys(kwMap).forEach(kw => {
+    const vals = kwMap[kw].sort((a, b) => a.date > b.date ? 1 : -1);
+    const latest = vals[vals.length - 1]?.value || 0;
+    const prev = vals.length > 4 ? vals[vals.length - 5]?.value || 0 : vals[0]?.value || 0;
+    const diff = latest - prev;
+    const dirClass = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+    const dirIcon = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+
+    html += `<div class="summary-chip">
+      <span class="kw">${kw}</span>
+      <span class="val">${latest}</span>
+      <span class="dir ${dirClass}">${dirIcon}${Math.abs(diff)}</span>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+// ============================================================
+// Chart card
+// ============================================================
+function renderChartCard(id, title, subtitle, data) {
+  return `<div class="chart-card">
+    <h2>${title}</h2>
+    <div class="subtitle">${subtitle}</div>
+    <div class="chart-container"><canvas id="chart_${id}"></canvas></div>
+  </div>`;
+}
+
+function drawChart(id, data) {
+  const canvas = document.getElementById(`chart_${id}`);
+  if (!canvas) return;
+
+  // Destroy existing chart
+  if (charts[id]) charts[id].destroy();
+
+  // Group by keyword → sort by date
+  const kwMap = {};
+  data.forEach(d => {
+    const kw = d.keyword;
+    if (!kwMap[kw]) kwMap[kw] = [];
+    kwMap[kw].push({
+      date: d.trend_date || d.period,
+      period: d.period,
+      value: parseInt(d.value) || 0
+    });
+  });
+
+  // Get all unique dates (sorted)
+  const allDates = [...new Set(data.map(d => d.trend_date || d.period))].sort();
+
+  // Build datasets
+  const datasets = [];
+  let colorIdx = 0;
+  Object.keys(kwMap).forEach(kw => {
+    const points = kwMap[kw];
+    const dateMap = {};
+    points.forEach(p => { dateMap[p.date] = p.value; });
+
+    const values = allDates.map(d => dateMap[d] ?? null);
+
+    datasets.push({
+      label: kw,
+      data: values,
+      borderColor: COLORS[colorIdx % COLORS.length],
+      backgroundColor: COLORS_BG[colorIdx % COLORS.length],
+      borderWidth: 2,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      tension: 0.3,
+      fill: false
+    });
+    colorIdx++;
+  });
+
+  // Format labels (shorten dates)
+  const labels = allDates.map(d => {
+    if (!d) return '';
+    // Try to parse as date string
+    try {
+      const dt = new Date(d);
+      if (!isNaN(dt)) {
+        return dt.toLocaleDateString('th-TH', { month: 'short', day: 'numeric' });
+      }
+    } catch (e) {}
+    // Fallback: use period string, truncate
+    return d.length > 15 ? d.substring(0, 15) : d;
+  });
+
+  charts[id] = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 12 }, boxWidth: 14, padding: 12 }
+        },
+        tooltip: {
+          backgroundColor: '#1a1a1a',
+          titleFont: { size: 12 },
+          bodyFont: { size: 12 },
+          padding: 10,
+          cornerRadius: 6
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: { size: 11 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 20 },
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { font: { size: 11 } },
+          grid: { color: '#f0ede5' }
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+// Tab switching
+// ============================================================
+function switchTab(groupId, tabEl) {
+  // Update tab styles
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+
+  const latestFetchDate = getLatestFetchDate();
+  const latestData = trendData.filter(d => d.fetch_date === latestFetchDate);
+
+  const filtered = groupId === 'all' ? latestData : latestData.filter(d => d.group === groupId);
+  const title = groupId === 'all' ? 'Interest Over Time — ทุก Keyword' : `Interest Over Time — ${groupId}`;
+
+  const area = document.getElementById('chartArea');
+  area.innerHTML = renderChartCard('active', title, 'ข้อมูลจาก Google Trends (0-100)', filtered);
+  drawChart('active', filtered);
+}
+
+// ============================================================
+// Related Queries
+// ============================================================
+function renderRelatedQueries() {
+  if (!relatedData || relatedData.length === 0) {
+    return '<div class="chart-card"><h2>Related Queries</h2><p style="color:#888;font-size:13px;margin-top:8px;">ยังไม่มีข้อมูล</p></div>';
+  }
+
+  // Get latest fetch date from related data
+  const dates = relatedData.map(d => d.fetch_date).sort();
+  const latestDate = dates[dates.length - 1];
+  const latest = relatedData.filter(d => d.fetch_date === latestDate);
+
+  // Group by keyword
+  const kwMap = {};
+  latest.forEach(d => {
+    const kw = d.keyword;
+    if (!kwMap[kw]) kwMap[kw] = { rising: [], top: [] };
+    if (d.type === 'rising') kwMap[kw].rising.push(d);
+    else kwMap[kw].top.push(d);
+  });
+
+  let html = '<h2 style="font-size:16px;font-weight:600;margin-top:28px;margin-bottom:4px;">Related & Rising Queries</h2>';
+  html += '<p style="font-size:12px;color:#888;margin-bottom:12px;">Queries ที่เกี่ยวข้องจาก Google Trends (ข้อมูลล่าสุด)</p>';
+  html += '<div class="queries-grid">';
+
+  Object.keys(kwMap).forEach(kw => {
+    const data = kwMap[kw];
+
+    // Rising queries card
+    if (data.rising.length > 0) {
+      html += `<div class="query-card">
+        <h3>${kw} <span class="badge badge-rising">🔥 Rising</span></h3>
+        <ul class="query-list">`;
+      data.rising.slice(0, 8).forEach(q => {
+        const valText = q.value === 'Breakout' || q.value === 'เพิ่มขึ้นอย่างก้าวกระโดด'
+          ? '🚀 Breakout' : `+${q.value}%`;
+        html += `<li><span>${q.query}</span><span class="query-val rising">${valText}</span></li>`;
+      });
+      html += '</ul></div>';
+    }
+
+    // Top queries card
+    if (data.top.length > 0) {
+      html += `<div class="query-card">
+        <h3>${kw} <span class="badge badge-top">📊 Top</span></h3>
+        <ul class="query-list">`;
+      data.top.slice(0, 8).forEach(q => {
+        html += `<li><span>${q.query}</span><span class="query-val">${q.value}</span></li>`;
+      });
+      html += '</ul></div>';
+    }
+  });
+
+  html += '</div>';
+  return html;
+}
+
+// ============================================================
+// Helpers
+// ============================================================
+function getLatestFetchDate() {
+  const dates = trendData.map(d => d.fetch_date).sort();
+  return dates[dates.length - 1];
+}
+
+// ============================================================
+// Init
+// ============================================================
+window.addEventListener('DOMContentLoaded', loadConfig);
+</script>
+</body>
+</html>
