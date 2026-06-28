@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CISSA Group — กรณีศึกษา Guaranteed Yield & Asymmetric Risk</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f7f4;--card:#ffffff;--t1:#1a1a1a;--t2:#4a4a4a;--t3:#777;
+  --accent:#c0392b;--accent2:#2c3e50;--accent3:#27ae60;--blue:#2980b9;
+  --border:#e0ddd8;--shadow:0 2px 12px rgba(0,0,0,.06);
+  --crit:#c0392b;--high:#e67e22;--med:#f1c40f;--low:#27ae60;--info:#2980b9;
+  --fs:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Sarabun',sans-serif;font-size:var(--fs);line-height:1.7;color:var(--t1);background:var(--bg)}
+
+/* ── NAV ── */
+.topbar{position:sticky;top:0;z-index:100;background:var(--accent2);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.topbar h1{font-size:.95em;font-weight:700;letter-spacing:.5px}
+.topbar-r{display:flex;gap:8px;align-items:center}
+.topbar-r button{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Sarabun'}
+.topbar-r button:hover{background:rgba(255,255,255,.25)}
+.toc-btn{font-size:18px!important;font-weight:400!important}
+
+/* ── TOC PANEL ── */
+.toc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200}
+.toc-overlay.open{display:block}
+.toc-panel{position:fixed;right:0;top:0;bottom:0;width:min(340px,85vw);background:var(--card);z-index:201;overflow-y:auto;padding:24px 20px;box-shadow:-4px 0 24px rgba(0,0,0,.12);transform:translateX(100%);transition:transform .25s ease}
+.toc-overlay.open .toc-panel{transform:translateX(0)}
+.toc-panel h2{font-size:1.1em;color:var(--accent2);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent)}
+.toc-panel a{display:block;padding:8px 12px;color:var(--t1);text-decoration:none;border-radius:6px;font-size:.9em;line-height:1.4;margin-bottom:2px}
+.toc-panel a:hover{background:rgba(44,62,80,.06)}
+.toc-panel a .sec-num{display:inline-block;width:28px;font-weight:700;color:var(--accent)}
+.toc-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:24px;cursor:pointer;color:var(--t3)}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,var(--accent2) 0%,#1a252f 100%);color:#fff;padding:48px 20px 40px;text-align:center}
+.hero .badge{display:inline-block;background:var(--accent);color:#fff;font-size:.7em;font-weight:700;padding:4px 14px;border-radius:20px;letter-spacing:1px;margin-bottom:16px}
+.hero h2{font-size:1.6em;font-weight:800;margin-bottom:8px;line-height:1.3}
+.hero p{font-size:.95em;opacity:.85;max-width:600px;margin:0 auto;line-height:1.6}
+.hero .meta{margin-top:20px;font-size:.75em;opacity:.6}
+
+/* ── SECTIONS ── */
+.container{max-width:800px;margin:0 auto;padding:0 16px 60px}
+.section{margin-top:32px}
+.sec-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid var(--accent)}
+.sec-num-badge{background:var(--accent2);color:#fff;font-size:.75em;font-weight:700;padding:4px 12px;border-radius:6px;white-space:nowrap}
+.sec-header h2{font-size:1.25em;font-weight:700;color:var(--accent2)}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card h3{font-size:1.05em;font-weight:700;color:var(--accent2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h3 .icon{font-size:1.2em}
+.card p,.card li{font-size:.92em;color:var(--t2);line-height:1.7}
+.card ul{padding-left:20px}
+.card ul li{margin-bottom:6px}
+
+/* ── TIMELINE ── */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:3px;background:linear-gradient(var(--accent2),var(--accent))}
+.tl-item{position:relative;margin-bottom:20px;padding-left:20px}
+.tl-item::before{content:'';position:absolute;left:-22px;top:6px;width:14px;height:14px;border-radius:50%;border:3px solid var(--accent2);background:var(--card)}
+.tl-item.critical::before{border-color:var(--crit);background:var(--crit)}
+.tl-item.warn::before{border-color:var(--high);background:var(--high)}
+.tl-item .tl-date{font-size:.8em;font-weight:700;color:var(--accent)}
+.tl-item .tl-text{font-size:.9em;color:var(--t2)}
+
+/* ── SEVERITY BADGE ── */
+.sev{display:inline-block;font-size:.65em;font-weight:700;padding:2px 10px;border-radius:4px;color:#fff;vertical-align:middle;margin-left:6px;letter-spacing:.5px}
+.sev-crit{background:var(--crit)}.sev-high{background:var(--high)}.sev-med{background:#d4a800}.sev-low{background:var(--low)}.sev-info{background:var(--info)}
+
+/* ── GLOSSARY BOX ── */
+.glossary{background:#eef3f7;border-left:4px solid var(--blue);border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:.82em}
+.glossary .g-title{font-weight:700;color:var(--blue);margin-bottom:6px;font-size:.9em}
+.glossary dt{font-weight:700;color:var(--accent2);margin-top:8px}
+.glossary dd{margin-left:0;color:var(--t2);padding-left:12px;border-left:2px solid var(--border)}
+
+/* ── COMPARISON TABLE ── */
+.cmp-table{width:100%;border-collapse:collapse;font-size:.85em;margin:12px 0}
+.cmp-table th{background:var(--accent2);color:#fff;padding:10px 12px;text-align:left;font-weight:600}
+.cmp-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.cmp-table tr:nth-child(even){background:#fafaf8}
+.cmp-table .tag-safe{color:var(--low);font-weight:700}
+.cmp-table .tag-risk{color:var(--crit);font-weight:700}
+
+/* ── RED FLAG BOX ── */
+.redflag{background:#fdf2f2;border:1px solid #f5c6cb;border-left:5px solid var(--crit);border-radius:0 8px 8px 0;padding:16px 18px;margin:16px 0}
+.redflag h4{color:var(--crit);font-weight:700;margin-bottom:8px;font-size:.95em}
+.redflag li{color:var(--t2);font-size:.88em;margin-bottom:4px}
+
+/* ── CALLOUT ── */
+.callout{background:linear-gradient(135deg,#fef9e7 0%,#fdf2e9 100%);border:1px solid #f0e0c0;border-radius:10px;padding:18px;margin:16px 0}
+.callout h4{color:var(--high);font-weight:700;margin-bottom:6px}
+.callout p{font-size:.9em;color:var(--t2)}
+
+/* ── WATERFALL DIAGRAM ── */
+.wf-diagram{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.wf-row{display:flex;align-items:stretch;min-height:48px}
+.wf-rank{width:36px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8em;color:#fff}
+.wf-rank.r1{background:var(--accent2)}.wf-rank.r2{background:#34495e}.wf-rank.r3{background:#5d6d7e}.wf-rank.r4{background:#85929e}.wf-rank.r5{background:#aab7b8}
+.wf-content{flex:1;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--card)}
+.wf-content .wf-label{font-weight:700;font-size:.88em;color:var(--accent2)}
+.wf-content .wf-desc{font-size:.8em;color:var(--t3)}
+
+/* ── KEY FIGURE ── */
+.kf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:16px 0}
+.kf{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;box-shadow:var(--shadow)}
+.kf .num{font-size:1.6em;font-weight:800;color:var(--accent)}
+.kf .label{font-size:.72em;color:var(--t3);margin-top:4px}
+
+/* ── FOOTER ── */
+.footer{text-align:center;padding:30px 20px;color:var(--t3);font-size:.75em;border-top:1px solid var(--border);margin-top:40px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:480px){
+  .hero h2{font-size:1.3em}
+  .sec-header h2{font-size:1.1em}
+  .kf-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <h1>📊 CISSA Case Study</h1>
+  <div class="topbar-r">
+    <button onclick="changeFontSize(-1)" title="ลดขนาด">A−</button>
+    <button onclick="changeFontSize(1)" title="เพิ่มขนาด">A+</button>
+    <button class="toc-btn" onclick="toggleTOC()" title="สารบัญ">☰</button>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()">
+  <div class="toc-panel" onclick="event.stopPropagation()">
+    <button class="toc-close" onclick="toggleTOC()">✕</button>
+    <h2>📑 สารบัญ</h2>
+    <a href="#sec1" onclick="toggleTOC()"><span class="sec-num">1</span> สรุปผู้บริหาร (Executive Summary)</a>
+    <a href="#sec2" onclick="toggleTOC()"><span class="sec-num">2</span> ตัวเลขสำคัญ</a>
+    <a href="#sec3" onclick="toggleTOC()"><span class="sec-num">3</span> Timeline เหตุการณ์</a>
+    <a href="#sec4" onclick="toggleTOC()"><span class="sec-num">4</span> โครงสร้างโครงการ & การลงทุน</a>
+    <a href="#sec5" onclick="toggleTOC()"><span class="sec-num">5</span> หุ้นกู้ CISSA221A — เจ้าหนี้มีประกัน</a>
+    <a href="#sec6" onclick="toggleTOC()"><span class="sec-num">6</span> นักลงทุนรายย่อย — เจ้าหนี้ไร้ประกัน</a>
+    <a href="#sec7" onclick="toggleTOC()"><span class="sec-num">7</span> Asymmetric Risk — Waterfall Diagram</a>
+    <a href="#sec8" onclick="toggleTOC()"><span class="sec-num">8</span> Red Flags ที่เห็นแต่แรก</a>
+    <a href="#sec9" onclick="toggleTOC()"><span class="sec-num">9</span> Stress Test — ตลาดโรงแรมภูเก็ต</a>
+    <a href="#sec10" onclick="toggleTOC()"><span class="sec-num">10</span> กฎหมายที่เกี่ยวข้อง</a>
+    <a href="#sec11" onclick="toggleTOC()"><span class="sec-num">11</span> คำถามที่ต้องถามก่อนลงทุน</a>
+    <a href="#sec12" onclick="toggleTOC()"><span class="sec-num">12</span> พจนานุกรมศัพท์เฉพาะ</a>
+    <a href="#sec13" onclick="toggleTOC()"><span class="sec-num">13</span> บทเรียนและข้อแนะนำ</a>
+    <a href="#caveats" onclick="toggleTOC()"><span class="sec-num">⚠</span> Caveats — ข้อจำกัดของข้อมูล</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">กรณีศึกษา — INVESTMENT PROPERTY</div>
+  <h2>CISSA Group & Wyndham Grand<br>Nai Harn Beach Phuket</h2>
+  <p>วิเคราะห์กรณี Guaranteed Yield 7% + Buyback ในธุรกิจโรงแรม — เมื่อนักลงทุนรายย่อยรับ Downside ทั้งหมด แต่ Upside จำกัด</p>
+  <div class="meta">วิเคราะห์จากข้อมูลสาธารณะ — มิถุนายน 2569 &nbsp;|&nbsp; ข้อมูลนี้ไม่ใช่คำแนะนำทางการเงินหรือกฎหมาย</div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 1: EXECUTIVE SUMMARY -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec1">
+  <div class="sec-header">
+    <span class="sec-num-badge">01</span>
+    <h2>สรุปผู้บริหาร (Executive Summary)</h2>
+  </div>
+  
+  <div class="card">
+    <p><strong>CISSA Group</strong> (ซิซซา กรุ๊ป) พัฒนาโครงการ <strong>Wyndham Grand Nai Harn Beach Phuket</strong> — โรงแรม 5 ดาว มูลค่า ~2,800 ล้านบาท บนพื้นที่ 11 ไร่ ณ ต.ราไวย์ ภูเก็ต โดยขายห้องให้นักลงทุนรายย่อยในรูปแบบ <strong>"Investment Property"</strong> — ได้โฉนดกรรมสิทธิ์ + สัญญาผลตอบแทน 7% คงที่ + สัญญารับซื้อคืน (Buyback)</p>
+  </div>
+
+  <div class="callout">
+    <h4>⚡ ประเด็นหลัก</h4>
+    <p>เมื่อบริษัทมีปัญหาสภาพคล่อง <strong>ผู้ถือหุ้นกู้มีประกัน (CISSA221A)</strong> ที่มี บล.ดาโอ เป็นผู้แทน มีจำนอง มีสิทธิฟ้องศาล — <strong>ได้เงินต้นคืน 100%</strong> ในเดือน ธ.ค. 2568 แต่ <strong>นักลงทุนรายย่อย</strong> ที่ไม่มีหลักประกันแบบเดียวกัน — กลับเป็นกลุ่มที่ <strong>เสียหายหนักที่สุด</strong></p>
+  </div>
+
+  <div class="card">
+    <p>เมื่อ 26 มิ.ย. 2569 <strong>น้าต๋อย เซมเบ้</strong> (นิรันดร์ บุณยรัตพันธุ์ — นักพากย์การ์ตูนระดับตำนาน) โพสต์ว่าตนและลูกชายนำเงินเก็บเกือบทั้งหมดไปลงทุนในโครงการอสังหาฯ ชื่อดังในภูเก็ต แต่ไม่ได้รับทั้งผลตอบแทนและเงินต้น — สะท้อน <strong>Asymmetric Risk</strong> ที่ฝังอยู่ในโครงสร้างการลงทุนแบบนี้ตั้งแต่ต้น</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 2: KEY FIGURES -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec2">
+  <div class="sec-header">
+    <span class="sec-num-badge">02</span>
+    <h2>ตัวเลขสำคัญ</h2>
+  </div>
+  
+  <div class="kf-grid">
+    <div class="kf"><div class="num">2,800</div><div class="label">ล้านบาท — มูลค่าโครงการ</div></div>
+    <div class="kf"><div class="num">353</div><div class="label">ห้อง (105+248 ขายนักลงทุน)</div></div>
+    <div class="kf"><div class="num">7%</div><div class="label">ผลตอบแทนคงที่/ปี<br>(สัญญา)</div></div>
+    <div class="kf"><div class="num">217.80</div><div class="label">ล้านบาท — หุ้นกู้ CISSA221A</div></div>
+    <div class="kf"><div class="num" style="color:var(--low)">100%</div><div class="label">คืนผู้ถือหุ้นกู้<br>(เจ้าหนี้มีประกัน)</div></div>
+    <div class="kf"><div class="num" style="color:var(--crit)">~20%</div><div class="label">เสนอคืนรายย่อย<br>(ตามโพสต์ — ยังไม่ยืนยัน)</div></div>
+  </div>
+
+  <div class="glossary">
+    <div class="g-title">📖 ศัพท์ในหน้านี้</div>
+    <dl>
+      <dt>Investment Property</dt>
+      <dd>อสังหาริมทรัพย์เพื่อการลงทุน — ซื้อเพื่อรับผลตอบแทน (ค่าเช่า/มูลค่าเพิ่ม) ไม่ใช่เพื่ออยู่อาศัย</dd>
+      <dt>Asymmetric Risk (ความเสี่ยงไม่สมมาตร)</dt>
+      <dd>สถานการณ์ที่ผู้พัฒนารับ Upside (กำไรส่วนเกิน) แต่นักลงทุนรับ Downside (ขาดทุน) อย่างไม่สมดุล — เห็นชัดในกรณีนี้</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 3: TIMELINE -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec3">
+  <div class="sec-header">
+    <span class="sec-num-badge">03</span>
+    <h2>Timeline เหตุการณ์สำคัญ</h2>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-date">~2553 (2010)</div>
+      <div class="tl-text">จดทะเบียนบริษัท ซิซซา กรุ๊ป จำกัด — เน้นพัฒนาอสังหาฯ เพื่อการลงทุนในภูเก็ต</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2561 (2018)</div>
+      <div class="tl-text">เซ็น MOU กับ Wyndham Hotels & Resorts — เปิดตัวโครงการ Wyndham Nai Harn Beach Phuket มูลค่า ~2,800 ล้านบาท 353 ห้อง ราคาเริ่ม 6.5 ล้านบาท</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2563 (2020)</div>
+      <div class="tl-text">ออกหุ้นกู้มีประกัน <strong>CISSA221A</strong> — 217.80 ล้านบาท ดอกเบี้ย 8% ผ่าน บล.ดาโอ เป็นผู้แทนผู้ถือหุ้นกู้ มี "นาใต้ ฮอสพิทอลลิตี้" เป็นผู้จำนอง</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">ม.ค. 2565 (2022)</div>
+      <div class="tl-text">โรงแรมสร้างเสร็จ — เปิดให้บริการ</div>
+    </div>
+    <div class="tl-item warn">
+      <div class="tl-date">ก.ค. 2566</div>
+      <div class="tl-text">CISSA ขอผ่อนผันการชำระค่าไถ่ถอน — ก.ล.ต. เตือนผู้ถือหุ้นกู้ใช้สิทธิในการประชุม <span class="sev sev-high">HIGH</span></div>
+    </div>
+    <div class="tl-item warn">
+      <div class="tl-date">2566–2567</div>
+      <div class="tl-text">ผิดนัดชำระดอกเบี้ย/เงินต้นบางส่วน — ขอยืดเวลา ไถ่ถอนบางส่วนด้วยเงินสด + Cash Voucher (บัตรกำนัลเข้าพัก)</div>
+    </div>
+    <div class="tl-item critical">
+      <div class="tl-date">6 มิ.ย. 2567</div>
+      <div class="tl-text"><strong>บล.ดาโอ ยื่นฟ้อง</strong> CISSA + นาใต้ ฮอสพิทอลลิตี้ ที่ศาลแพ่งกรุงเทพใต้ (คดีดำ ผบ.256/2567) <span class="sev sev-crit">CRITICAL</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">16 มิ.ย. 2568</div>
+      <div class="tl-text">ศาลพิพากษา (คดีแดง ผบ 295/2568) — ให้ชำระหนี้และบังคับจำนอง</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date" style="color:var(--low)">ธ.ค. 2568</div>
+      <div class="tl-text"><strong>ผู้ถือหุ้นกู้ CISSA221A ได้รับไถ่ถอนเต็มจำนวน</strong> — เงินต้น + ดอกเบี้ยคงค้าง (เงินสด 50% + Cash Voucher 50% สำหรับดอกเบี้ย)</div>
+    </div>
+    <div class="tl-item critical">
+      <div class="tl-date">18 มี.ค. 2569 ⚠</div>
+      <div class="tl-text">ศาลล้มละลายกลางสั่ง <strong>พิทักษ์ทรัพย์เด็ดขาด</strong> — ตามโพสต์ (⚠ <em>ยังไม่ยืนยันจากแหล่งสาธารณะ</em>) <span class="sev sev-crit">CRITICAL</span></div>
+    </div>
+    <div class="tl-item critical">
+      <div class="tl-date">26 มิ.ย. 2569</div>
+      <div class="tl-text"><strong>น้าต๋อย เซมเบ้ โพสต์</strong> — เปิดเผยปัญหา เชิญชวนผู้เสียหายรวมตัวดำเนินคดี ระบุแผนประนอมหนี้เสนอคืนเพียง ~20% <span class="sev sev-crit">CRITICAL</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 4: PROJECT STRUCTURE -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec4">
+  <div class="sec-header">
+    <span class="sec-num-badge">04</span>
+    <h2>โครงสร้างโครงการ & การลงทุน</h2>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">🏨</span> โครงสร้างโครงการ</h3>
+    <table class="cmp-table">
+      <tr><th style="width:40%">รายการ</th><th>รายละเอียด</th></tr>
+      <tr><td>ผู้พัฒนา</td><td>บริษัท ซิซซา กรุ๊ป จำกัด (ทะเบียน 0835553009874)</td></tr>
+      <tr><td>ผู้บริหาร</td><td>นายอรรถนพ พันธุกำเหนิด (ประธาน CEO)</td></tr>
+      <tr><td>แบรนด์โรงแรม</td><td>Wyndham Hotels & Resorts (เซ็น MOU กับ CNH Hospitality)</td></tr>
+      <tr><td>ที่ตั้ง</td><td>ต.ราไวย์ อ.เมือง จ.ภูเก็ต (ใกล้หาดในหาน)</td></tr>
+      <tr><td>พื้นที่</td><td>11 ไร่</td></tr>
+      <tr><td>จำนวนห้อง</td><td>353 ห้อง (14 อาคาร 4 ชั้น)</td></tr>
+      <tr><td>สร้างเสร็จ</td><td>มกราคม 2565</td></tr>
+      <tr><td>มูลค่าโครงการ</td><td>~2,800 ล้านบาท</td></tr>
+      <tr><td>ราคาเริ่มต้น</td><td>6.5 ล้านบาท/ห้อง</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">💰</span> โมเดลการลงทุน</h3>
+    <p>CISSA แบ่งห้องเป็น 2 กลุ่ม:</p>
+    <ul>
+      <li><strong>105 ห้อง</strong> — ซิซซาบริหารเอง</li>
+      <li><strong>248 ห้อง</strong> — ขายให้นักลงทุนรายย่อย ในรูปแบบ "Investment Property"</li>
+    </ul>
+    <p style="margin-top:12px">นักลงทุนได้รับ:</p>
+    <ul>
+      <li>โฉนดกรรมสิทธิ์ห้องชุด (ตาม พ.ร.บ. อาคารชุด)</li>
+      <li>สัญญาผลตอบแทนคงที่ <strong>7% ต่อปี</strong></li>
+      <li>สัญญา <strong>รับซื้อคืน (Buyback)</strong> เมื่อครบกำหนด</li>
+      <li>พักฟรี 3 คืน/ปี + ส่วนลด 30%</li>
+    </ul>
+  </div>
+
+  <div class="glossary">
+    <div class="g-title">📖 ศัพท์ในหน้านี้</div>
+    <dl>
+      <dt>Condotel (คอนโดเทล)</dt>
+      <dd>อาคารชุดที่ขายให้บุคคลแบบคอนโดมิเนียม แต่บริหารแบบโรงแรม — นักลงทุนซื้อห้อง + ส่งเข้า Rental Pool ให้โรงแรมบริหาร</dd>
+      <dt>Fractional Ownership (กรรมสิทธิ์ร่วมแบบแบ่งส่วน)</dt>
+      <dd>1 ห้องอาจมีเจ้าของหลายคน ถือสัดส่วนเล็กน้อย (fraction) ไม่เหมือน Timeshare ที่ซื้อ "เวลา" ไม่ใช่ "กรรมสิทธิ์"</dd>
+      <dt>Buyback Agreement (สัญญารับซื้อคืน)</dt>
+      <dd>สัญญาที่ผู้พัฒนาสัญญาจะซื้อห้องคืนจากนักลงทุนในราคาที่กำหนด เมื่อครบสัญญา — แต่ถ้าไม่มี Collateral/Escrow รองรับ ก็เป็นแค่ "คำสัญญา" บนกระดาษ</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 5: BOND CISSA221A -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec5">
+  <div class="sec-header">
+    <span class="sec-num-badge">05</span>
+    <h2>หุ้นกู้ CISSA221A — เจ้าหนี้มีประกัน</h2>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">📜</span> รายละเอียดหุ้นกู้</h3>
+    <table class="cmp-table">
+      <tr><th>รายการ</th><th>รายละเอียด</th></tr>
+      <tr><td>ชื่อรุ่น</td><td>CISSA221A</td></tr>
+      <tr><td>ประเภท</td><td>หุ้นกู้มีประกัน (Secured Debenture) ไม่ด้อยสิทธิ ระบุชื่อผู้ถือ</td></tr>
+      <tr><td>มูลค่า</td><td>217.80 ล้านบาท</td></tr>
+      <tr><td>ดอกเบี้ย</td><td>คงที่สูงสุด 8% ต่อปี</td></tr>
+      <tr><td>ครบกำหนดไถ่ถอน</td><td>28 ม.ค. 2568 (ขยายจาก 2565)</td></tr>
+      <tr><td>ผู้แทนผู้ถือหุ้นกู้</td><td>บล.ดาโอ (ประเทศไทย) — DAOL Securities</td></tr>
+      <tr><td>ผู้จำนองหลักประกัน</td><td>บริษัท นาใต้ ฮอสพิทอลลิตี้ จำกัด (บริษัทในเครือ)</td></tr>
+      <tr><td>ผลลัพธ์</td><td class="tag-safe">✅ ได้รับไถ่ถอนเต็มจำนวน (ธ.ค. 2568)</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">🛡️</span> ทำไมผู้ถือหุ้นกู้ได้เงินคืน?</h3>
+    <ul>
+      <li><strong>หลักประกันจำนอง</strong> — มีที่ดิน/ทรัพย์สินจำนองจาก "นาใต้ ฮอสพิทอลลิตี้"</li>
+      <li><strong>ผู้แทนมืออาชีพ</strong> — บล.ดาโอ ทำหน้าที่ติดตาม ทวงถาม และฟ้องคดีแทนผู้ถือหุ้นกู้ทั้งหมดเป็นกลุ่ม</li>
+      <li><strong>สิทธิบังคับคดี</strong> — เมื่อผิดนัด สามารถฟ้องศาลบังคับจำนองขายทอดตลาดทรัพย์ได้ทันที</li>
+      <li><strong>กฎหมายรองรับ</strong> — พ.ร.บ. หลักทรัพย์ฯ + ข้อกำหนดสิทธิของ ก.ล.ต. คุ้มครองผู้ถือหุ้นกู้</li>
+    </ul>
+  </div>
+
+  <div class="glossary">
+    <div class="g-title">📖 ศัพท์ในหน้านี้</div>
+    <dl>
+      <dt>Secured Debenture (หุ้นกู้มีประกัน)</dt>
+      <dd>ตราสารหนี้ที่มีทรัพย์สินเป็นหลักประกันรองรับ — ถ้าผิดนัด สามารถบังคับหลักประกันเอาเงินคืนได้</dd>
+      <dt>Bondholders' Representative (ผู้แทนผู้ถือหุ้นกู้)</dt>
+      <dd>สถาบันที่ทำหน้าที่ดูแลสิทธิประโยชน์ของผู้ถือหุ้นกู้ทุกราย — ติดตาม ทวงถาม ฟ้องคดีแทน เปรียบเป็น "Bodyguard" ของนักลงทุน</dd>
+      <dt>Enforcement Rights (สิทธิบังคับคดี)</dt>
+      <dd>สิทธิทางกฎหมายในการบังคับขายทรัพย์หลักประกันเพื่อนำเงินมาชำระหนี้</dd>
+      <dt>Cash Voucher (บัตรกำนัล)</dt>
+      <dd>ในบริบทนี้ — เป็นบัตรเข้าพักโรงแรมที่ใช้แทนดอกเบี้ยเงินสดบางส่วน (ผู้ถือหุ้นกู้มีมติยอมรับ)</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 6: RETAIL INVESTORS -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec6">
+  <div class="sec-header">
+    <span class="sec-num-badge">06</span>
+    <h2>นักลงทุนรายย่อย — เจ้าหนี้ไร้ประกัน</h2>
+  </div>
+
+  <div class="redflag">
+    <h4>🚨 สถานะปัจจุบันของนักลงทุนรายย่อย</h4>
+    <ul>
+      <li>ไม่ได้รับผลตอบแทนตามสัญญา (7%/ปี) มาเป็นเวลานาน</li>
+      <li>ไม่ได้รับเงินต้นคืนตาม Buyback Agreement</li>
+      <li>ตามโพสต์ — แผนประนอมหนี้เสนอคืนเพียง <strong>~20% ของเงินต้น</strong> (⚠ ยังไม่ยืนยัน)</li>
+      <li>ผู้เสียหายหลายร้อยคนกำลังรวมตัวคัดค้านแผนประนอมหนี้</li>
+      <li>น้าต๋อย เซมเบ้ เปิดเผยว่าลูกชายลงทุน <strong>~10 ล้านบาท</strong></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">⚖️</span> เปรียบเทียบ: เจ้าหนี้มีประกัน vs นักลงทุนรายย่อย</h3>
+    <table class="cmp-table">
+      <tr><th>ปัจจัย</th><th>ผู้ถือหุ้นกู้ CISSA221A</th><th>นักลงทุนซื้อห้อง (IP)</th></tr>
+      <tr><td>หลักประกัน</td><td class="tag-safe">✅ จำนองที่ดิน/ทรัพย์สิน</td><td class="tag-risk">❌ ไม่มี (มีแค่โฉนดห้อง)</td></tr>
+      <tr><td>ผู้แทนรวมกลุ่ม</td><td class="tag-safe">✅ บล.ดาโอ</td><td class="tag-risk">❌ ต้องรวมตัวเอง</td></tr>
+      <tr><td>สิทธิฟ้องคดี</td><td class="tag-safe">✅ ผู้แทนฟ้องแทนทั้งกลุ่ม</td><td class="tag-risk">❌ ฟ้องรายบุคคล (แพงและช้า)</td></tr>
+      <tr><td>ลำดับชำระหนี้</td><td class="tag-safe">Senior Secured (ลำดับ 1)</td><td class="tag-risk">Unsecured (ลำดับท้าย)</td></tr>
+      <tr><td>ผลลัพธ์</td><td class="tag-safe">ได้คืน 100%</td><td class="tag-risk">อาจได้ ~20% (ตามโพสต์)</td></tr>
+    </table>
+  </div>
+
+  <div class="glossary">
+    <div class="g-title">📖 ศัพท์ในหน้านี้</div>
+    <dl>
+      <dt>Senior Creditor (เจ้าหนี้บุริมสิทธิ)</dt>
+      <dd>เจ้าหนี้ที่มีสิทธิได้รับชำระก่อนเจ้าหนี้อื่น — เช่น ผู้ถือหุ้นกู้มีประกัน</dd>
+      <dt>Unsecured / Subordinated (ไร้หลักประกัน / ด้อยสิทธิ)</dt>
+      <dd>เจ้าหนี้ที่ไม่มีหลักประกัน หรือมีสิทธิเรียกร้องลำดับท้าย — รับส่วนที่เหลือหลังเจ้าหนี้มีประกันได้รับแล้ว</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 7: WATERFALL -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec7">
+  <div class="sec-header">
+    <span class="sec-num-badge">07</span>
+    <h2>Asymmetric Risk — Waterfall Diagram</h2>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">🔻</span> ลำดับการชำระหนี้ (Payment Waterfall) เมื่อเกิด Liquidation</h3>
+    <p style="font-size:.85em;color:var(--t3);margin-bottom:12px">เมื่อบริษัทมีปัญหาสภาพคล่อง เงินจะถูกจ่ายตามลำดับนี้ — นักลงทุนรายย่อยอยู่ท้ายสุด</p>
+    
+    <div class="wf-diagram">
+      <div class="wf-row"><div class="wf-rank r1">1</div><div class="wf-content"><div class="wf-label">ค่าใช้จ่ายในกระบวนการล้มละลาย</div><div class="wf-desc">ค่าทนาย ค่าเจ้าพนักงานพิทักษ์ทรัพย์ ค่าดำเนินคดี</div></div></div>
+      <div class="wf-row"><div class="wf-rank r1">2</div><div class="wf-content"><div class="wf-label">เจ้าหนี้มีประกัน / Senior Secured</div><div class="wf-desc">ผู้ถือหุ้นกู้ CISSA221A (บังคับจำนอง) → <strong style="color:var(--low)">ได้คืน 100%</strong></div></div></div>
+      <div class="wf-row"><div class="wf-rank r3">3</div><div class="wf-content"><div class="wf-label">เจ้าหนี้บุริมสิทธิอื่น</div><div class="wf-desc">หนี้ภาษี (กรมสรรพากร) + เงินเดือนพนักงาน</div></div></div>
+      <div class="wf-row"><div class="wf-rank r4">4</div><div class="wf-content"><div class="wf-label">เจ้าหนี้สามัญ / Unsecured</div><div class="wf-desc">ซัพพลายเออร์ + เจ้าหนี้ทางการค้าทั่วไป</div></div></div>
+      <div class="wf-row"><div class="wf-rank r5">5</div><div class="wf-content"><div class="wf-label" style="color:var(--crit)">นักลงทุนรายย่อย (Buyback / Yield Claims)</div><div class="wf-desc">ถือโฉนดห้อง แต่ไม่มีหลักประกันร่วม → <strong style="color:var(--crit)">อาจได้ ~20% หรือน้อยกว่า</strong></div></div></div>
+    </div>
+  </div>
+
+  <div class="glossary">
+    <div class="g-title">📖 ศัพท์ในหน้านี้</div>
+    <dl>
+      <dt>Waterfall (ลำดับการชำระหนี้)</dt>
+      <dd>ลำดับความสำคัญในการจ่ายเงินให้เจ้าหนี้แต่ละกลุ่ม — เจ้าหนี้ลำดับแรกได้ก่อน ส่วนที่เหลือจึงไหลลงไปลำดับถัดไป (เหมือนน้ำตก)</dd>
+      <dt>Liquidation (การชำระบัญชี)</dt>
+      <dd>การรวบรวมทรัพย์สินของบริษัทและขายเพื่อนำเงินมาชำระหนี้ตามลำดับ</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 8: RED FLAGS -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec8">
+  <div class="sec-header">
+    <span class="sec-num-badge">08</span>
+    <h2>Red Flags ที่เห็นตั้งแต่แรก</h2>
+  </div>
+
+  <div class="redflag">
+    <h4>🚩 6 สัญญาณเตือนภัยสำคัญ</h4>
+    <ul>
+      <li><strong>Guaranteed Fixed Yield ในธุรกิจ Cyclical</strong> — โรงแรมมีรายได้ขึ้นลงตามฤดูกาล แต่ให้ผลตอบแทน "คงที่" 7% — ไม่มี Cash Flow Coverage ที่ยั่งยืนรองรับ <span class="sev sev-crit">CRITICAL</span></li>
+      <li><strong>ไม่มี Ring-fenced Cash Flow</strong> — ไม่มีบัญชีแยก (Reserve Account / Escrow) สำหรับจ่ายผลตอบแทน เงินปะปนกับค่าใช้จ่ายโรงแรมและบริษัท <span class="sev sev-crit">CRITICAL</span></li>
+      <li><strong>Related Party เป็นผู้จำนอง</strong> — "นาใต้ ฮอสพิทอลลิตี้" เป็นบริษัทในเครือ ไม่ใช่ SPV แยกชัดเจน → Conflict of Interest + Tunneling Risk <span class="sev sev-high">HIGH</span></li>
+      <li><strong>ไม่มี Independent Security Trustee</strong> — ไม่มีบุคคลที่สามที่เป็นกลางคอยดูแลหลักประกัน/ผลประโยชน์ของนักลงทุนรายย่อย <span class="sev sev-high">HIGH</span></li>
+      <li><strong>Enforcement Rights อ่อนแอ</strong> — นักลงทุนหลายร้อยรายต้องรวมตัวเองเพื่อฟ้องคดี (ไม่เหมือนผู้ถือหุ้นกู้ที่มี บล.ดาโอ ทำแทน) <span class="sev sev-high">HIGH</span></li>
+      <li><strong>Marketing Aggressive กับรายย่อย</strong> — ขาย IP ผ่านงานอีเวนต์ โซเชียลมีเดีย ตัวแทนขายอิสระ → สัญญาณว่าพึ่งเงินรายย่อยเป็นหลักในการพัฒนาโครงการ <span class="sev sev-med">MEDIUM</span></li>
+    </ul>
+  </div>
+
+  <div class="glossary">
+    <div class="g-title">📖 ศัพท์ในหน้านี้</div>
+    <dl>
+      <dt>Ring-fenced Cash Flow (กระแสเงินสดแยกกัน)</dt>
+      <dd>การกันเงินไว้ในบัญชีเฉพาะสำหรับจ่ายภาระที่กำหนด — ไม่ให้ปะปนหรือถูกดึงไปใช้อย่างอื่น</dd>
+      <dt>SPV (Special Purpose Vehicle / นิติบุคคลเฉพาะกิจ)</dt>
+      <dd>บริษัทที่ตั้งขึ้นเพื่อวัตถุประสงค์เฉพาะ เช่น ถือทรัพย์สินหลักประกัน แยกความเสี่ยงออกจากบริษัทแม่</dd>
+      <dt>Independent Security Trustee (ผู้ดูแลหลักประกันอิสระ)</dt>
+      <dd>สถาบันที่เป็นกลาง (ไม่ใช่บริษัทในเครือ) ทำหน้าที่ดูแลทรัพย์หลักประกันแทนนักลงทุน</dd>
+      <dt>Tunneling Risk (ความเสี่ยงจากการถ่ายเทผลประโยชน์)</dt>
+      <dd>ความเสี่ยงที่ผู้ถือหุ้นใหญ่/ผู้บริหารถ่ายเทเงินหรือทรัพย์สินออกจากบริษัทไปยังบุคคลที่เกี่ยวข้อง ทำให้เจ้าหนี้เสียหาย</dd>
+      <dt>Related Party Transaction (ธุรกรรมกับบุคคลที่เกี่ยวข้อง)</dt>
+      <dd>ธุรกรรมระหว่างบริษัทกับบุคคลที่มีความสัมพันธ์กัน เช่น ผู้ถือหุ้น กรรมการ บริษัทในเครือ — มีความเสี่ยง Conflict of Interest</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 9: STRESS TEST -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec9">
+  <div class="sec-header">
+    <span class="sec-num-badge">09</span>
+    <h2>Stress Test — ตลาดโรงแรมภูเก็ต</h2>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">📊</span> ข้อมูลตลาดจริง (ครึ่งปีแรก 2568)</h3>
+    <p style="font-size:.85em;color:var(--t3);margin-bottom:8px">ที่มา: Knight Frank Chartered (Thailand) / มติชน</p>
+    <table class="cmp-table">
+      <tr><th>ตัวชี้วัด</th><th>ค่าจริง</th></tr>
+      <tr><td>Occupancy เฉลี่ยครึ่งปีแรก</td><td>79.5%</td></tr>
+      <tr><td>Occupancy สูงสุด (ม.ค.)</td><td>91.8%</td></tr>
+      <tr><td>Occupancy ต่ำสุด (มิ.ย.)</td><td>66.9%</td></tr>
+      <tr><td>ADR เฉลี่ย</td><td>5,652 บาท/คืน (+7.8% YoY)</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">🧪</span> สมมติฐาน Stress Test (3 Scenarios)</h3>
+    <table class="cmp-table">
+      <tr><th>Scenario</th><th>Occupancy</th><th>ADR</th><th>GOP Margin</th><th>จ่าย 7% ได้?</th></tr>
+      <tr><td><strong>Base Case</strong></td><td>70-75%</td><td>9,000-12,000</td><td>35-40%</td><td style="color:var(--high)">⚠ พอดี (ไม่เหลือสำรอง)</td></tr>
+      <tr><td><strong>Downside</strong></td><td>55-65%</td><td>7,000-9,000</td><td>25-30%</td><td class="tag-risk">❌ ไม่พอ</td></tr>
+      <tr><td><strong>Severe</strong></td><td>&lt;50%</td><td>&lt;7,000</td><td>&lt;20%</td><td class="tag-risk">❌ ขาดทุนหนัก</td></tr>
+    </table>
+    <p style="margin-top:12px;font-size:.88em;color:var(--t2)"><strong>Break-even Occupancy</strong> เพื่อจ่าย 7% + ค่าใช้จ่ายโรงแรม + เงินสำรอง ≈ <strong>68-72% ตลอดทั้งปี</strong> — สูงมากสำหรับภูเก็ตที่มี Low Season ชัดเจน (Occupancy ต่ำสุด ~67%)</p>
+  </div>
+
+  <div class="callout">
+    <h4>⚡ ผลกระทบ COVID-19 (2563-2564)</h4>
+    <p>ช่วงที่โครงการกำลังสร้างเสร็จ/เปิดตัว (2565) ภูเก็ตเพิ่งผ่านวิกฤต COVID-19 ที่ทำให้รายได้ท่องเที่ยวหายไปเกือบทั้งหมด — หุ้นกู้ CISSA221A ออกในปี 2563 (กลาง COVID) และขยายกำหนดไถ่ถอนจาก 2565 เป็น 2568 อาจเป็นสัญญาณว่ากระแสเงินสดมีปัญหาตั้งแต่ต้น</p>
+  </div>
+
+  <div class="glossary">
+    <div class="g-title">📖 ศัพท์ในหน้านี้</div>
+    <dl>
+      <dt>Occupancy Rate (อัตราเข้าพัก)</dt>
+      <dd>สัดส่วนห้องที่มีคนเข้าพักต่อจำนวนห้องทั้งหมดที่เปิดขาย — เช่น Occupancy 75% = มีคนเข้าพัก 75 ห้องจาก 100 ห้อง</dd>
+      <dt>ADR — Average Daily Rate (ราคาห้องเฉลี่ยต่อคืน)</dt>
+      <dd>รายได้ค่าห้องเฉลี่ยต่อห้องที่มีคนพัก ต่อคืน — ใช้วัดความสามารถในการตั้งราคา</dd>
+      <dt>GOP — Gross Operating Profit (กำไรขั้นต้นจากการดำเนินงาน)</dt>
+      <dd>รายได้โรงแรม ลบ ค่าใช้จ่ายในการดำเนินงาน (เงินเดือน วัสดุสิ้นเปลือง ซ่อมบำรุง ค่าสาธารณูปโภค) ก่อนหักดอกเบี้ย ภาษี ค่าเสื่อมราคา</dd>
+      <dt>GOP Margin</dt>
+      <dd>อัตรากำไร GOP = GOP / รายได้รวม × 100 — โรงแรม 5 ดาวปกติ 35-40%</dd>
+      <dt>Break-even Occupancy (จุดคุ้มทุนอัตราเข้าพัก)</dt>
+      <dd>อัตราเข้าพักต่ำสุดที่โรงแรมต้องมีเพื่อครอบคลุมค่าใช้จ่ายทั้งหมด + จ่ายผลตอบแทนนักลงทุน</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 10: LEGAL -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec10">
+  <div class="sec-header">
+    <span class="sec-num-badge">10</span>
+    <h2>กฎหมายที่เกี่ยวข้อง</h2>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">⚖️</span> กฎหมายหลัก</h3>
+    <table class="cmp-table">
+      <tr><th>กฎหมาย</th><th>ความเกี่ยวข้อง</th></tr>
+      <tr><td><strong>พ.ร.บ. ล้มละลาย พ.ศ. 2483</strong></td><td>รองรับกระบวนการพิทักษ์ทรัพย์ ประนอมหนี้ และล้มละลาย — มาตรา 22 ให้เจ้าพนักงานพิทักษ์ทรัพย์จัดการทรัพย์สิน / เจ้าหนี้ต้องยื่นขอรับชำระหนี้ภายใน 2 เดือน</td></tr>
+      <tr><td><strong>พ.ร.บ. อาคารชุด พ.ศ. 2522</strong></td><td>กำหนดกรรมสิทธิ์ห้องชุด — นักลงทุนถือโฉนดห้องเป็นทรัพย์ส่วนตัว แต่ไม่ได้หมายความว่ามีสิทธิเรียกร้องเท่าเจ้าหนี้มีประกัน</td></tr>
+      <tr><td><strong>พ.ร.บ. หลักทรัพย์ฯ + ข้อกำหนดของ ก.ล.ต.</strong></td><td>กำกับดูแลการออกหุ้นกู้ ผู้แทนผู้ถือหุ้นกู้ การเปิดเผยข้อมูล — หุ้นกู้มีประกันที่เสนอขาย PO/HNW ต้องมีผู้แทน</td></tr>
+      <tr><td><strong>ป.พ.พ. ว่าด้วยสัญญา</strong></td><td>สัญญาเช่า/รับซื้อคืน เป็นสัญญาทางแพ่ง — ผิดสัญญาต้องฟ้องศาลแพ่ง (ใช้เวลา 2-4 ปี + ค่าใช้จ่ายสูง)</td></tr>
+    </table>
+  </div>
+
+  <div class="glossary">
+    <div class="g-title">📖 ศัพท์ในหน้านี้</div>
+    <dl>
+      <dt>พิทักษ์ทรัพย์เด็ดขาด (Absolute Receivership)</dt>
+      <dd>คำสั่งศาลล้มละลายที่ให้เจ้าพนักงานพิทักษ์ทรัพย์แต่ผู้เดียวมีอำนาจจัดการทรัพย์สินและกิจการของลูกหนี้ — ลูกหนี้ทำอะไรกับทรัพย์สินไม่ได้เลย ยกเว้นได้รับอนุญาตจากศาล</dd>
+      <dt>แผนประนอมหนี้ (Composition Plan)</dt>
+      <dd>ข้อเสนอจากลูกหนี้ต่อเจ้าหนี้ว่าจะชำระหนี้เท่าไร อย่างไร ภายในกำหนดเวลาเท่าใด — ต้องผ่านความเห็นชอบของเจ้าหนี้ส่วนใหญ่ + ศาลอนุมัติ ถ้าไม่ผ่านจะถูกพิพากษาให้ล้มละลาย</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 11: QUESTIONS -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec11">
+  <div class="sec-header">
+    <span class="sec-num-badge">11</span>
+    <h2>คำถามที่ต้องถามก่อนลงทุน</h2>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">❓</span> 15 คำถามสำคัญ — Due Diligence Checklist</h3>
+    <p style="font-size:.85em;color:var(--t3);margin-bottom:12px">ถ้าผู้พัฒนาตอบไม่ได้หรือตอบไม่ชัด → ถือว่า Red Flag</p>
+    <table class="cmp-table">
+      <tr><th>#</th><th>คำถาม</th><th>ทำไมต้องถาม</th></tr>
+      <tr><td>1</td><td>GOP จริงใน 24 เดือนที่ผ่านมา แบ่งตามฤดูกาล?</td><td>ตรวจสอบว่า 7% มาจาก GOP จริงหรือเงินอื่น</td></tr>
+      <tr><td>2</td><td>เงินที่ใช้จ่าย 7% มาจากไหน? มี Reserve Account?</td><td>ถ้าไม่มีบัญชีแยก = เสี่ยง Ponzi</td></tr>
+      <tr><td>3</td><td>ถ้า Occupancy ต่ำกว่า 55% นาน 6 เดือน จะจ่ายอย่างไร?</td><td>ทดสอบ Stress Test ของผู้พัฒนา</td></tr>
+      <tr><td>4</td><td>โครงสร้างกรรมสิทธิ์? ห้องชุด vs หุ้นบริษัท vs สัญญาเช่า?</td><td>กำหนดสิทธิทางกฎหมายที่แท้จริง</td></tr>
+      <tr><td>5</td><td>มี Independent Security Trustee?</td><td>ถ้าไม่มี = ไม่มีคนกลางคุ้มครองคุณ</td></tr>
+      <tr><td>6</td><td>Buyback มี Personal Guarantee / Collateral?</td><td>ถ้าไม่มี = เป็นแค่สัญญาบนกระดาษ</td></tr>
+      <tr><td>7</td><td>ความสัมพันธ์ CISSA กับ นาใต้ ฮอสพิทอลลิตี้?</td><td>ตรวจ Related Party + Tunneling Risk</td></tr>
+      <tr><td>8</td><td>ผู้บริหารถือหุ้น/หนี้เท่าไร? มี Skin in the Game?</td><td>ถ้าไม่ลงเงินเอง = ความเสี่ยงตกกับนักลงทุนฝ่ายเดียว</td></tr>
+      <tr><td>9</td><td>Related Party Transaction ในงบ 3 ปี?</td><td>ตรวจการถ่ายเทผลประโยชน์</td></tr>
+      <tr><td>10</td><td>ถ้าผิดนัดชำระ กระบวนการบังคับคดีทำยังไง?</td><td>ต้องรู้ว่าจะเอาเงินคืนได้จริงไหม ใช้เวลา/เงินเท่าไร</td></tr>
+      <tr><td>11</td><td>Waterfall ลำดับชำระหนี้ชัดเจนไหม?</td><td>คุณอยู่ลำดับที่เท่าไรเมื่อมีปัญหา</td></tr>
+      <tr><td>12</td><td>สิทธิ Vote ในแผนประนอมหนี้/Restructuring?</td><td>มีอำนาจต่อรองหรือถูกบังคับ</td></tr>
+      <tr><td>13</td><td>โครงการก่อนหน้าจ่ายครบ 100% กี่โครงการ?</td><td>ตรวจ Track Record จริง</td></tr>
+      <tr><td>14</td><td>มี Third-party Audit (Big 4) เรื่อง Cash Flow?</td><td>ถ้าไม่มี = ข้อมูลที่ให้คุณอาจไม่น่าเชื่อถือ</td></tr>
+      <tr><td>15</td><td>เปิดเผย Occupancy + ADR จริงต่อนักลงทุนทุกไตรมาส?</td><td>ความโปร่งใส = ความไว้วางใจ</td></tr>
+    </table>
+  </div>
+
+  <div class="glossary">
+    <div class="g-title">📖 ศัพท์ในหน้านี้</div>
+    <dl>
+      <dt>Due Diligence (การตรวจสอบสถานะ)</dt>
+      <dd>กระบวนการตรวจสอบข้อมูลอย่างรอบด้านก่อนตัดสินใจลงทุน — ดูงบการเงิน กฎหมาย สัญญา ผู้บริหาร ตลาด ฯลฯ</dd>
+      <dt>Skin in the Game</dt>
+      <dd>"มีเนื้อในเกม" — ผู้บริหาร/ผู้พัฒนาลงเงินตัวเองในโครงการด้วย แสดงว่ารับความเสี่ยงร่วมกับนักลงทุน</dd>
+      <dt>Personal Guarantee (การค้ำประกันส่วนบุคคล)</dt>
+      <dd>ผู้บริหารลงนามค้ำประกันด้วยทรัพย์สินส่วนตัว — ถ้าบริษัทจ่ายไม่ได้ ต้องจ่ายเอง</dd>
+      <dt>Ponzi Scheme</dt>
+      <dd>รูปแบบฉ้อโกงที่จ่ายผลตอบแทนให้นักลงทุนรายเก่าด้วยเงินของนักลงทุนรายใหม่ ไม่ใช่จากกำไรจริง — พังทลายเมื่อเงินรายใหม่หมด</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 12: GLOSSARY FULL -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec12">
+  <div class="sec-header">
+    <span class="sec-num-badge">12</span>
+    <h2>พจนานุกรมศัพท์เฉพาะ (รวม)</h2>
+  </div>
+
+  <div class="card" style="column-count:1">
+    <table class="cmp-table">
+      <tr><th style="width:35%">ศัพท์ (EN)</th><th>ความหมาย (TH)</th></tr>
+      <tr><td><strong>Structured Real Estate Yield Product</strong></td><td>ผลิตภัณฑ์อสังหาฯ ออกแบบให้จ่ายผลตอบแทนคงที่ เสมือนตราสาร แต่ความเสี่ยงผูกกับการดำเนินงานจริง</td></tr>
+      <tr><td><strong>Asymmetric Risk</strong></td><td>ความเสี่ยงไม่สมมาตร — ผู้พัฒนารับ Upside / นักลงทุนรับ Downside</td></tr>
+      <tr><td><strong>Cash Flow Coverage</strong></td><td>ความสามารถของกระแสเงินสดในการครอบคลุมภาระจ่าย</td></tr>
+      <tr><td><strong>Ring-fenced Cash Flow</strong></td><td>กระแสเงินสดที่กันไว้เฉพาะ ไม่ปะปนกับเงินอื่น</td></tr>
+      <tr><td><strong>Reserve Account / Escrow</strong></td><td>บัญชีสำรอง / บัญชีพักเงินดูแลโดยคนกลาง</td></tr>
+      <tr><td><strong>Fractional Ownership</strong></td><td>กรรมสิทธิ์ร่วมแบบแบ่งส่วน — 1 ห้อง หลายเจ้าของ</td></tr>
+      <tr><td><strong>SPV</strong></td><td>Special Purpose Vehicle — นิติบุคคลเฉพาะกิจ แยกความเสี่ยง</td></tr>
+      <tr><td><strong>Independent Security Trustee</strong></td><td>ผู้ดูแลหลักประกันอิสระ ไม่ใช่บริษัทในเครือ</td></tr>
+      <tr><td><strong>Collateral</strong></td><td>หลักประกัน — ทรัพย์สินที่วางค้ำประกันหนี้</td></tr>
+      <tr><td><strong>Waterfall</strong></td><td>ลำดับการชำระหนี้ — ใครได้ก่อน-หลัง</td></tr>
+      <tr><td><strong>Liquidation</strong></td><td>การชำระบัญชี — ขายทรัพย์สินชำระหนี้</td></tr>
+      <tr><td><strong>Tunneling Risk</strong></td><td>ความเสี่ยงถ่ายเทผลประโยชน์ออกจากบริษัท</td></tr>
+      <tr><td><strong>Position Sizing</strong></td><td>การจัดขนาดการลงทุนให้เหมาะสม (ห้ามเกินสัดส่วนที่ยอมเสียได้)</td></tr>
+      <tr><td><strong>Governance Risk</strong></td><td>ความเสี่ยงด้านธรรมาภิบาล — ผู้บริหารบริหารเพื่อใคร?</td></tr>
+      <tr><td><strong>Cyclical Business</strong></td><td>ธุรกิจที่มีรายได้ขึ้นลงตามวัฏจักร/ฤดูกาล (เช่น โรงแรม)</td></tr>
+      <tr><td><strong>Absolute Receivership</strong></td><td>พิทักษ์ทรัพย์เด็ดขาด — ศาลสั่งให้เจ้าพนักงานดูแลทรัพย์สิน</td></tr>
+      <tr><td><strong>Composition Plan</strong></td><td>แผนประนอมหนี้ — ข้อเสนอจ่ายคืนเจ้าหนี้</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SECTION 13: LESSONS -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="sec13">
+  <div class="sec-header">
+    <span class="sec-num-badge">13</span>
+    <h2>บทเรียนและข้อแนะนำ</h2>
+  </div>
+
+  <div class="card" style="border-left:5px solid var(--accent)">
+    <h3><span class="icon">🎯</span> 6 บทเรียนสำคัญสำหรับนักลงทุน</h3>
+    <ul>
+      <li><strong>ผลตอบแทนการันตีที่ไม่มีหลักประกันรองรับ = แค่คำสัญญา</strong> — กรณีนี้พิสูจน์ชัดว่าเฉพาะผู้ถือหุ้นกู้มีจำนองเท่านั้นที่ได้เงินคืน</li>
+      <li><strong>ระวังผลตอบแทน > 8% ในธุรกิจ Cyclical</strong> — ผลตอบแทนสุทธิจริงของโรงแรมภูเก็ตเพียง 5-7% ส่วนเกินมักซ่อนในราคาขาย</li>
+      <li><strong>Position Sizing — ห้ามนำเงินเก็บเกือบทั้งหมดลงในสินทรัพย์เดียว</strong> — ไม่เกิน 1-2% ของ Portfolio สำหรับ high-risk product</li>
+      <li><strong>Due Diligence ต้องใช้ตัวเลข ไม่ใช่ Narrative</strong> — ขอ GOP จริง, งบการเงิน, Third-party Audit, ไม่ใช่แค่โบรชัวร์สวยๆ</li>
+      <li><strong>ตรวจว่าใครเป็น Related Party</strong> — ถ้าผู้จำนองหลักประกันเป็นบริษัทในเครือ ≠ หลักประกันอิสระ</li>
+      <li><strong>ถ้าไม่มี Independent Trustee / Escrow → ถอย</strong> — ไม่มีคนกลางดูแล = คุณอยู่ท้ายแถว Waterfall แน่นอน</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-left:5px solid var(--blue)">
+    <h3><span class="icon">🔧</span> สำหรับผู้เสียหายปัจจุบัน</h3>
+    <ul>
+      <li><strong>รวบรวมเอกสารทั้งหมด</strong> — สัญญาซื้อ/สัญญาเช่า/สัญญารับซื้อคืน/ใบเสร็จ/หลักฐานการโอนเงิน</li>
+      <li><strong>ตรวจราชกิจจานุเบกษา</strong> — ค้นหาประกาศคำสั่งพิทักษ์ทรัพย์เด็ดขาดของ ซิซซา กรุ๊ป (ทะเบียน 0835553009874)</li>
+      <li><strong>ยื่นคำขอรับชำระหนี้</strong> — ภายใน 2 เดือนนับจากวันโฆษณาคำสั่งพิทักษ์ทรัพย์ (หากมีคำสั่งจริง)</li>
+      <li><strong>รวมกลุ่มผู้เสียหาย</strong> — ยื่นคัดค้านแผนประนอมหนี้ที่ไม่เป็นธรรม + พิจารณาว่าจะฟ้องผู้บริหารเป็นส่วนตัวได้หรือไม่</li>
+      <li><strong>ปรึกษาทนายที่เชี่ยวชาญคดีล้มละลาย</strong> — ไม่ใช่ทนายทั่วไป ต้องเป็นผู้เชี่ยวชาญเฉพาะทาง</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CAVEATS -->
+<!-- ═══════════════════════════════════════ -->
+<div class="section" id="caveats">
+  <div class="sec-header">
+    <span class="sec-num-badge">⚠</span>
+    <h2>Caveats — ข้อจำกัดของข้อมูล</h2>
+  </div>
+
+  <div class="card" style="background:#fef9e7;border:1px solid #f0e0c0">
+    <ul>
+      <li>⚠ <strong>คำสั่งพิทักษ์ทรัพย์เด็ดขาด 18 มี.ค. 2569</strong> และแผนประนอมหนี้คืน ~20% — <strong>ยังไม่ยืนยัน</strong>จากแหล่งสาธารณะ ต้องตรวจจากราชกิจจานุเบกษาและศาลล้มละลายกลางโดยตรง</li>
+      <li>⚠ การไถ่ถอนหุ้นกู้ CISSA221A เต็มจำนวนในเดือน ธ.ค. 2568 — ยืนยันจากเอกสาร บล.ดาโอ ฉบับที่ 14-15 (แหล่งของฝ่ายเจ้าหนี้)</li>
+      <li>⚠ โพสต์ของน้าต๋อยไม่ได้ระบุชื่อบริษัทโดยตรง — การเชื่อมโยงกับ CISSA/Wyndham Nai Harn เป็นการตีความของสื่อ</li>
+      <li>⚠ ตัวเลขเงินลงทุน ~10 ล้านบาท และจำนวนผู้เสียหาย "หลายร้อยคน" ยังไม่มีตัวเลขทางการยืนยัน</li>
+      <li>⚠ มูลค่าโครงการ ~2,800 ล้านบาท เป็นตัวเลขจากช่วงเปิดตัว — อาจคลาดเคลื่อนจากตัวเลขภายหลัง</li>
+      <li>⚠ เอกสารนี้เป็นการวิเคราะห์จากข้อมูลสาธารณะ — <strong>ไม่ใช่คำแนะนำทางการเงินหรือกฎหมาย</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>วิเคราะห์จากข้อมูลสาธารณะ — มิถุนายน 2569</p>
+  <p>แหล่งข้อมูลหลัก: ThaiBMA, ประชาชาติธุรกิจ, DAOL Securities, cissagroup.com, FazWaz, TOPNEWS, Knight Frank Thailand</p>
+  <p style="margin-top:8px;font-size:.85em">⚠ ข้อมูลนี้จัดทำเพื่อเป็นกรณีศึกษาเท่านั้น ไม่ใช่คำแนะนำทางการเงินหรือกฎหมาย ผู้อ่านควรใช้วิจารณญาณและปรึกษาผู้เชี่ยวชาญก่อนตัดสินใจ</p>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// Font size control
+let fs = 16;
+function changeFontSize(d){
+  fs = Math.max(12, Math.min(24, fs + d));
+  document.documentElement.style.setProperty('--fs', fs + 'px');
+}
+
+// TOC toggle
+function toggleTOC(){
+  document.getElementById('tocOverlay').classList.toggle('open');
+}
+
+// Close TOC on Escape
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') document.getElementById('tocOverlay').classList.remove('open');
+});
+</script>
+</body>
+</html>
