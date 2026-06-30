@@ -98,6 +98,7 @@
   .ctl.active{color:#fff;background:var(--accent);border-color:var(--accent)}
   .ma-group.disabled{opacity:.35;pointer-events:none}
   .ma-group.disabled .glbl::after{content:" · daily, stacked only";text-transform:none;letter-spacing:0;font-style:italic;color:var(--ink-dim);margin-left:4px}
+  .ctl-toggle{display:none}
 
   footer{margin-top:60px;padding-top:28px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);flex-wrap:wrap;gap:12px}
   footer span em{font-style:normal;color:var(--ink)}
@@ -106,6 +107,70 @@
     .wrap{padding:36px 20px 60px}
     .chart-canvas-wrap{height:380px}
     .window-bar{padding:6px 10px;gap:8px}
+  }
+
+  @media (max-width:480px){
+    .wrap{padding:20px 12px 36px}
+    header{padding-bottom:14px;margin-bottom:14px;gap:8px}
+    h1{font-size:22px}
+    .subtitle{display:none}
+    .eyebrow{font-size:9px;margin-bottom:6px}
+
+    .global-toggle{padding:8px 12px;margin-bottom:12px;gap:10px}
+    .global-toggle .lbl{font-size:9px}
+    .seg button{padding:7px 12px;font-size:10px}
+
+    .window-bar{padding:6px 8px;gap:6px;flex-wrap:wrap}
+    .window-bar .seg{order:1}
+    .window-bar .seg button{padding:5px 8px;font-size:9.5px}
+    .window-bar .nav-btn{order:2}
+    .window-bar .scrubber{order:3;min-width:100%;margin-top:2px}
+
+    .chart-block{margin-bottom:28px}
+    .chart-head{margin-bottom:10px;padding-bottom:8px;gap:10px}
+    .chart-title{font-size:18px}
+    .chart-card{padding:10px 8px 8px}
+    .chart-canvas-wrap{height:220px}
+
+    .controls{display:none;gap:8px;margin-top:8px}
+    .controls.mob-open{display:flex}
+    .ctl{padding:5px 8px;font-size:9px;letter-spacing:0.04em}
+    .ctl-group{gap:5px}
+    .ctl-group .glbl{font-size:8.5px;margin-right:2px}
+
+    .ctl-toggle{display:flex !important;align-items:center;justify-content:center;gap:4px;margin-top:8px;padding:6px 0;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-dim);background:transparent;border:1px solid var(--rule);border-radius:6px;cursor:pointer;width:100%;transition:all .15s}
+    .ctl-toggle:hover{color:var(--ink);border-color:var(--ink-dim)}
+    .ctl-toggle .arrow{transition:transform .2s;font-size:12px}
+    .ctl-toggle.open .arrow{transform:rotate(180deg)}
+
+    footer{margin-top:32px;padding-top:16px;font-size:10px}
+  }
+
+  @media (orientation:landscape) and (max-height:500px){
+    .wrap{padding:14px 20px 32px}
+    header{padding-bottom:10px;margin-bottom:10px;gap:8px}
+    h1{font-size:22px}
+    .subtitle{display:none}
+    .eyebrow{font-size:9px;margin-bottom:4px}
+
+    .global-toggle{padding:6px 14px;margin-bottom:8px}
+    .global-toggle .lbl{font-size:9px}
+
+    .window-bar{margin-bottom:16px;padding:4px 10px;gap:6px}
+    .window-bar .seg button{padding:4px 9px;font-size:9.5px}
+    .nav-btn{width:22px;height:22px;font-size:12px}
+
+    .chart-block{margin-bottom:20px}
+    .chart-head{margin-bottom:8px;padding-bottom:6px}
+    .chart-title{font-size:18px}
+    .chart-card{padding:10px 12px 8px}
+    .chart-canvas-wrap{height:260px}
+
+    .ctl{padding:5px 9px;font-size:9.5px}
+    .ctl-group .glbl{font-size:9px}
+    .controls{margin-top:8px;gap:10px}
+
+    footer{margin-top:24px;padding-top:12px;font-size:10px}
   }
 
   /* Auth overlay */
@@ -138,7 +203,7 @@
   <header>
     <div>
       <p class="eyebrow" id="dateRange">24 August 2022 to ...</p>
-      <h1>Daily/Monthly Production &amp; Installation</h1>
+      <h1>Production &amp; Installation</h1>
       <p class="subtitle">Toggle to show : Factory / Pile Type / Moving Average Line / Contribution Profit / etc.</p>
     </div>
   </header>
@@ -175,6 +240,7 @@
     </div>
     <div class="chart-card">
       <div class="chart-canvas-wrap"><canvas id="c3"></canvas></div>
+      <button class="ctl-toggle" onclick="toggleControls(this)" aria-label="Toggle chart settings"><span>Settings</span> <span class="arrow">▾</span></button>
       <div class="controls">
         <div class="ctl-group ma-group" id="maGroup3" data-chart="3">
           <span class="glbl">MA</span>
@@ -203,6 +269,7 @@
     </div>
     <div class="chart-card">
       <div class="chart-canvas-wrap"><canvas id="c2"></canvas></div>
+      <button class="ctl-toggle" onclick="toggleControls(this)" aria-label="Toggle chart settings"><span>Settings</span> <span class="arrow">▾</span></button>
       <div class="controls">
         <div class="ctl-group">
           <div id="factorySeg2"></div>
@@ -234,6 +301,7 @@
     </div>
     <div class="chart-card">
       <div class="chart-canvas-wrap"><canvas id="c1"></canvas></div>
+      <button class="ctl-toggle" onclick="toggleControls(this)" aria-label="Toggle chart settings"><span>Settings</span> <span class="arrow">▾</span></button>
       <div class="controls">
         <div class="ctl-group">
           <div id="factorySeg1"></div>
@@ -264,6 +332,16 @@
 </div>
 
 <script>
+// === Mobile Helpers ===
+function isMobile(){ return window.innerWidth <= 480; }
+function isLandscapePhone(){ return window.innerHeight <= 500 && window.innerWidth > window.innerHeight; }
+function isCompact(){ return isMobile() || isLandscapePhone(); }
+function toggleControls(btn){
+  const controls = btn.nextElementSibling;
+  const isOpen = controls.classList.toggle('mob-open');
+  btn.classList.toggle('open', isOpen);
+}
+
 // === Password & Decryption ===
 async function decrypt(encData, password) {
   const colonIdx = encData.indexOf(':');
@@ -490,7 +568,8 @@ const monthDividerPlugin = {
     ctx.setLineDash([]);
 
     // 2) Floating labels
-    const fontSize = visible <= 35 ? 11 : (visible <= 100 ? 11 : (useQuarters ? 12 : 10));
+    const baseFontSize = visible <= 35 ? 11 : (visible <= 100 ? 11 : (useQuarters ? 12 : 10));
+    const fontSize = isCompact() ? Math.max(8, baseFontSize - 2) : baseFontSize;
     const lineGap = 1;       // px between stacked lines
     ctx.font = `500 ${fontSize}px "JetBrains Mono", monospace`;
     ctx.textBaseline = 'top';
@@ -991,8 +1070,8 @@ function baseOptions(chartId, isService=false){
         position:'bottom',
         labels:{
           color:'#1a1d24',
-          font:{family:'JetBrains Mono',size:11},
-          boxWidth:12,boxHeight:12,padding:14,usePointStyle:false
+          font:{family:'JetBrains Mono',size:isCompact()?9:11},
+          boxWidth:isCompact()?8:12,boxHeight:isCompact()?8:12,padding:isCompact()?6:14,usePointStyle:false
         }
       },
       tooltip:{
@@ -1002,10 +1081,10 @@ function baseOptions(chartId, isService=false){
         borderColor:'#3a4150',
         borderWidth:1,
         cornerRadius:6,
-        titleFont:{family:'Fraunces',size:13,weight:'400'},
-        bodyFont:{family:'JetBrains Mono',size:13,weight:'500'},
-        padding:12,
-        boxPadding:6,
+        titleFont:{family:'Fraunces',size:isCompact()?11:13,weight:'400'},
+        bodyFont:{family:'JetBrains Mono',size:isCompact()?11:13,weight:'500'},
+        padding:isCompact()?8:12,
+        boxPadding:isCompact()?4:6,
         displayColors:true,
         callbacks:{
           title: items => items.length ? tooltipTitleText(chartId, items[0].label) : '',
@@ -1086,10 +1165,10 @@ function baseOptions(chartId, isService=false){
         grid:{display:false},
         ticks:{
           color:'#6b6f78',
-          font:{family:'JetBrains Mono',size:10},
+          font:{family:'JetBrains Mono',size:isCompact()?8:10},
           maxRotation:0,
           autoSkip:true,
-          maxTicksLimit: tickLimit,
+          maxTicksLimit: isMobile() ? Math.max(6, Math.floor(tickLimit * 0.6)) : tickLimit,
           callback: function(value, index){
             const lbl = this.getLabelForValue(value);
             if (!lbl || typeof lbl !== 'string') return lbl;
@@ -1115,10 +1194,10 @@ function baseOptions(chartId, isService=false){
         grid:{color:'#ececec',drawBorder:false},
         ticks:{
           color:'#6b6f78',
-          font:{family:'JetBrains Mono',size:12},
+          font:{family:'JetBrains Mono',size:isCompact()?9:12},
           callback:(v)=>fmt(v)
         },
-        title:{display:true,text: granularity==='monthly' ? 'm³ / mth' : 'm³ / day',color:'#6b6f78',font:{family:'JetBrains Mono',size:12}}
+        title:{display:true,text: granularity==='monthly' ? 'm³ / mth' : 'm³ / day',color:'#6b6f78',font:{family:'JetBrains Mono',size:isCompact()?9:12}}
       },
       y1:{
         display: (chartId === '1' || chartId === '2' || chartId === '3') && financialViews[chartId] && financialViews[chartId].size > 0,
@@ -1127,10 +1206,10 @@ function baseOptions(chartId, isService=false){
         grid: {drawOnChartArea: false},
         ticks: {
           color:'#6b6f78',
-          font:{family:'JetBrains Mono',size:11},
+          font:{family:'JetBrains Mono',size:isCompact()?9:11},
           callback: (v) => fmtTHB(v)
         },
-        title: {display: true, text: 'THB / m³', color:'#6b6f78', font:{family:'JetBrains Mono',size:12}}
+        title: {display: true, text: 'THB / m³', color:'#6b6f78', font:{family:'JetBrains Mono',size:isCompact()?9:12}}
       }
     }
   };
@@ -1213,6 +1292,7 @@ function panCharts(){
   else if (visible <= 200) tickLimit = 12;
   else if (visible <= 400) tickLimit = 14;
   else tickLimit = 18;
+  if (isMobile()) tickLimit = Math.max(6, Math.floor(tickLimit * 0.6));
   for (const id of ['1','2','3']){
     const ch = charts[id];
     ch.options.scales.x.min = xMin;
