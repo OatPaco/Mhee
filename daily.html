@@ -244,9 +244,9 @@
       <div class="controls">
         <div class="ctl-group ma-group" id="maGroup3" data-chart="3">
           <span class="glbl">MA</span>
-          <button class="ctl" data-chart="3" data-ma="50">50d</button>
-          <button class="ctl" data-chart="3" data-ma="100">100d</button>
-          <button class="ctl active" data-chart="3" data-ma="200">200d</button>
+          <button class="ctl" data-chart="3" data-ma="30">30d</button>
+          <button class="ctl" data-chart="3" data-ma="90">90d</button>
+          <button class="ctl active" data-chart="3" data-ma="180">180d</button>
         </div>
         <div class="ctl-group fin-group" id="finGroup3" data-chart="3">
           <button class="ctl" data-chart="3" data-fin="revenue">Rev/m³</button>
@@ -276,9 +276,9 @@
         </div>
         <div class="ctl-group ma-group" id="maGroup2" data-chart="2">
           <span class="glbl">MA</span>
-          <button class="ctl" data-chart="2" data-ma="50">50d</button>
-          <button class="ctl" data-chart="2" data-ma="100">100d</button>
-          <button class="ctl active" data-chart="2" data-ma="200">200d</button>
+          <button class="ctl" data-chart="2" data-ma="30">30d</button>
+          <button class="ctl" data-chart="2" data-ma="90">90d</button>
+          <button class="ctl active" data-chart="2" data-ma="180">180d</button>
         </div>
         <div class="ctl-group fin-group" id="finGroup2" data-chart="2">
           <button class="ctl" data-chart="2" data-fin="revenue">Rev/m³</button>
@@ -311,9 +311,9 @@
         </div>
         <div class="ctl-group ma-group" id="maGroup1" data-chart="1">
           <span class="glbl">MA</span>
-          <button class="ctl" data-chart="1" data-ma="50">50d</button>
-          <button class="ctl" data-chart="1" data-ma="100">100d</button>
-          <button class="ctl active" data-chart="1" data-ma="200">200d</button>
+          <button class="ctl" data-chart="1" data-ma="30">30d</button>
+          <button class="ctl" data-chart="1" data-ma="90">90d</button>
+          <button class="ctl active" data-chart="1" data-ma="180">180d</button>
         </div>
         <div class="ctl-group fin-group" id="finGroup1" data-chart="1">
           <button class="ctl" data-chart="1" data-fin="revenue">Rev/m³</button>
@@ -436,9 +436,9 @@ function pcColorFor(name, idxInProduct){
 // (PC: cool blues/greens + warm tans/reds; SP: mixed; Installation: blue/tan/olive).
 // Saturated, distinctive, with adequate contrast on white when drawn as thin lines.
 const MA_COLORS = {
-  '50':  '#ff7a3d',   // bright orange  — short-term trend
-  '100': '#6e3ea8',   // deep purple   — medium-term trend
-  '200': '#e93a87'    // hot pink      — long-term trend
+  '30':  '#ff7a3d',   // bright orange  — short-term trend
+  '90':  '#6e3ea8',   // deep purple   — medium-term trend
+  '180': '#e93a87'    // hot pink      — long-term trend
 };
 
 // Compute a simple moving average over an array.
@@ -637,9 +637,9 @@ for (const id of ['1','2']) {
 // Set contains 'I' and/or 'S'. Both = combined; one = that shape only.
 // At least one must remain selected.
 const shapeViews = {1:new Set(['I','S'])};
-// Moving-average overlay state: each chart has a Set of active periods ('50'|'100'|'200').
-// Empty set = MA off. Multi-select allowed so users can compare e.g. 50d + 200d crossovers.
-const maViews = {1: new Set(['200']), 2: new Set(['200']), 3: new Set(['200'])};
+// Moving-average overlay state: each chart has a Set of active periods ('30'|'90'|'180').
+// Empty set = MA off. Multi-select allowed so users can compare e.g. 30d + 180d crossovers.
+const maViews = {1: new Set(['180']), 2: new Set(['180']), 3: new Set(['180'])};
 const charts = {};
 
 const TOTAL_DAYS = DATA.daily_labels.length;
