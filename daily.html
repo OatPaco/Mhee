@@ -375,11 +375,22 @@ async function unlock() {
   err.textContent = '';
   loading.style.display = 'block';
   try {
-    const resp = await fetch('daily_data.enc');
-    if (!resp.ok) throw new Error('ไม่สามารถโหลดข้อมูลได้');
-    const encrypted = await resp.text();
-    const json = await decrypt(encrypted, pwd);
-    const data = JSON.parse(json); // throws if wrong password
+    // Try primary encrypted file first
+    const encFiles = ['daily_data.enc', 'daily_data_2.enc'];
+    let data = null;
+    for (let i = 0; i < encFiles.length; i++) {
+      try {
+        const resp = await fetch(encFiles[i]);
+        if (!resp.ok) continue;
+        const encrypted = await resp.text();
+        const json = await decrypt(encrypted, pwd);
+        data = JSON.parse(json);
+        break; // success — stop trying
+      } catch (inner) {
+        // wrong password for this file, try next
+      }
+    }
+    if (!data) throw new Error('no match');
     document.getElementById('authOverlay').remove();
     document.getElementById('dashboardWrap').style.display = '';
     initDashboard(data);
