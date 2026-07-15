@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>คู่มือซ่อม Kobelco SK200SR — แหล่งซื้อและดาวน์โหลด (ฉบับสมบูรณ์)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#F4F6FA;--surface:#FFFFFF;--surface-2:#EEF1F8;--surface-3:#E4E9F4;
+  --border:#D8DFF0;--border-2:#C6D0E8;
+  --blue:#1A4A96;--blue-lt:#2B63C8;--blue-pale:#E8EEFA;--blue-faint:#F2F5FD;
+  --amber:#C9720A;--amber-pale:#FDF2E4;--amber-border:#F0C48A;
+  --green:#166B3F;--green-pale:#E3F4EC;--green-border:#8ECFB0;
+  --red:#A82828;--red-pale:#FDEAEA;--red-border:#F0AAAA;
+  --yellow:#8A6200;--yellow-pale:#FFFAE8;--yellow-border:#E8D080;
+  --text:#18213A;--text-2:#3D4E6A;--text-3:#6B7A96;--text-4:#9AA3B8;
+  --mono:'IBM Plex Mono',monospace;--sans:'Sarabun',system-ui,sans-serif;
+  --r:10px;--r-sm:6px;--r-lg:14px;
+  --sh:0 1px 4px rgba(26,74,150,.07),0 2px 10px rgba(26,74,150,.05);
+  --sh-md:0 4px 20px rgba(26,74,150,.10),0 2px 6px rgba(0,0,0,.05);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.7;font-size:14.5px}
+a{color:var(--blue-lt);text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:4px;color:var(--blue)}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(140deg,#0B2459 0%,#1A4A96 52%,#2258B8 100%);color:#fff;padding:52px 24px 60px;text-align:center;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M0 20 L20 0 L40 20 L20 40 Z'/%3E%3C/g%3E%3C/svg%3E")}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.92);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 13px;border-radius:999px;margin-bottom:18px}
+.hero h1{font-size:clamp(24px,5vw,40px);font-weight:800;letter-spacing:-.025em;line-height:1.15;margin-bottom:12px;position:relative}
+.hero h1 em{font-style:normal;color:#93C5FD}
+.hero-sub{font-size:14.5px;opacity:.8;max-width:560px;margin:0 auto 24px;line-height:1.6;position:relative}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;position:relative}
+.hero-chips span{background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.88);font-size:11.5px;padding:3px 11px;border-radius:6px}
+
+/* ── NAV / TOC ── */
+.toc{background:var(--surface);border-bottom:2px solid var(--border);padding:12px 24px;position:sticky;top:0;z-index:100;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.toc a{font-size:12px;font-weight:600;color:var(--text-2);padding:5px 12px;border-radius:6px;border:1px solid transparent;white-space:nowrap;transition:all .15s}
+.toc a:hover{background:var(--blue-pale);color:var(--blue);border-color:var(--border-2);text-decoration:none}
+
+/* ── LAYOUT ── */
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+.section{padding:40px 0 4px}
+.sec-label{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+.sec-label::before{content:'';width:14px;height:3px;background:var(--blue);border-radius:2px}
+.sec-title{font-size:21px;font-weight:800;color:var(--text);margin-bottom:20px;letter-spacing:-.01em}
+.sec-title small{font-size:13px;font-weight:500;color:var(--text-3);margin-left:8px;letter-spacing:0}
+
+/* ── TLDR ── */
+.tldr{background:var(--blue-faint);border:1.5px solid var(--border-2);border-radius:var(--r-lg);padding:20px 24px;margin:28px 0 0}
+.tldr-title{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.tldr ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+.tldr li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--text-2);line-height:1.55}
+.tldr li::before{content:'✓';color:var(--blue);font-weight:800;flex-shrink:0;margin-top:1px}
+.tldr strong{color:var(--text)}
+
+/* ── CARD ── */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;box-shadow:var(--sh);margin-bottom:14px}
+.card+.card{margin-top:0}
+.card-hd{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.card-icon{width:38px;height:38px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.card-title{font-size:15px;font-weight:700;color:var(--text)}
+.card-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+
+/* ── ALERTS ── */
+.alert{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;border-radius:var(--r-sm);font-size:13px;margin-bottom:12px;line-height:1.55}
+.alert:last-child{margin-bottom:0}
+.alert-ico{font-size:17px;flex-shrink:0;margin-top:1px}
+.alert-body{color:var(--text-2)}
+.alert-body strong{color:var(--text)}
+.alert.info{background:var(--blue-faint);border:1px solid var(--border-2)}
+.alert.warn{background:var(--yellow-pale);border:1px solid var(--yellow-border)}
+.alert.danger{background:var(--red-pale);border:1px solid var(--red-border)}
+.alert.ok{background:var(--green-pale);border:1px solid var(--green-border)}
+.alert.amber{background:var(--amber-pale);border:1px solid var(--amber-border)}
+
+/* ── SERIAL / VARIANT TABLE ── */
+.variant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:4px}
+.variant-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.variant-card h4{font-size:12.5px;font-weight:800;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.04em}
+.serial-badge{font-family:var(--mono);font-size:10.5px;font-weight:600;background:var(--blue);color:#fff;padding:2px 7px;border-radius:4px}
+.serial-badge.green{background:var(--green)}
+.vtable{width:100%;border-collapse:collapse;font-size:12.5px}
+.vtable td{padding:4px 4px;color:var(--text-2);vertical-align:middle}
+.vtable td:first-child{color:var(--text);font-weight:600;font-family:var(--mono);font-size:11.5px;width:52%}
+.vtable tr:not(:last-child) td{border-bottom:1px dashed var(--border)}
+
+/* ── TAG ── */
+.tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:5px;text-transform:uppercase}
+.tag.blue{background:var(--blue-pale);color:var(--blue)}
+.tag.amber{background:var(--amber-pale);color:var(--amber)}
+.tag.green{background:var(--green-pale);color:var(--green)}
+.tag.red{background:var(--red-pale);color:var(--red)}
+.tag.grey{background:var(--surface-3);color:var(--text-3)}
+
+/* ── ENGINE BAR ── */
+.engine-bar{display:flex;flex-wrap:wrap;gap:0;background:linear-gradient(90deg,var(--blue-faint),var(--surface-2));border:1px solid var(--border-2);border-radius:var(--r);margin-top:14px;overflow:hidden}
+.e-stat{flex:1;min-width:100px;padding:12px 16px;border-right:1px solid var(--border)}
+.e-stat:last-child{border-right:none}
+.e-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:4px}
+.e-val{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--blue)}
+.e-note{font-size:11px;color:var(--text-3);margin-top:2px}
+
+/* ── PUB NUMBERS ── */
+.pub-list{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.pub-item{display:flex;align-items:flex-start;gap:14px;padding:13px 16px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--r);border-left:4px solid var(--blue)}
+.pub-item.amber{border-left-color:var(--amber)}
+.pub-num{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--blue);white-space:nowrap;padding-top:2px;min-width:145px}
+.pub-item.amber .pub-num{color:var(--amber)}
+.pub-body{font-size:13px;color:var(--text-2);line-height:1.5}
+.pub-body strong{color:var(--text);display:block;margin-bottom:2px;font-size:13.5px}
+
+/* ── VENDOR TABLE ── */
+.vendor-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+.vendor-table thead th{background:var(--surface-2);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);padding:9px 12px;border-bottom:2px solid var(--border);text-align:left}
+.vendor-table thead th:last-child,.vendor-table thead th:nth-child(4){text-align:center}
+.vendor-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
+.vendor-table tbody tr:hover{background:var(--blue-faint)}
+.vendor-table tbody tr:last-child{border-bottom:none}
+.vendor-table td{padding:10px 12px;vertical-align:top;color:var(--text-2);line-height:1.5}
+.vendor-table td:first-child{font-weight:700;color:var(--text);white-space:nowrap}
+.vendor-table td.center{text-align:center}
+.price-chip{display:inline-block;font-family:var(--mono);font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:5px}
+.price-chip.paid{background:var(--amber-pale);color:var(--amber)}
+.price-chip.free{background:var(--surface-3);color:var(--text-3)}
+.price-chip.dealer{background:var(--blue-pale);color:var(--blue)}
+.price-chip.usd{background:var(--green-pale);color:var(--green)}
+.rel-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.rel-dot.hi{background:#22C55E}.rel-dot.mid{background:#F59E0B}.rel-dot.lo{background:#EF4444}
+.lbtn{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:var(--blue);background:var(--blue-faint);border:1px solid var(--border-2);padding:3px 9px;border-radius:5px;white-space:nowrap;transition:background .12s}
+.lbtn:hover{background:var(--blue-pale);text-decoration:none}
+.lbtn::after{content:'↗';font-size:9px;opacity:.7}
+
+/* ── DEALER CARD ── */
+.dealer-box{background:linear-gradient(135deg,var(--blue-faint) 0%,var(--surface-2) 100%);border:1.5px solid var(--border-2);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:14px}
+.dealer-box h3{font-size:15px;font-weight:800;color:var(--blue);margin-bottom:4px}
+.dealer-box .dealer-meta{font-size:12.5px;color:var(--text-3);margin-bottom:14px}
+.contact-chips{display:flex;flex-wrap:wrap;gap:8px}
+.c-chip{display:flex;align-items:center;gap:6px;font-size:12.5px;padding:6px 12px;background:#fff;border:1px solid var(--border-2);border-radius:8px;color:var(--text-2)}
+.c-chip .ico{font-size:14px}
+
+/* ── SHOP GRID ── */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.shop-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.shop-card h4{font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:6px}
+.shop-card p{font-size:12.5px;color:var(--text-2);margin-bottom:10px;line-height:1.55}
+
+/* ── STEPS ── */
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:16px;align-items:flex-start;padding:14px 0;border-bottom:1px dashed var(--border)}
+.step:last-child{border-bottom:none}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--text-2);line-height:1.55}
+
+/* ── CAVEAT LIST ── */
+.caveat-list{display:flex;flex-direction:column;gap:9px}
+.caveat-item{display:flex;gap:10px;font-size:13px;color:var(--text-2);align-items:flex-start;line-height:1.55}
+.caveat-item .bul{width:6px;height:6px;border-radius:50%;background:var(--text-4);flex-shrink:0;margin-top:7px}
+
+/* ── MISC ── */
+.divider{border:none;border-top:1.5px solid var(--border);margin:10px 0 24px}
+footer{text-align:center;font-size:12px;color:var(--text-4);padding:40px 24px 36px;border-top:1px solid var(--border);margin-top:28px;line-height:1.8}
+@media(max-width:620px){
+  .vendor-table thead th:nth-child(3),.vendor-table td:nth-child(3){display:none}
+  .toc{gap:4px}
+  .toc a{font-size:11px;padding:4px 9px}
+  .engine-bar{flex-direction:column}
+  .e-stat{border-right:none;border-bottom:1px solid var(--border)}
+  .e-stat:last-child{border-bottom:none}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">📋 Service &amp; Parts Manual Guide</div>
+  <h1>Kobelco <em>SK200SR</em><br/>คู่มือซ่อม &amp; Parts Catalog</h1>
+  <p class="hero-sub">แหล่งซื้อ-ดาวน์โหลดคู่มือซ่อม (Shop Manual) และคู่มืออะไหล่ (Parts Catalog) ครบทุก variant พร้อม Publication Numbers ทางการ, แหล่งไทย, และขั้นตอนการซื้อ</p>
+  <div class="hero-chips">
+    <span>Short Radius Excavator</span>
+    <span>Isuzu 4BG1T Turbo</span>
+    <span>YB / LA Serial Prefix</span>
+    <span>PDF + เล่มจริง</span>
+    <span>ไทย / ENG / JPN</span>
+  </div>
+</div>
+
+<!-- TOC -->
+<nav class="toc">
+  <a href="#tldr">⚡ TL;DR</a>
+  <a href="#s1">1 · ระบุรุ่น</a>
+  <a href="#s2">2 · คู่มือซ่อม</a>
+  <a href="#s3">3 · Parts Catalog</a>
+  <a href="#s4">4 · แหล่งไทย</a>
+  <a href="#s5">5 · ขั้นตอน</a>
+  <a href="#caveats">⚠️ ข้อควรระวัง</a>
+</nav>
+
+<div class="wrap">
+
+<!-- ── TL;DR ── -->
+<div id="tldr" class="tldr" style="margin-top:32px">
+  <div class="tldr-title">⚡ สรุปสั้น — TL;DR</div>
+  <ul>
+    <li><strong>ดูเลขซีเรียลก่อนซื้อทุกครั้ง</strong> — แผ่น serial อยู่ใต้ประตูข้างตัวรถ / บน upper frame รูปแบบ <code>YB04-02350</code> หรือ <code>LA01-01050</code></li>
+    <li><strong>คู่มือซ่อม PDF ภาษาอังกฤษ</strong> — ซื้อได้ทันที ~34–36 USD จาก <a href="https://therepairmanual.com/kobelco/kobelco-sk200sr-and-sk200sr-lc-excavator-service-manual" class="lbtn">TheRepairManual</a> (ระบุ pub number ชัด)</li>
+    <li><strong>ในไทย</strong> — ดีลเลอร์ทางการ <a href="https://www.ariyagroup.com/th" class="lbtn">Ariya Equipment</a> โทร 02-730-7111 | ร้าน <a href="http://www.tools111.com" class="lbtn">tools111.com</a> | พิมพ์ A3 ผ่าน ShopManual2You 08-9260-9531</li>
+    <li><strong>3 Publication Numbers ทางการ</strong> — <code>S5YB0001E</code>, <code>S5YB0002E</code>, <code>S5YB0003E-01NA</code> (เลือกตามช่วง serial)</li>
+    <li><strong>SK200SR ≠ SK200-6 / 6E / SK210</strong> — คนละแพลตฟอร์ม คนละเครื่องยนต์ คู่มือไม่ใช้ร่วมกัน — ระวังซื้อผิด</li>
+  </ul>
+</div>
+
+<!-- ══════════ SECTION 1 ══════════ -->
+<div id="s1" class="section">
+  <div class="sec-label">Section 1</div>
+  <div class="sec-title">🔍 Model Identification <small>การระบุรุ่น variant และเลขซีเรียล</small></div>
+
+  <!-- Serial plate location -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-icon" style="background:var(--blue-faint)">🏷️</div>
+      <div><div class="card-title">ตำแหน่ง Serial Number Plate</div><div class="card-sub">ดูก่อนซื้อคู่มือ — สำคัญมาก</div></div>
+    </div>
+    <p style="font-size:13.5px;color:var(--text-2);margin-bottom:14px;line-height:1.6">
+      บนรถขุด Kobelco แผ่น VIN/serial อยู่ที่ <strong style="color:var(--text)">ใต้ประตูด้านข้างตัวรถ (side of machine, under the door)</strong> นอกจากนี้เลขซีเรียลจะตอกไว้บน upper frame ด้วย และมี name plate ในห้องเก๋ง รูปแบบเลข 9 หลัก เช่น <code>YB04-02301</code> หรือ <code>LA01-01050</code>
+    </p>
+    <div class="engine-bar">
+      <div class="e-stat"><div class="e-lbl">เครื่องยนต์</div><div class="e-val">Isuzu 4BG1T</div><div class="e-note">4 สูบ Turbo Diesel</div></div>
+      <div class="e-stat"><div class="e-lbl">Model (ทางการ)</div><div class="e-val">AA-4BG1TC</div><div class="e-note">/ 4BG1TXBFA</div></div>
+      <div class="e-stat"><div class="e-lbl">กำลัง (net)</div><div class="e-val">123 HP</div><div class="e-note">91.9 kW @ 2,200 rpm</div></div>
+      <div class="e-stat"><div class="e-lbl">ความจุ</div><div class="e-val">4.33 L</div><div class="e-note">264 cu in</div></div>
+      <div class="e-stat"><div class="e-lbl">น้ำหนัก (SRLC)*</div><div class="e-val">~22 ตัน</div><div class="e-note">48,500 lb (VeriTread)</div></div>
+      <div class="e-stat"><div class="e-lbl">ปีผลิต</div><div class="e-val">2003–2004</div><div class="e-note">LECTURA Specs</div></div>
+    </div>
+    <div class="alert warn" style="margin-top:12px">
+      <div class="alert-ico">⚠️</div>
+      <div class="alert-body">
+        <strong>ไม่ใช่ Hino หรือ Mitsubishi 6D34</strong> — SK200SR ใช้ Isuzu <strong>4BG1T (4 สูบ)</strong> ซึ่งต่างจาก SK200-6/6E/SK210 ที่ใช้ Mitsubishi 6D34-T (6 สูบ) — คู่มือแยกกันคนละชุด ไม่ใช้ร่วมกันได้ หมายเหตุ: แหล่งขาย epcatalogs ระบุ "A-4BG1/<strong>A-6BG1</strong>" ซึ่งเป็นการรวม scope คู่มือเครื่องยนต์ ไม่ใช่เครื่องที่ติดตั้งจริงใน SK200SR
+      </div>
+    </div>
+    <div class="alert info" style="margin-top:8px">
+      <div class="alert-ico">ℹ️</div>
+      <div class="alert-body">
+        <strong>หมายเหตุ Operating Weight:</strong> มีความคลาดเคลื่อนระหว่างแหล่ง — LECTURA ระบุ 19.9 ตัน ส่วน VeriTread/RitchieSpecs ระบุ 48,500 lb (~22 ตัน สำหรับ SK200SRLC) ความต่างมาจาก configuration และ variant (SR vs SRLC)
+      </div>
+    </div>
+  </div>
+
+  <!-- Variants & Serial Ranges -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-icon" style="background:var(--blue-faint)">📊</div>
+      <div><div class="card-title">Variants และช่วงเลขซีเรียล</div><div class="card-sub">ใช้เลือก Publication Number ที่ถูกต้อง</div></div>
+    </div>
+    <div class="variant-grid">
+      <div class="variant-card">
+        <h4><span class="serial-badge">YB</span> SK200SR — Standard</h4>
+        <table class="vtable">
+          <tr><td>YB01-01001~01555</td><td><span class="tag blue">S5YB0001E</span></td></tr>
+          <tr><td>YB02-01601~02049</td><td><span class="tag blue">S5YB0002E</span></td></tr>
+          <tr><td>YB03-02050~02199</td><td><span class="tag blue">S5YB0002E</span></td></tr>
+          <tr><td>YB04-02301~02550</td><td><span class="tag amber">S5YB0003E-01</span></td></tr>
+        </table>
+      </div>
+      <div class="variant-card">
+        <h4><span class="serial-badge green">LA</span> SK200SRLC — Long Crawler</h4>
+        <table class="vtable">
+          <tr><td>LA01-01001~01100</td><td><span class="tag blue">S5YB0001E</span></td></tr>
+          <tr><td>LA02-01201~01236</td><td><span class="tag blue">S5YB0002E</span></td></tr>
+          <tr><td>LA03-01237~01290</td><td><span class="tag blue">S5YB0002E</span></td></tr>
+          <tr><td>LA04-01501~01625</td><td><span class="tag amber">S5YB0003E-01</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-4);margin-top:10px">* LA04 = SK200SRLC-1S &nbsp;|&nbsp; YB04 = SK200SR-1S (รุ่นปรับปรุง, EU spec อาจเรียก -1S suffix)</p>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 2 ══════════ -->
+<div id="s2" class="section">
+  <div class="sec-label">Section 2 — PRIMARY</div>
+  <div class="sec-title">🔧 Shop / Service / Workshop Manual <small>แหล่งซื้อและดาวน์โหลด</small></div>
+
+  <!-- Pub Numbers -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-icon" style="background:var(--blue-faint)">📄</div>
+      <div><div class="card-title">Publication Numbers ทางการ Kobelco</div><div class="card-sub">ยืนยันตรงกัน 3 แหล่ง — ใช้ค้นหาเพื่อให้ได้คู่มือถูกต้องตาม serial</div></div>
+    </div>
+    <div class="pub-list">
+      <div class="pub-item">
+        <div class="pub-num">S5YB0001E</div>
+        <div class="pub-body">
+          <strong>SK200SR / SK200SRLC — March 2004</strong>
+          สำหรับ S/N YB01-01001~ / LA01-01001~ (รุ่นแรกที่ผลิต)
+        </div>
+      </div>
+      <div class="pub-item">
+        <div class="pub-num">S5YB0002E</div>
+        <div class="pub-body">
+          <strong>SK200SR / SK200SRLC</strong>
+          สำหรับ S/N YB02-01601~ / YB03-02050~ / LA02-01201~ / LA03-01237~
+        </div>
+      </div>
+      <div class="pub-item amber">
+        <div class="pub-num">S5YB0003E-01NA</div>
+        <div class="pub-body">
+          <strong>SK200SR-1S / SK200SRLC-1S — October 2004 (984 หน้า)</strong>
+          สำหรับ S/N YB04-02301~ / LA04-01501~ (รุ่นปรับปรุง -1S suffix, ตลาด NA)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF Vendors -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-icon" style="background:var(--amber-pale)">🛒</div>
+      <div><div class="card-title">แหล่งซื้อ PDF — ต่างประเทศ (ภาษาอังกฤษ)</div><div class="card-sub">ราคา 34–36 USD / searchable bookmarked PDF</div></div>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="vendor-table">
+      <thead>
+        <tr>
+          <th>แหล่ง</th>
+          <th>รายละเอียด / Variant ที่ครอบคลุม</th>
+          <th>ราคา</th>
+          <th style="text-align:center">ความน่าเชื่อถือ</th>
+          <th>ลิงก์</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>TheRepairManual</td>
+          <td>SK200SR/LC ครอบคลุม Pub 0001E+0002E+0003E — ระบุ pub number ชัดเจน PDF searchable/bookmarked</td>
+          <td><span class="price-chip usd">34 USD</span></td>
+          <td class="center"><span class="rel-dot hi"></span>สูง</td>
+          <td><a href="https://therepairmanual.com/kobelco/kobelco-sk200sr-and-sk200sr-lc-excavator-service-manual" class="lbtn">SK200SR/LC</a><br/><a href="https://therepairmanual.com/kobelco/kobelco-sk200sr-1s-sk200srlc-1s-excavator-service-manual" class="lbtn" style="margin-top:5px">SK200SR-1S (984p)</a></td>
+        </tr>
+        <tr>
+          <td>HeyDownloads</td>
+          <td>SK200SR/SRLC — มีตัวอย่างบน Issuu ดูได้ก่อนซื้อ</td>
+          <td><span class="price-chip paid">เช็คเว็บ</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://issuu.com/heydownloads" class="lbtn">Issuu Preview</a></td>
+        </tr>
+        <tr>
+          <td>afactorymanual</td>
+          <td>SK200SR/SRLC ~900 หน้า ระบุ "bookmarked/searchable"</td>
+          <td><span class="price-chip paid">เช็คเว็บ</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://afactorymanual.com" class="lbtn">afactorymanual.com</a></td>
+        </tr>
+        <tr>
+          <td>epcatalogs</td>
+          <td>SK200SR-1S/SRLC-1S — มี table of contents ละเอียด ระบุ Isuzu A-4BG1/A-6BG1 engine scope</td>
+          <td><span class="price-chip paid">เช็คเว็บ</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://www.epcatalogs.com/kobelco-sk200sr-1s-sk200srlc-1s-excavators-pdf-shop-manual" class="lbtn">epcatalogs.com</a></td>
+        </tr>
+        <tr>
+          <td>eManualOnline</td>
+          <td>SK200SRLC — เว็บใหญ่ มีระบบคืนเงิน (refund policy)</td>
+          <td><span class="price-chip paid">เช็คเว็บ</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://emanualonline.com" class="lbtn">emanualonline.com</a></td>
+        </tr>
+        <tr>
+          <td>servicemanualbit</td>
+          <td>Kobelco series รวมหลายรุ่น — ตรวจสอบ variant ก่อนซื้อ</td>
+          <td><span class="price-chip paid">เช็คเว็บ</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://www.servicemanualbit.com/kobelco/" class="lbtn">servicemanualbit.com</a></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Physical / Flash Drive -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-icon" style="background:var(--green-pale)">📦</div>
+      <div><div class="card-title">เล่มจริง / Flash Drive (Physical)</div><div class="card-sub">eBay, Amazon, GS Equipment (FL)</div></div>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="vendor-table">
+      <thead>
+        <tr><th>แหล่ง</th><th>รายละเอียด</th><th>ราคา</th><th style="text-align:center">ความน่าเชื่อถือ</th><th>ลิงก์</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>eBay (Service Manual)</td>
+          <td>เล่มพิมพ์ SK200 / SK200SRLC Service Manual — ส่งฟรี USPS Media Mail</td>
+          <td><span class="price-chip paid">เช็คราคา</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://www.ebay.com/itm/366118501951" class="lbtn">Item #366118501951</a></td>
+        </tr>
+        <tr>
+          <td>eBay (Parts Catalog)</td>
+          <td>SK200SR / SR-1S / SRLC / SRLC-1S Parts Catalog — เล่มจริง</td>
+          <td><span class="price-chip paid">เช็คราคา</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://www.ebay.com/itm/223470283951" class="lbtn">Item #223470283951</a></td>
+        </tr>
+        <tr>
+          <td>GS Equipment (FL, USA)</td>
+          <td>Flash drive รวม Shop + Operator + Parts PDF ครบชุด ~$50 (ข้อมูลจากสมาชิก HeavyEquipmentForums — ไม่มีเล่มกระดาษใหม่แล้ว)</td>
+          <td><span class="price-chip usd">~50 USD</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td>ค้นหา "GS Equipment Kobelco" บน Google</td>
+        </tr>
+        <tr>
+          <td>Yahoo Auctions Japan</td>
+          <td>คู่มือภาษาญี่ปุ่นต้นฉบับ — ค้นด้วย <code>SK200SR サービスマニュアル</code> (บางครั้งมีคู่มืออังกฤษด้วย)</td>
+          <td><span class="price-chip paid">แล้วแต่ listing</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://auctions.yahoo.co.jp" class="lbtn">auctions.yahoo.co.jp</a></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Free / Archive -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-icon" style="background:var(--surface-3)">🔓</div>
+      <div><div class="card-title">แหล่งฟรี / ราคาถูก</div><div class="card-sub">⚠️ คุณภาพไม่การันตี — ตรวจสอบก่อนใช้งาน</div></div>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="vendor-table">
+      <thead>
+        <tr><th>แหล่ง</th><th>รายละเอียด</th><th>ราคา</th><th style="text-align:center">ความน่าเชื่อถือ</th><th>ลิงก์</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Scribd</td>
+          <td>มี "Kobelco SK200SR SK200SRLC Service Repair Manual (S5YB0001E)" — ต้องสมัครสมาชิก</td>
+          <td><span class="price-chip free">สมัครสมาชิก</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://www.scribd.com" class="lbtn">scribd.com</a></td>
+        </tr>
+        <tr>
+          <td>ManualsLib</td>
+          <td>ตรวจสอบดูก่อน — บางรุ่นมีฟรี (ส่วนใหญ่เป็น Operator Manual มากกว่า Service)</td>
+          <td><span class="price-chip free">ฟรี</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://www.manualslib.com" class="lbtn">manualslib.com</a></td>
+        </tr>
+        <tr>
+          <td>HeavyEquipmentForums</td>
+          <td>ฟอรัมมืออาชีพ — มีกระทู้แนะนำแหล่งคู่มือ SK200SR โดยตรง สมาชิกช่วยเหลือกันดี</td>
+          <td><span class="price-chip free">ฟรี (ลงทะเบียน)</span></td>
+          <td class="center"><span class="rel-dot hi"></span>สูง</td>
+          <td><a href="https://www.heavyequipmentforums.com" class="lbtn">heavyequipmentforums.com</a></td>
+        </tr>
+        <tr>
+          <td>Internet Archive</td>
+          <td>ลองค้น "Kobelco SK200SR service manual" — อาจมี scan เก่า</td>
+          <td><span class="price-chip free">ฟรี</span></td>
+          <td class="center"><span class="rel-dot lo"></span>ไม่แน่นอน</td>
+          <td><a href="https://archive.org" class="lbtn">archive.org</a></td>
+        </tr>
+        <tr>
+          <td>machinecatalogic / mhhauto</td>
+          <td>"KOBELCO SHOP MANUAL FULL 55GB" — dump archive รวม ⚠️ คุณภาพ-ลิขสิทธิ์ไม่การันตี</td>
+          <td><span class="price-chip free">ฟรี/ถูก</span></td>
+          <td class="center"><span class="rel-dot lo"></span>ต่ำ</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="alert danger" style="margin-top:12px">
+      <div class="alert-ico">🚫</div>
+      <div class="alert-body"><strong>ระวัง dump archive ขนาดใหญ่</strong> (machinecatalogic/mhhauto "55GB") — มีความเสี่ยงด้านลิขสิทธิ์และคุณภาพวงจรไม่การันตี ไม่แนะนำ</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 3 ══════════ -->
+<div id="s3" class="section">
+  <div class="sec-label">Section 3 — SECONDARY</div>
+  <div class="sec-title">📦 Parts Catalog <small>แหล่งซื้อ/ดาวน์โหลด</small></div>
+
+  <div class="alert info">
+    <div class="alert-ico">ℹ️</div>
+    <div class="alert-body">
+      <strong>Kobelco PowerView EPC</strong> (Electronic Parts Catalog ทางการ) — เป็นซอฟต์แวร์ offline สำหรับ dealer เท่านั้น ไม่มีเว็บ self-service สำหรับลูกค้าทั่วไป (<a href="https://www.kobelconet.com">kobelconet.com</a> ต้อง login dealer) — ลูกค้าต้องขอให้ดีลเลอร์เปิดค้นหาให้ (ในไทยคือ Ariya Equipment)
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-icon" style="background:var(--amber-pale)">📋</div>
+      <div><div class="card-title">แหล่งซื้อ Parts Catalog</div><div class="card-sub">Part Numbers: S3YB01802ZE-01NA · S3YB01803ZE-01na · S3YB03403ZE-01</div></div>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="vendor-table">
+      <thead>
+        <tr><th>แหล่ง</th><th>รายละเอียด</th><th>ราคา</th><th style="text-align:center">ความน่าเชื่อถือ</th><th>ลิงก์</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>eManuals</td>
+          <td>SK200SR/SRLC Parts Catalog + Optional Attachments — PDF downloadable</td>
+          <td><span class="price-chip paid">เช็คเว็บ</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://www.emanuals.com" class="lbtn">emanuals.com</a></td>
+        </tr>
+        <tr>
+          <td>Amazon (Optional Equipment)</td>
+          <td>เล่มจริง — Part# S3YB01802ZE-01NA (Opt. Equipment Excavator Parts Catalog)</td>
+          <td><span class="price-chip paid">เช็คราคา</span></td>
+          <td class="center"><span class="rel-dot hi"></span>สูง</td>
+          <td><a href="https://www.amazon.com/Kobelco-SK200SR-SK200SRLC-Equipment-Excavator/dp/B07B5D7Z9Z" class="lbtn">Amazon — Opt. Equipment</a></td>
+        </tr>
+        <tr>
+          <td>Amazon (Opt. Attachment)</td>
+          <td>เล่มจริง — Part# S3YB01803ZE-01na (Opt. Attachment Excavator Parts Catalog)</td>
+          <td><span class="price-chip paid">เช็คราคา</span></td>
+          <td class="center"><span class="rel-dot hi"></span>สูง</td>
+          <td><a href="https://www.amazon.com/Kobelco-SK200SRLC-SK200SRLC1S-Attachment-Excavator/dp/B07B5DWHNW" class="lbtn">Amazon — Opt. Attachment</a></td>
+        </tr>
+        <tr>
+          <td>eBay (Parts Catalog)</td>
+          <td>Illustrated Parts Manual SK200SR/SR-1S/SRLC/SRLC-1S — เล่มจริง</td>
+          <td><span class="price-chip paid">เช็คราคา</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://www.ebay.com/itm/204680290613" class="lbtn">eBay #204680290613</a></td>
+        </tr>
+        <tr>
+          <td>Kobelco PowerView EPC</td>
+          <td>ระบบ EPC ทางการ — dealer-only, ค้นหาด้วย Model+Serial Number ได้แม่นยำที่สุด</td>
+          <td><span class="price-chip dealer">ผ่านดีลเลอร์</span></td>
+          <td class="center"><span class="rel-dot hi"></span>สูงสุด</td>
+          <td><a href="https://www.kobelconet.com" class="lbtn">kobelconet.com</a></td>
+        </tr>
+        <tr>
+          <td>autocd.info</td>
+          <td>Kobelco English Parts Catalog รวมหลายรุ่น — ตรวจสอบ variant ก่อนซื้อ</td>
+          <td><span class="price-chip paid">เช็คเว็บ</span></td>
+          <td class="center"><span class="rel-dot mid"></span>ปานกลาง</td>
+          <td><a href="https://www.autocd.info/Kobelco_English_Parts_Catalog.output.html" class="lbtn">autocd.info</a></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 4 ══════════ -->
+<div id="s4" class="section">
+  <div class="sec-label">Section 4</div>
+  <div class="sec-title">🇹🇭 แหล่งและดีลเลอร์ในประเทศไทย</div>
+
+  <!-- Ariya -->
+  <div class="dealer-box">
+    <h3>🏢 บริษัท อริยะอีควิปเม้นท์ จำกัด (Ariya Equipment Co., Ltd.)</h3>
+    <div class="dealer-meta">
+      <strong>Sole Distributor</strong> ของ Kobelco hydraulic excavators และ Kobelco cranes ในประเทศไทย — ขายเครื่องจักรไปแล้วกว่า <strong>13,000 คัน</strong>, อะไหล่แท้มากกว่า <strong>60,000–70,000 SKU</strong>, <strong>30 สาขาทั่วประเทศ</strong> + ลาว 1 สาขา + กัมพูชา 3 สาขา
+    </div>
+    <div class="contact-chips">
+      <div class="c-chip"><span class="ico">📞</span> Call Center: <strong>02-730-7111</strong></div>
+      <div class="c-chip"><span class="ico">📞</span> สำนักงาน: <strong>02-730-7000</strong></div>
+      <div class="c-chip"><span class="ico">📱</span> มือถือ: 061-387-4474</div>
+      <div class="c-chip"><span class="ico">📠</span> Fax: 02-730-7007</div>
+      <div class="c-chip"><span class="ico">📧</span> service@ariyagroup.com</div>
+      <div class="c-chip"><span class="ico">📧</span> part@ariyagroup.com</div>
+      <div class="c-chip"><span class="ico">📧</span> marketing@ariyagroup.com</div>
+      <div class="c-chip"><span class="ico">🌐</span><a href="https://www.ariyagroup.com/th" style="color:var(--blue)">ariyagroup.com</a></div>
+      <div class="c-chip"><span class="ico">📍</span> 9/9 หมู่ 1 ถ.บางนา-ตราด ต.ราชาเทวะ อ.บางพลี จ.สมุทรปราการ 10540</div>
+    </div>
+  </div>
+
+  <!-- Kobelco SE Asia -->
+  <div class="dealer-box" style="margin-top:0">
+    <h3>🏭 Kobelco Construction Machinery Southeast Asia</h3>
+    <div class="dealer-meta">โรงงาน/สำนักงานภูมิภาค SEA — Hemaraj Eastern Seaboard Industrial Estate, Rayong</div>
+    <div class="contact-chips">
+      <div class="c-chip"><span class="ico">📞</span> +66 38 950040-44</div>
+      <div class="c-chip"><span class="ico">📍</span> Hemaraj Eastern Seaboard, Rayong</div>
+    </div>
+  </div>
+
+  <!-- Thai shops -->
+  <div class="sec-title" style="font-size:17px;margin-bottom:14px">ร้านคู่มือในไทย — พิมพ์เล่มได้</div>
+  <div class="shop-grid">
+    <div class="shop-card">
+      <h4>🔧 tools111.com</h4>
+      <p>คู่มือซ่อม SK200SR-1S / SK200SR(LC)-1S (รหัส KBC-033) มีข้อมูลทั่วไป ค่าสเปค วงจรไฟฟ้า วงจรไฮดรอลิกส์<br/><span class="tag red">⚠️ ร้านแจ้งเองว่า "วงจรไม่ค่อยชัด"</span></p>
+      <a href="http://www.tools111.com" class="lbtn">tools111.com</a>
+    </div>
+    <div class="shop-card">
+      <h4>📖 tkmanual.com</h4>
+      <p>คู่มือ Kobelco SK200SR-1S (รหัส KBC-033) เหมือนกับ tools111 — ราคาและสต็อกอาจต่างกัน</p>
+      <a href="http://www.tkmanual.com" class="lbtn">tkmanual.com</a>
+    </div>
+    <div class="shop-card">
+      <h4>🖨️ ShopManual2You</h4>
+      <p>พิมพ์กระดาษ <strong>A3</strong> — วงจรไฟฟ้าและไฮดรอลิกชัดกว่า A4 มาก แนะนำถ้าต้องใช้วงจรจริงหน้างาน</p>
+      <a href="https://www.facebook.com/ShopManual2You" class="lbtn">Facebook</a>
+      <span style="display:block;margin-top:8px;font-size:12px;color:var(--text-3)">📱 08-9260-9531</span>
+    </div>
+  </div>
+
+  <div class="alert warn" style="margin-top:14px">
+    <div class="alert-ico">⚠️</div>
+    <div class="alert-body">
+      <strong>ร้านไทยขายคู่มือ SK200SR-1S / SRLC-1S (YB04/LA04) เป็นหลัก</strong> — ถ้ารถเป็นรุ่นเก่ากว่า (YB01–YB03/LA01–LA03) อาจต้องซื้อจากแหล่งต่างประเทศแทน
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 5 ══════════ -->
+<div id="s5" class="section">
+  <div class="sec-label">Section 5</div>
+  <div class="sec-title">✅ Buying Workflow <small>ขั้นตอนแนะนำ</small></div>
+
+  <div class="card">
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">ระบุเลขซีเรียลให้ได้ก่อน</div>
+          <div class="step-desc">ไปดูแผ่น serial ใต้ประตูข้างตัวรถ / บน upper frame — จดรูปแบบ <code>YBxx-xxxxx</code> หรือ <code>LAxx-xxxxx</code> ให้ครบ ถ้าไม่พบแผ่น ให้ถาม Ariya Equipment โดยใส่รูปถ่ายตัวรถ</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">เลือก Publication Number ให้ตรงกับ serial</div>
+          <div class="step-desc">
+            YB04/LA04 → <strong>S5YB0003E-01NA</strong> (SK200SR-1S, 984 หน้า)<br/>
+            YB01–03 / LA01–03 → <strong>S5YB0001E</strong> หรือ <strong>S5YB0002E</strong> ตามช่วงเลข
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">ซื้อคู่มือซ่อม PDF (PRIMARY)</div>
+          <div class="step-desc">แนะนำ <a href="https://therepairmanual.com/kobelco/kobelco-sk200sr-and-sk200sr-lc-excavator-service-manual">TheRepairManual</a> (34–36 USD) — ขอดูตัวอย่างหน้าวงจรก่อนจ่ายเงินเสมอ ถ้าวงจรเบลอ ให้ขอ refund แล้วลองเจ้าอื่น หรือพิมพ์ A3 จาก ShopManual2You</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-title">ซื้อ Parts Catalog (SECONDARY)</div>
+          <div class="step-desc">ซื้อ PDF จาก <a href="https://www.emanuals.com">eManuals</a> หรือเล่มจริงจาก <a href="https://www.amazon.com/Kobelco-SK200SR-SK200SRLC-Equipment-Excavator/dp/B07B5D7Z9Z">Amazon</a> / <a href="https://www.ebay.com/itm/204680290613">eBay</a> — หรือให้ <a href="https://www.ariyagroup.com/th">Ariya Equipment</a> เปิด PowerView EPC ให้ค้นตาม serial (แม่นที่สุด)</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div>
+          <div class="step-title">ถ้าวงจรเบลอ หรืออยากได้เล่มจริง</div>
+          <div class="step-desc">สั่งพิมพ์ A3 จาก <strong>ShopManual2You</strong> (08-9260-9531) หรือติดต่อ Ariya โดยตรงสำหรับคู่มือและอะไหล่แท้ Kobelco</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">⚡</div>
+        <div>
+          <div class="step-title">Benchmark ที่เปลี่ยนคำแนะนำ</div>
+          <div class="step-desc">ถ้าเลขซีเรียลไม่อยู่ในช่วง YB/LA ที่ระบุข้างต้น → อาจเป็นรุ่นอื่น (SK200-6/8, SK210) ต้องหาคู่มือรุ่นนั้นแทน | ถ้าซื้อ PDF แล้ววงจรเบลอ → เปลี่ยนไปพิมพ์ A3 หรือขอไฟล์ต้นฉบับจาก Ariya</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CAVEATS ══════════ -->
+<div id="caveats" class="section">
+  <div class="sec-label">ข้อควรระวัง</div>
+  <div class="sec-title">⚠️ Caveats &amp; ข้อสังเกต</div>
+
+  <div class="card">
+    <div class="caveat-list">
+      <div class="caveat-item"><div class="bul"></div><div>แหล่งขาย third-party ส่วนใหญ่เป็น reseller ไม่ใช่ Kobelco โดยตรง — คุณภาพสแกนแตกต่างกัน <strong>ขอดูตัวอย่างหน้าวงจรก่อนซื้อเสมอ</strong></div></div>
+      <div class="caveat-item"><div class="bul"></div><div>ระบบ eParts ทางการ Kobelco เป็น <strong>dealer-only</strong> ไม่มีเว็บ self-service สำหรับลูกค้าทั่วไป (ข้อมูลจาก HeavyEquipmentForums สอดคล้องกับหน้า dealer portal ทางการ)</div></div>
+      <div class="caveat-item"><div class="bul"></div><div><strong>SK200SR ≠ SK200-6 / SK200-6E / SK210</strong> — คนละ platform, เครื่องยนต์ต่างกัน (Isuzu 4BG1T vs Mitsubishi 6D34-T) คู่มือไม่ใช้ร่วมกันได้ ซื้อเฉพาะ SK200SR ตาม serial เท่านั้น</div></div>
+      <div class="caveat-item"><div class="bul"></div><div>ถ้าเลขซีเรียลไม่อยู่ในช่วง YB01–04 / LA01–04 แปลว่าอาจเป็นรุ่นอื่น ต้องเปลี่ยนไปหาคู่มือรุ่นนั้นแทน</div></div>
+      <div class="caveat-item"><div class="bul"></div><div>Dump archive ขนาดใหญ่ (machinecatalogic/mhhauto "55GB") มีความเสี่ยงด้านลิขสิทธิ์และคุณภาพไม่การันตี — ไม่แนะนำ</div></div>
+      <div class="caveat-item"><div class="bul"></div><div>ราคา third-party บางเจ้าไม่แสดงชัดในหน้าค้นหา — ต้องเข้าหน้าเว็บ ณ เวลาซื้อ ราคาที่ยืนยันได้แน่ชัดคือ TheRepairManual 34/36 USD</div></div>
+      <div class="caveat-item"><div class="bul"></div><div><strong>Operating weight discrepancy:</strong> LECTURA ระบุ 19.9 ตัน ส่วน VeriTread/RitchieSpecs ระบุ 48,500 lb (~22 ตัน) สำหรับ SK200SRLC — ความต่างมาจาก configuration (SR vs SRLC) และ optional equipment</div></div>
+      <div class="caveat-item"><div class="bul"></div><div>epcatalogs ระบุ engine "A-4BG1/<strong>A-6BG1</strong>" ซึ่งเป็น scope ของคู่มือเครื่องยนต์ ไม่ใช่เครื่องที่ติดตั้งจริง — SK200SR ใช้ Isuzu 4BG1T เท่านั้น (ยืนยัน LECTURA + RitchieSpecs)</div></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div style="font-size:13px;color:var(--text-2);margin-bottom:6px;font-weight:600">Kobelco SK200SR — Service &amp; Parts Manual Sourcing Guide (ฉบับสมบูรณ์)</div>
+  <div>แหล่งข้อมูล: LECTURA Specs · RitchieSpecs · VeriTread · TheRepairManual · epcatalogs · HeavyEquipmentForums.com</div>
+  <div>Ariya Equipment (ariyagroup.com) · tools111.com · tkmanual.com · Amazon · eBay · Yahoo Auctions Japan</div>
+</footer>
+
+</body>
+</html>
